@@ -2,27 +2,60 @@
 
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Sparkles, AlertCircle, RefreshCw } from 'lucide-react';
+import { X, Sparkles, AlertCircle, RefreshCw, Code } from 'lucide-react';
+import Editor from '@monaco-editor/react';
+import CodeEditor from '@/components/editor/CodeEditor';
 
 interface HintDrawerProps {
   isOpen: boolean;
   onClose: () => void;
   hintText?: string;
+  hintSnippet?: string;
+  language?: string;
   hintNumber: number;
   maxHints?: number;
   onUnlockNext: () => void;
   isLoading?: boolean;
+  userCode?: string;
+  onUserCodeChange?: (code: string | undefined) => void;
 }
 
 export default function HintDrawer({
   isOpen,
   onClose,
   hintText,
+  hintSnippet,
+  language = 'javascript',
   hintNumber,
   maxHints = 3,
   onUnlockNext,
   isLoading = false,
+  userCode = '',
+  onUserCodeChange,
 }: HintDrawerProps) {
+  const mapLanguage = (lang: string) => {
+    switch (lang.toLowerCase()) {
+      case 'c++':
+      case 'cpp':
+      case 'c':
+        return 'cpp';
+      case 'html-css':
+      case 'html':
+        return 'html';
+      case 'css':
+        return 'css';
+      case 'javascript':
+      case 'js':
+        return 'javascript';
+      case 'python':
+      case 'py':
+        return 'python';
+      case 'java':
+        return 'java';
+      default:
+        return lang.toLowerCase();
+    }
+  };
   return (
     <AnimatePresence>
       {isOpen && (
@@ -36,23 +69,24 @@ export default function HintDrawer({
             className="fixed inset-0 z-40 bg-slate-950/80 cursor-pointer"
           />
 
-          {/* Sliding drawer */}
-          <motion.div
-            initial={{ x: '100%' }}
-            animate={{ x: 0 }}
-            exit={{ x: '100%' }}
-            transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-            className="fixed top-0 right-0 z-50 h-full w-full max-w-md border-l border-slate-800 bg-slate-900 shadow-2xl flex flex-col"
-          >
+          {/* Centered Modal */}
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+              className="w-full max-w-2xl max-h-[90vh] border border-white/[0.1] rounded-2xl bg-[#0a0a0a] bg-noise shadow-2xl flex flex-col overflow-hidden pointer-events-auto"
+            >
             {/* Drawer Header */}
-            <div className="p-4 border-b border-slate-800 flex items-center justify-between bg-slate-950">
+            <div className="p-4 border-b border-white/[0.05] flex items-center justify-between bg-transparent">
               <div className="flex items-center gap-2 text-cyan-400">
                 <Sparkles className="h-5 w-5 animate-pulse" />
                 <span className="font-bold text-sm uppercase tracking-wider">AI Mentor</span>
               </div>
               <button
                 onClick={onClose}
-                className="text-slate-400 hover:text-white p-1 rounded-md hover:bg-slate-800 transition-colors"
+                className="text-slate-400 hover:text-white p-1 hover:bg-white/[0.05] transition-colors"
               >
                 <X className="h-5 w-5" />
               </button>
@@ -60,20 +94,22 @@ export default function HintDrawer({
 
             {/* Drawer Body */}
             <div className="flex-1 p-6 space-y-6 overflow-y-auto">
-              <div className="bg-slate-950/50 p-4 border border-slate-800 rounded-lg space-y-3">
-                <div className="flex items-center justify-between text-xs font-semibold text-slate-400 uppercase">
-                  <span>Hint Level</span>
-                  <span className="text-cyan-400">
-                    {hintNumber}/{maxHints}
-                  </span>
+              {hintNumber > 0 && (
+                <div className="bg-transparent pb-4 border-b border-white/[0.05] space-y-3">
+                  <div className="flex items-center justify-between text-xs font-semibold text-slate-400 uppercase">
+                    <span>Hint Level</span>
+                    <span className="text-cyan-400">
+                      {hintNumber}/{maxHints}
+                    </span>
+                  </div>
+                  <div className="w-full bg-white/5 h-1.5 rounded-full overflow-hidden border border-white/[0.05]">
+                    <div
+                      className="bg-gradient-to-r from-cyan-400 to-emerald-400 h-full rounded-full transition-all duration-300"
+                      style={{ width: `${(hintNumber / maxHints) * 100}%` }}
+                    />
+                  </div>
                 </div>
-                <div className="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
-                  <div
-                    className="bg-gradient-to-r from-cyan-400 to-emerald-400 h-full rounded-full transition-all duration-300"
-                    style={{ width: `${(hintNumber / maxHints) * 100}%` }}
-                  />
-                </div>
-              </div>
+              )}
 
               <div className="space-y-4">
                 {isLoading ? (
@@ -83,21 +119,68 @@ export default function HintDrawer({
                   </div>
                 ) : hintText ? (
                   <div className="space-y-4 animate-fade-in">
-                    <div className="bg-cyan-500/5 border border-cyan-500/10 p-5 rounded-lg text-slate-200 text-sm leading-relaxed whitespace-pre-wrap">
+                    <div className="py-5 border-b border-white/[0.05] text-slate-200 text-sm leading-relaxed whitespace-pre-wrap">
                       {hintText}
                     </div>
 
-                    <div className="flex gap-2 text-slate-400 text-xs italic bg-slate-950 p-3 rounded border border-slate-850">
-                      <AlertCircle className="h-4 w-4 shrink-0 text-amber-500" />
-                      <span>Remember: The mentor points you in the right direction but will never code it for you!</span>
-                    </div>
+                    {hintSnippet && (
+                      <div className="rounded-lg overflow-hidden border border-white/[0.05] h-48 relative bg-transparent">
+                        <div className="absolute top-0 left-0 right-0 bg-transparent border-b border-white/[0.05] px-3 py-1.5 flex items-center gap-2 z-10">
+                          <Sparkles className="h-3 w-3 text-[#d9f95d]" />
+                          <span className="text-[10px] font-mono font-bold text-slate-400 uppercase">Suggested Outline</span>
+                        </div>
+                        <Editor
+                          height="100%"
+                          language={mapLanguage(language)}
+                          theme="vs-dark"
+                          value={hintSnippet}
+                          options={{
+                            readOnly: true,
+                            minimap: { enabled: false },
+                            lineNumbers: 'off',
+                            scrollBeyondLastLine: false,
+                            fontFamily: "'Fira Code', monospace",
+                            padding: { top: 36, bottom: 12 },
+                            overviewRulerLanes: 0,
+                            hideCursorInOverviewRuler: true,
+                            scrollbar: { vertical: 'hidden', horizontal: 'hidden' },
+                          }}
+                        />
+                      </div>
+                    )}
 
-                    {/* Encouraging message below */}
-                    <div className="bg-emerald-500/5 border border-emerald-500/10 p-3.5 rounded-lg text-center">
-                      <p className="text-xs text-emerald-400 font-semibold animate-pulse">
-                        ✨ You can do this! Take a deep breath, review this nudge, and give it another try!
-                      </p>
-                    </div>
+                    {hintNumber > 0 && (
+                      <>
+                        <div className="flex gap-2 text-slate-400 text-xs italic py-3 border-b border-white/[0.05]">
+                          <AlertCircle className="h-4 w-4 shrink-0 text-amber-500" />
+                          <span>Remember: The mentor points you in the right direction but will never code it for you!</span>
+                        </div>
+
+                        {/* Encouraging message below */}
+                        <div className="py-3.5 text-center border-b border-white/[0.05]">
+                          <p className="text-xs text-emerald-400 font-semibold animate-pulse">
+                            ✨ You can do this! Take a deep breath, review this nudge, and give it another try!
+                          </p>
+                        </div>
+                      </>
+                    )}
+
+                    {/* Editable User Code */}
+                    {onUserCodeChange && (
+                      <div className="mt-6 pt-2 pb-6">
+                        <div className="flex items-center gap-2 mb-3">
+                          <Code className="h-4 w-4 text-emerald-400" />
+                          <span className="text-[10px] font-mono font-bold text-slate-300 uppercase">Edit Your Code</span>
+                        </div>
+                        <div className="h-[300px] rounded-lg overflow-hidden border border-white/[0.05]">
+                          <CodeEditor 
+                            language={language}
+                            value={userCode}
+                            onChange={onUserCodeChange}
+                          />
+                        </div>
+                      </div>
+                    )}
                   </div>
                 ) : (
                   <div className="text-center py-12 text-slate-500">
@@ -109,18 +192,19 @@ export default function HintDrawer({
 
             {/* Drawer Footer */}
             {!isLoading && (
-              <div className="p-4 border-t border-slate-800 bg-slate-950 flex justify-end">
+              <div className="p-4 border-t border-white/[0.05] bg-transparent flex justify-end">
                 <button
                   onClick={onUnlockNext}
                   disabled={hintNumber >= maxHints}
-                  className="inline-flex h-10 items-center justify-center gap-2 rounded-md bg-gradient-to-r from-cyan-500 to-emerald-500 px-5 text-sm font-semibold text-slate-950 hover:opacity-90 transition-opacity disabled:from-slate-850 disabled:to-slate-900 disabled:text-slate-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="inline-flex h-10 items-center justify-center gap-2 bg-[#d9f95d] hover:bg-[#b8d945] px-5 text-sm font-semibold text-slate-950 hover:opacity-90 transition-opacity disabled:bg-transparent disabled:text-slate-500 disabled:border disabled:border-white/[0.05] disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <Sparkles className="h-4 w-4" />
                   {hintNumber >= maxHints ? 'All Hints Unlocked' : `Next Hint (${hintNumber + 1}/${maxHints})`}
                 </button>
               </div>
             )}
-          </motion.div>
+            </motion.div>
+          </div>
         </>
       )}
     </AnimatePresence>

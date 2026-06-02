@@ -27,7 +27,7 @@ export default function SubmitButton({
       <button
         onClick={onRun}
         disabled={disabled || isExecuting}
-        className="flex-1 inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-slate-800 text-slate-200 border border-slate-700 font-bold text-sm hover:bg-slate-700 hover:text-white transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed select-none hover:shadow-lg hover:shadow-black/40"
+        className="flex-1 inline-flex h-12 items-center justify-center gap-2 bg-transparent text-slate-200 border border-white/[0.05] font-bold text-sm hover:bg-white/[0.05] hover:text-white transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed select-none"
       >
         {isRunning ? (
           <Loader2 className="h-4 w-4 animate-spin text-emerald-400" />
@@ -40,7 +40,7 @@ export default function SubmitButton({
       <button
         onClick={onSubmit}
         disabled={disabled || isExecuting}
-        className="flex-1 inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-sm transition-all duration-300 hover:scale-[1.03] active:scale-[0.97] shadow-[0_0_15px_rgba(16,185,129,0.3)] hover:shadow-[0_0_25px_rgba(16,185,129,0.5)] disabled:opacity-50 disabled:cursor-not-allowed select-none relative overflow-hidden group"
+        className="flex-1 inline-flex h-12 items-center justify-center gap-2 bg-[#d9f95d] hover:bg-[#b8d945] text-slate-950 font-black text-sm transition-all duration-300 shadow-[0_0_15px_rgba(217,249,93,0.1)] hover:shadow-[0_0_25px_rgba(217,249,93,0.2)] disabled:opacity-50 disabled:cursor-not-allowed select-none relative overflow-hidden group"
       >
         <div className="absolute inset-0 bg-white/20 translate-y-[-100%] group-hover:translate-y-[100%] transition-transform duration-500 ease-in-out" />
         <span className="relative z-10 flex items-center gap-2">
@@ -57,7 +57,7 @@ export default function SubmitButton({
         onClick={onReset}
         disabled={disabled || isExecuting}
         title="Reset Code template"
-        className="inline-flex h-12 w-12 items-center justify-center rounded-xl bg-slate-900 border border-slate-800 text-slate-400 hover:text-white hover:bg-slate-800 transition-all hover:scale-110 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed select-none hover:shadow-md hover:shadow-black/50"
+        className="inline-flex h-12 w-12 items-center justify-center bg-transparent border border-white/[0.05] text-slate-400 hover:text-white hover:bg-white/[0.05] transition-all disabled:opacity-50 disabled:cursor-not-allowed select-none"
       >
         <RotateCcw className="h-4 w-4" />
       </button>

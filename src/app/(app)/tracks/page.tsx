@@ -112,7 +112,7 @@ export default function TracksPage() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-[#070d19] flex flex-col text-slate-100 font-sans">
+    <div className="min-h-screen bg-black bg-noise flex flex-col text-slate-100 font-sans">
       <Navbar />
       <div className="flex flex-1">
         <Sidebar />
@@ -127,9 +127,9 @@ export default function TracksPage() {
             <div className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/25 px-4 py-1 text-xs font-semibold text-emerald-400">
               <Sparkles className="h-3.5 w-3.5" /> Interactive Curricula
             </div>
-            <h1 className="text-3xl md:text-5xl font-extrabold text-white tracking-tight">
+            <h1 className="text-4xl md:text-6xl font-black tracking-tight text-white leading-[1.1]">
               Choose Your{' '}
-              <span className="relative bg-gradient-to-r from-emerald-400 via-teal-400 to-cyan-400 bg-clip-text text-transparent">
+              <span className="text-orange-400 font-script font-normal italic pr-2">
                 Language Track
               </span>
             </h1>
@@ -156,7 +156,7 @@ export default function TracksPage() {
               {[1, 2, 3, 4, 5, 6].map((n) => (
                 <div
                   key={n}
-                  className="bg-[#0B1528] border border-slate-800/80 rounded-2xl p-6 space-y-6 flex flex-col justify-between"
+                  className="bg-transparent border-b border-white/[0.05] p-6 space-y-6 flex flex-col justify-between"
                 >
                   <div className="space-y-5">
                     <div className="flex justify-between items-start">
@@ -169,7 +169,7 @@ export default function TracksPage() {
                       <Skeleton className="h-4 w-5/6 animate-pulse" />
                     </div>
                   </div>
-                  <div className="mt-6 pt-6 border-t border-slate-800/60 space-y-4">
+                  <div className="mt-6 pt-6 border-t border-white/[0.05] space-y-4">
                     <div className="flex justify-between text-xs">
                       <Skeleton className="h-4 w-16 animate-pulse" />
                       <Skeleton className="h-4 w-16 animate-pulse" />
@@ -187,14 +187,13 @@ export default function TracksPage() {
               variants={staggerContainer}
               initial="initial"
               animate="animate"
-              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
+              className="grid grid-cols-1 gap-2"
             >
               {tracks.map((track) => {
                 const meta = TRACK_METADATA[track.slug] || defaultMeta;
                 const progress = track.progress_percentage || 0;
                 const isStarted = track.started || false;
 
-                // Determine button label
                 let btnLabel = 'Start Track';
                 if (isStarted) {
                   btnLabel = progress === 100 ? 'Review Track' : 'Continue Track';
@@ -204,43 +203,49 @@ export default function TracksPage() {
                   <motion.div
                     key={track.id}
                     variants={fadeInUp}
-                    className="bg-[#0B1528] border border-slate-800/80 rounded-2xl p-6 flex flex-col justify-between hover:border-slate-700 hover:scale-[1.01] hover:shadow-2xl hover:shadow-black/35 transition-all duration-300 group relative overflow-hidden"
+                    className="bg-transparent border-b border-white/[0.05] last:border-0 hover:bg-white/[0.02] p-6 flex flex-col md:flex-row md:items-center justify-between gap-6 transition-all duration-300 group relative overflow-hidden"
                   >
-                    {/* Top colored border stripe */}
-                    <div className={`absolute top-0 left-0 right-0 h-1 bg-gradient-to-r ${meta.gradient}`} />
+                    <div className={`absolute left-0 top-0 bottom-0 w-1.5 bg-gradient-to-b ${meta.gradient}`} />
 
-                    <div className="space-y-5">
-                      {/* Card Header */}
-                      <div className="flex items-start justify-between">
-                        <div className={`h-12 w-12 rounded-xl flex items-center justify-center border font-mono text-3xl ${meta.iconBg} group-hover:scale-110 transition-transform duration-300`}>
-                          {track.icon}
-                        </div>
-                        <span className={`inline-flex px-3 py-1 rounded-full text-xs font-bold border ${meta.difficultyColor}`}>
-                          {meta.difficulty}
-                        </span>
+                    <div className="flex items-center gap-6 flex-1 min-w-0 pl-2">
+                      <div className={`h-16 w-16 rounded-xl flex items-center justify-center border font-mono text-4xl bg-black bg-noise border-white/[0.05] shrink-0 group-hover:scale-110 transition-transform duration-300 shadow-inner`}>
+                        {track.icon}
                       </div>
-
-                      {/* Title & Description */}
-                      <div className="space-y-2">
-                        <h3 className="text-2xl font-bold text-white group-hover:text-emerald-400 transition-colors duration-300">
-                          {track.title}
-                        </h3>
-                        <p className="text-slate-400 text-sm leading-relaxed min-h-[60px]">
+                      
+                      <div className="space-y-2 flex-1 min-w-0">
+                        <div className="flex items-center gap-3">
+                          <h3 className="text-xl md:text-2xl font-display font-bold tracking-wide text-white group-hover:text-emerald-400 transition-colors duration-300 truncate">
+                            {track.title}
+                          </h3>
+                          <span className={`inline-flex px-2 py-0.5 rounded text-[10px] font-display font-bold tracking-wide border ${meta.difficultyColor}`}>
+                            {meta.difficulty}
+                          </span>
+                        </div>
+                        <p className="text-slate-400 text-sm leading-relaxed truncate max-w-2xl">
                           {track.description}
                         </p>
+                        
+                        <div className="flex items-center gap-6 text-xs text-slate-400 font-medium pt-1">
+                          <span className="flex items-center gap-1.5">
+                            <Layers className="h-4 w-4 text-emerald-500" />
+                            {track.total_units} Units
+                          </span>
+                          <span className="flex items-center gap-1.5">
+                            <Clock className="h-4 w-4 text-emerald-500" />
+                            {track.total_lessons} Lessons
+                          </span>
+                        </div>
                       </div>
                     </div>
 
-                    {/* Progress details */}
-                    <div className="mt-6 pt-6 border-t border-slate-800/60 space-y-5">
+                    <div className="w-full md:w-auto flex flex-col items-start md:items-end gap-4 shrink-0 pl-2 md:pl-0">
                       {isStarted && (
-                        <div className="space-y-2">
-                          <div className="flex justify-between items-center text-xs">
-                            <span className="text-slate-400 font-medium">Your progress</span>
-                            <span className={`font-bold ${meta.textColor}`}>{progress}%</span>
+                        <div className="w-full md:w-48 space-y-1.5">
+                          <div className="flex justify-between items-center text-[10px] uppercase tracking-wider font-bold">
+                            <span className="text-slate-500">Progress</span>
+                            <span className={meta.textColor}>{progress}%</span>
                           </div>
-                          {/* Progress Bar Container */}
-                          <div className="h-2 w-full bg-slate-950 rounded-full overflow-hidden border border-slate-900">
+                          <div className="h-1.5 w-full bg-[#111111] rounded-full overflow-hidden border border-white/[0.05]">
                             <motion.div
                               initial={{ width: 0 }}
                               animate={{ width: `${progress}%` }}
@@ -251,22 +256,9 @@ export default function TracksPage() {
                         </div>
                       )}
 
-                      {/* Meta information */}
-                      <div className="flex items-center justify-between text-xs text-slate-400 font-medium">
-                        <span className="flex items-center gap-1.5">
-                          <Layers className="h-4 w-4 text-emerald-500" />
-                          {track.total_units} Units
-                        </span>
-                        <span className="flex items-center gap-1.5">
-                          <Clock className="h-4 w-4 text-emerald-500" />
-                          {track.total_lessons} Lessons
-                        </span>
-                      </div>
-
-                      {/* CTA Button */}
                       <Link
                         href={`/tracks/${track.slug}`}
-                        className={`inline-flex w-full h-11 items-center justify-center gap-1.5 rounded-xl bg-slate-900 border border-slate-800 text-sm font-bold text-slate-200 hover:text-slate-950 hover:bg-emerald-500 hover:border-emerald-500 group-hover:shadow-lg group-hover:shadow-emerald-500/10 transition-all duration-300`}
+                        className="inline-flex w-full md:w-auto h-10 px-6 items-center justify-center gap-1.5 rounded-xl bg-[#d9f95d] hover:bg-[#b8d945] text-xs font-display font-bold tracking-wide text-slate-950 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]"
                       >
                         {btnLabel} <ArrowRight className="h-4 w-4" />
                       </Link>

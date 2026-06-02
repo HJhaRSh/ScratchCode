@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
+import { ArrowRight } from 'lucide-react';
 
 export default function SignupPage() {
   const router = useRouter();
@@ -139,25 +140,29 @@ export default function SignupPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center p-4">
-      <div className="w-full max-w-md bg-slate-900 border border-slate-800 rounded-2xl p-8 space-y-6 shadow-2xl shadow-emerald-950/10">
+    <div className="min-h-screen bg-black bg-noise flex flex-col items-center justify-center p-4">
+      <Link href="/" className="absolute top-8 left-8 flex items-center group">
+        <span className="font-logo text-2xl font-bold text-white tracking-tighter hover:text-[#d9f95d] transition-colors">&lt;scratch.code&gt;</span>
+      </Link>
+
+      <div className="w-full max-w-md bg-[#111111] border border-white/[0.05] rounded-3xl p-8 md:p-10 space-y-8 shadow-2xl relative">
         <div className="text-center space-y-2">
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-emerald-400 to-cyan-400 bg-clip-text text-transparent tracking-tight">
+          <h1 className="text-3xl md:text-4xl font-display font-bold text-white tracking-tight">
             Start Learning
           </h1>
           <p className="text-slate-400 text-sm">Create your free account and start coding</p>
         </div>
 
         {error && (
-          <div className="bg-rose-500/10 border border-rose-500/20 text-rose-400 p-3 rounded-lg text-sm text-center animate-pulse">
+          <div className="bg-red-500/10 border border-red-500/20 text-red-400 p-3 rounded-xl text-sm text-center animate-pulse">
             {error}
           </div>
         )}
 
-        <div className="space-y-4">
-          <div className="space-y-1">
+        <div className="space-y-5">
+          <div className="space-y-2">
             <div className="flex justify-between items-center">
-              <label className="text-xs font-semibold text-slate-300">Username</label>
+              <label className="text-[10px] font-display font-bold tracking-widest text-slate-500 uppercase">Username</label>
               {usernameChecking && (
                 <span className="text-[10px] text-slate-500 flex items-center">
                   <span className="w-2.5 h-2.5 mr-1 border border-slate-500 border-t-transparent rounded-full animate-spin"></span>
@@ -165,10 +170,10 @@ export default function SignupPage() {
                 </span>
               )}
               {!usernameChecking && usernameSuccess && (
-                <span className="text-[10px] text-emerald-400 font-semibold">{usernameSuccess}</span>
+                <span className="text-[10px] text-[#d9f95d] font-bold">{usernameSuccess}</span>
               )}
               {!usernameChecking && usernameError && (
-                <span className="text-[10px] text-rose-400 font-semibold">{usernameError}</span>
+                <span className="text-[10px] text-red-400 font-bold">{usernameError}</span>
               )}
             </div>
             <input
@@ -177,49 +182,49 @@ export default function SignupPage() {
               onChange={(e) => setUsername(e.target.value)}
               placeholder="coder_fresher"
               disabled={loading}
-              className={`w-full h-10 px-3 bg-slate-950 border rounded-lg text-slate-100 placeholder-slate-600 focus:outline-none transition-colors disabled:opacity-50 ${
+              className={`w-full h-12 px-4 bg-black border rounded-xl text-white placeholder-slate-600 focus:outline-none transition-colors disabled:opacity-50 font-mono text-sm ${
                 usernameSuccess
-                  ? 'border-emerald-500/50 focus:border-emerald-500'
+                  ? 'border-[#d9f95d]/50 focus:border-[#d9f95d]'
                   : usernameError
-                  ? 'border-rose-500/50 focus:border-rose-500'
-                  : 'border-slate-800 focus:border-cyan-500'
+                  ? 'border-red-500/50 focus:border-red-500'
+                  : 'border-white/10 focus:border-white/30'
               }`}
             />
           </div>
 
-          <div className="space-y-1">
-            <label className="text-xs font-semibold text-slate-300">Email Address</label>
+          <div className="space-y-2">
+            <label className="text-[10px] font-display font-bold tracking-widest text-slate-500 uppercase">Email Address</label>
             <input
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="you@example.com"
               disabled={loading}
-              className="w-full h-10 px-3 bg-slate-950 border border-slate-800 rounded-lg text-slate-100 placeholder-slate-600 focus:outline-none focus:border-cyan-500 transition-colors disabled:opacity-50"
+              className="w-full h-12 px-4 bg-black border border-white/10 rounded-xl text-white placeholder-slate-600 focus:outline-none focus:border-white/30 transition-colors disabled:opacity-50 font-mono text-sm"
             />
           </div>
 
-          <div className="space-y-1">
-            <label className="text-xs font-semibold text-slate-300">Password</label>
+          <div className="space-y-2">
+            <label className="text-[10px] font-display font-bold tracking-widest text-slate-500 uppercase">Password</label>
             <input
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="••••••••"
               disabled={loading}
-              className="w-full h-10 px-3 bg-slate-950 border border-slate-800 rounded-lg text-slate-100 placeholder-slate-600 focus:outline-none focus:border-cyan-500 transition-colors disabled:opacity-50"
+              className="w-full h-12 px-4 bg-black border border-white/10 rounded-xl text-white placeholder-slate-600 focus:outline-none focus:border-white/30 transition-colors disabled:opacity-50 font-mono text-sm"
             />
           </div>
 
-          <div className="space-y-1">
-            <label className="text-xs font-semibold text-slate-300">Confirm Password</label>
+          <div className="space-y-2">
+            <label className="text-[10px] font-display font-bold tracking-widest text-slate-500 uppercase">Confirm Password</label>
             <input
               type="password"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
               placeholder="••••••••"
               disabled={loading}
-              className="w-full h-10 px-3 bg-slate-950 border border-slate-800 rounded-lg text-slate-100 placeholder-slate-600 focus:outline-none focus:border-cyan-500 transition-colors disabled:opacity-50"
+              className="w-full h-12 px-4 bg-black border border-white/10 rounded-xl text-white placeholder-slate-600 focus:outline-none focus:border-white/30 transition-colors disabled:opacity-50 font-mono text-sm"
               onKeyDown={(e) => {
                 if (e.key === 'Enter') handleSignup();
               }}
@@ -229,22 +234,22 @@ export default function SignupPage() {
           <button
             onClick={handleSignup}
             disabled={loading || !!usernameError || usernameChecking}
-            className="w-full h-10 bg-emerald-500 hover:bg-emerald-400 disabled:bg-emerald-800 disabled:text-slate-400 text-slate-950 font-bold rounded-lg transition-all shadow-lg shadow-emerald-500/10 flex items-center justify-center cursor-pointer disabled:cursor-not-allowed transform active:scale-98 mt-2"
+            className="w-full h-12 mt-2 bg-white hover:bg-slate-200 disabled:bg-white/10 disabled:text-slate-500 text-black font-display font-bold tracking-wide rounded-xl transition-all flex items-center justify-center cursor-pointer disabled:cursor-not-allowed transform active:scale-95"
           >
             {loading ? (
               <span className="flex items-center space-x-2">
-                <span className="w-4 h-4 border-2 border-slate-950 border-t-transparent rounded-full animate-spin"></span>
+                <span className="w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin"></span>
                 <span>Creating Account...</span>
               </span>
             ) : (
-              'Sign Up'
+              <span className="flex items-center gap-2">Sign Up <ArrowRight className="w-4 h-4" /></span>
             )}
           </button>
         </div>
 
-        <div className="text-center text-xs text-slate-500">
+        <div className="text-center text-sm text-slate-500 pt-6 border-t border-white/[0.05]">
           Already have an account?{' '}
-          <Link href="/login" className="text-cyan-400 hover:text-cyan-300 font-semibold hover:underline">
+          <Link href="/login" className="text-white hover:text-slate-300 font-bold hover:underline transition-colors">
             Sign In
           </Link>
         </div>

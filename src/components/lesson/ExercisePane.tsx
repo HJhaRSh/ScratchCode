@@ -12,7 +12,7 @@ interface ExercisePaneProps {
 export default function ExercisePane({ taskDescription, expectedOutput, starterCode }: ExercisePaneProps) {
   return (
     <div className="flex flex-col gap-6 text-slate-100 font-sans">
-      <div className="bg-slate-900 border border-slate-800 rounded-lg p-5 space-y-3">
+      <div className="border-b border-white/[0.05] pb-5 space-y-3">
         <div className="flex items-center gap-2 text-emerald-400">
           <Target className="h-5 w-5" />
           <h3 className="font-bold text-sm uppercase tracking-wider">Exercise Goal</h3>
@@ -21,15 +21,15 @@ export default function ExercisePane({ taskDescription, expectedOutput, starterC
       </div>
 
       {expectedOutput && (
-        <div className="bg-slate-900/50 border border-slate-800 rounded-lg p-5 space-y-2">
+        <div className="border-b border-white/[0.05] pb-5 space-y-2">
           <h4 className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Expected Console Output:</h4>
-          <pre className="bg-slate-950 p-4 border border-slate-900 rounded font-mono text-cyan-400 text-xs whitespace-pre-wrap">
+          <pre className="bg-transparent p-4 border border-white/[0.05] font-mono text-cyan-400 text-xs whitespace-pre-wrap">
             {expectedOutput}
           </pre>
         </div>
       )}
 
-      <div className="bg-slate-900/20 border border-dashed border-slate-800 rounded-lg p-5 space-y-2 text-xs text-slate-400">
+      <div className="border-y border-dashed border-white/[0.05] py-5 space-y-2 text-xs text-slate-400">
         <div className="flex items-center gap-1.5 font-semibold text-slate-300">
           <List className="h-4 w-4 text-cyan-400" />
           Quick Instructions:

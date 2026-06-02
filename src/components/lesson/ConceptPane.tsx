@@ -4,6 +4,7 @@ import React from 'react';
 import { BookOpen, HelpCircle, Code, ArrowLeft, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
 import ExercisePane from './ExercisePane';
+import StaticCodeBox from '@/components/ui/StaticCodeBox';
 
 interface ContentSection {
   type: 'paragraph' | 'heading' | 'code_block' | 'callout' | 'list';
@@ -75,6 +76,33 @@ export default function ConceptPane({
     });
   };
 
+  const parseTextWithCodeBlocks = (text: string) => {
+    if (!text) return null;
+    const blocks = text.split(/```/g);
+    return blocks.map((block, index) => {
+      // Even index means it's regular text
+      if (index % 2 === 0) {
+        if (!block.trim()) return null;
+        return (
+          <div key={index} className="space-y-4">
+            {block.trim().split('\n\n').map((p, i) => (
+              <p key={i}>{renderParagraphText(p)}</p>
+            ))}
+          </div>
+        );
+      } else {
+        // Odd index means it's a code block
+        // First line is language, rest is code
+        const firstNewline = block.indexOf('\n');
+        const lang = firstNewline !== -1 ? block.slice(0, firstNewline).trim() : 'code';
+        const code = firstNewline !== -1 ? block.slice(firstNewline + 1).trim() : block.trim();
+        return (
+          <StaticCodeBox key={index} code={code} language={lang} />
+        );
+      }
+    });
+  };
+
   // Render the structured concept sections
   const renderConceptContent = () => {
     if (!contentJson) return null;
@@ -84,15 +112,13 @@ export default function ConceptPane({
       return (
         <div className="space-y-5 text-slate-300 leading-relaxed">
           {contentJson.intro && (
-            <div className="p-4 bg-emerald-500/5 border border-emerald-500/10 rounded-lg text-slate-200 font-medium">
+            <div className="py-4 border-b border-white/[0.05] text-slate-200 font-medium">
               {renderParagraphText(contentJson.intro)}
             </div>
           )}
           {contentJson.body && (
             <div className="space-y-4">
-              {contentJson.body.split('\n\n').map((paragraph: string, idx: number) => (
-                <p key={idx}>{renderParagraphText(paragraph)}</p>
-              ))}
+              {parseTextWithCodeBlocks(contentJson.body)}
             </div>
           )}
         </div>
@@ -115,23 +141,18 @@ export default function ConceptPane({
                 return <p key={idx}>{renderParagraphText(section.text || '')}</p>;
               case 'code_block':
                 return (
-                  <pre
-                    key={idx}
-                    className="bg-slate-900 border border-slate-800 p-4 rounded-lg overflow-x-auto text-xs font-mono text-cyan-300 shadow-inner"
-                  >
-                    <code>{section.code}</code>
-                  </pre>
+                  <StaticCodeBox key={idx} code={section.code || ''} language={section.language || 'code'} />
                 );
               case 'callout':
                 const variantStyles = {
-                  info: 'bg-cyan-500/10 border-cyan-500/20 text-cyan-200',
-                  warning: 'bg-amber-500/10 border-amber-500/20 text-amber-200',
-                  tip: 'bg-emerald-500/10 border-emerald-500/20 text-emerald-200',
+                  info: 'border-cyan-500/20 text-cyan-200',
+                  warning: 'border-amber-500/20 text-amber-200',
+                  tip: 'border-emerald-500/20 text-emerald-200',
                 };
                 return (
                   <div
                     key={idx}
-                    className={`p-4 rounded-lg border text-sm flex gap-3 ${
+                    className={`py-4 border-y border-white/[0.05] text-sm flex gap-3 ${
                       variantStyles[section.variant || 'info']
                     }`}
                   >
@@ -159,9 +180,9 @@ export default function ConceptPane({
   };
 
   return (
-    <div className="flex flex-col h-full bg-slate-950 text-slate-100 overflow-hidden border-r border-slate-900">
+    <div className="flex flex-col h-full bg-transparent text-slate-100 overflow-hidden border-r border-white/[0.05]">
       {/* Tab Navigation Bar */}
-      <div className="flex border-b border-slate-900 bg-slate-950 px-4 shrink-0">
+      <div className="flex border-b border-white/[0.05] bg-transparent px-4 shrink-0">
         <button
           onClick={() => setActiveTab('concept')}
           className={`flex items-center gap-2 px-4 py-3.5 text-xs font-bold uppercase tracking-wider border-b-2 transition-all ${
@@ -207,9 +228,9 @@ export default function ConceptPane({
       <div className="flex-1 overflow-y-auto p-6 space-y-6">
         {activeTab === 'concept' ? (
           <div className="space-y-6">
-            <div className="flex items-center justify-between pb-4 border-b border-slate-900">
+            <div className="flex items-center justify-between pb-4 border-b border-white/[0.05]">
               <h2 className="text-xl font-extrabold tracking-tight text-slate-100">{title}</h2>
-              <span className="text-[10px] bg-slate-900 text-slate-400 px-2 py-1 rounded border border-slate-800 font-semibold uppercase tracking-wider">
+              <span className="text-[10px] bg-transparent text-slate-400 px-2 py-1 rounded border border-white/[0.05] font-semibold uppercase tracking-wider">
                 ⏱️ {duration} mins read
               </span>
             </div>
@@ -224,7 +245,7 @@ export default function ConceptPane({
       </div>
 
       {/* Fixed footer for adjacent lesson navigation */}
-      <div className="p-4 bg-slate-900/40 border-t border-slate-900 flex justify-between gap-4 shrink-0">
+      <div className="p-4 bg-transparent border-t border-white/[0.05] flex justify-between gap-4 shrink-0">
         {previousLessonId ? (
           <Link
             href={`/learn/${previousLessonId}`}

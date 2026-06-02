@@ -41,14 +41,14 @@ export default function OutputPanel({
   }, [testResults, isHTMLCSS]);
 
   return (
-    <div className="w-full h-full bg-slate-950 border border-slate-900 rounded-lg overflow-hidden flex flex-col font-mono shadow-md shadow-black/25">
+    <div className="w-full h-full bg-transparent border border-white/[0.05] flex flex-col font-mono">
       {/* Tab Select Header */}
-      <div className="bg-slate-950 border-b border-slate-900 px-2 py-1 flex items-center gap-2 shrink-0 select-none">
+      <div className="bg-transparent border-b border-white/[0.05] px-2 py-1 flex items-center gap-2 shrink-0 select-none">
         <button
           onClick={() => setActiveTab('console')}
           className={`flex items-center gap-1.5 px-3 py-1.5 rounded text-xs font-bold transition-all ${
             activeTab === 'console'
-              ? 'bg-slate-900 text-slate-100'
+              ? 'bg-white/[0.05] text-slate-100'
               : 'text-slate-500 hover:text-slate-350'
           }`}
         >
@@ -60,7 +60,7 @@ export default function OutputPanel({
           onClick={() => setActiveTab('test-cases')}
           className={`flex items-center gap-1.5 px-3 py-1.5 rounded text-xs font-bold transition-all relative ${
             activeTab === 'test-cases'
-              ? 'bg-slate-900 text-slate-100'
+              ? 'bg-white/[0.05] text-slate-100'
               : 'text-slate-500 hover:text-slate-350'
           }`}
         >
@@ -76,7 +76,7 @@ export default function OutputPanel({
             onClick={() => setActiveTab('preview')}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded text-xs font-bold transition-all ${
               activeTab === 'preview'
-                ? 'bg-slate-900 text-slate-100'
+                ? 'bg-white/[0.05] text-slate-100'
                 : 'text-slate-500 hover:text-slate-350'
             }`}
           >
@@ -87,7 +87,7 @@ export default function OutputPanel({
       </div>
 
       {/* Pane Content */}
-      <div className="flex-1 p-4 overflow-y-auto bg-slate-950 font-mono text-xs select-text">
+      <div className="flex-1 p-4 overflow-y-auto bg-transparent font-mono text-xs select-text">
         {isRunning ? (
           <div className="flex items-center gap-2 text-slate-400 animate-pulse py-4 justify-center">
             <Play className="h-4 w-4 animate-spin text-emerald-500" />
@@ -184,7 +184,7 @@ export default function OutputPanel({
                 className="w-full h-full border-none bg-white"
               />
             ) : (
-              <div className="absolute inset-0 flex items-center justify-center text-slate-400 italic font-sans text-xs bg-slate-950">
+              <div className="absolute inset-0 flex items-center justify-center text-slate-400 italic font-sans text-xs bg-transparent">
                 Write some HTML and render here.
               </div>
             )}

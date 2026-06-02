@@ -1,39 +1,73 @@
+'use client';
+
 import React from 'react';
 import Link from 'next/link';
-import { BookOpen, Compass, Award, Settings } from 'lucide-react';
+import { usePathname } from 'next/navigation';
+import { BookOpen, Compass, Award, Code2 } from 'lucide-react';
+
+const NAV_ITEMS = [
+  {
+    name: 'Dashboard',
+    href: '/dashboard',
+    icon: Compass,
+    activeColor: 'text-cyan-400',
+    indicatorColor: 'bg-cyan-400',
+  },
+  {
+    name: 'Tracks',
+    href: '/tracks',
+    icon: BookOpen,
+    activeColor: 'text-orange-400',
+    indicatorColor: 'bg-orange-400',
+  },
+  {
+    name: 'Badges',
+    href: '/badges',
+    icon: Award,
+    activeColor: 'text-purple-400',
+    indicatorColor: 'bg-purple-400',
+  }
+];
 
 export default function Sidebar() {
+  const pathname = usePathname();
+
   return (
-    <aside className="hidden md:flex md:w-64 border-r border-slate-800 bg-slate-950 flex flex-col h-[calc(100vh-4rem)] sticky top-16 shrink-0">
-      <div className="flex-1 py-6 px-4 space-y-6">
-        <div className="space-y-1">
-          <Link
-            href="/dashboard"
-            className="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md bg-slate-900 text-white hover:bg-slate-900 transition-colors"
-          >
-            <Compass className="h-4 w-4 text-cyan-400" />
-            Dashboard
-          </Link>
-          <Link
-            href="/tracks"
-            className="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md text-slate-400 hover:text-white hover:bg-slate-900/50 transition-colors"
-          >
-            <BookOpen className="h-4 w-4 text-emerald-400" />
-            Tracks
-          </Link>
-          <Link
-            href="/profile/me"
-            className="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md text-slate-400 hover:text-white hover:bg-slate-900/50 transition-colors"
-          >
-            <Award className="h-4 w-4 text-amber-400" />
-            Badges
-          </Link>
-        </div>
-      </div>
-      <div className="p-4 border-t border-slate-900">
-        <div className="flex items-center gap-3 px-3 py-2 text-sm font-medium text-slate-400 hover:text-white transition-colors rounded-md hover:bg-slate-900/50 cursor-pointer">
-          <Settings className="h-4 w-4" />
-          Settings
+    <aside className="hidden md:flex md:w-64 border-r border-slate-800/50 bg-black bg-noise flex flex-col h-[calc(100vh-4rem)] sticky top-16 shrink-0 z-40">
+      <div className="flex-1 py-8 flex flex-col justify-between overflow-y-auto">
+        <div className="space-y-6">
+          <div className="text-xs font-semibold text-slate-500 px-8 flex items-center gap-2 tracking-wide">
+            <Code2 className="h-4 w-4 opacity-70" /> Menu
+          </div>
+          
+          <nav className="flex flex-col gap-1">
+            {NAV_ITEMS.map((item) => {
+              const isActive = pathname === item.href || (item.href !== '/dashboard' && pathname.startsWith(item.href));
+              
+              return (
+                <Link
+                  key={item.name}
+                  href={item.href}
+                  className={`flex items-center gap-3 px-8 py-3 transition-colors relative ${
+                    isActive 
+                      ? `bg-white/[0.02] ${item.activeColor}` 
+                      : 'text-slate-400 hover:text-slate-200 hover:bg-white/[0.01]'
+                  }`}
+                >
+                  {isActive && (
+                    <div 
+                      className={`absolute left-0 top-0 bottom-0 w-1 ${item.indicatorColor}`}
+                    />
+                  )}
+                  
+                  <item.icon className={`h-4.5 w-4.5 transition-colors ${isActive ? item.activeColor : ''}`} />
+                  <span className={`text-sm font-medium tracking-wide ${isActive ? 'font-bold' : ''}`}>
+                    {item.name}
+                  </span>
+                </Link>
+              );
+            })}
+          </nav>
         </div>
       </div>
     </aside>

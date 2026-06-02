@@ -129,27 +129,28 @@ export default function DashboardPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-950 flex flex-col text-slate-100">
+      <div className="min-h-screen bg-black bg-noise flex flex-col text-slate-100">
         <Navbar />
         <div className="flex flex-1">
           <Sidebar />
           <main className="flex-1 p-4 md:p-8 overflow-y-auto space-y-8 max-w-7xl mx-auto w-full">
             {/* Header skeletal layout */}
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-900 pb-6">
-              <div className="space-y-2">
-                <Skeleton className="h-8 w-48" />
-                <Skeleton className="h-4 w-72" />
+            <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-white/[0.05] pb-10 relative">
+              <div className="absolute -top-20 left-0 w-[500px] h-[250px] bg-[#d9f95d]/5 rounded-[100%] blur-[120px] pointer-events-none" />
+              <div className="space-y-4 relative z-10">
+                <Skeleton className="h-6 w-32 rounded-full bg-white/5" />
+                <Skeleton className="h-12 w-64 md:w-96 bg-white/5" />
+                <Skeleton className="h-5 w-72 bg-white/5" />
               </div>
-              <div className="flex gap-2">
-                <Skeleton className="h-9 w-32 rounded-full" />
-                <Skeleton className="h-9 w-28 rounded-full" />
+              <div className="flex gap-3 relative z-10 md:pb-2">
+                <Skeleton className="h-10 w-40 rounded-full bg-white/5" />
               </div>
             </div>
 
             {/* Stats Row */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {[1, 2, 3].map((i) => (
-                <div key={i} className="bg-[#0B1528] border border-slate-800/80 rounded-2xl p-6 flex items-center gap-5">
+                <div key={i} className="bg-[#0B1528] border border-white/[0.05]/80 rounded-2xl p-6 flex items-center gap-5">
                   <Skeleton className="h-14 w-14 rounded-2xl animate-pulse" />
                   <div className="space-y-2 flex-1">
                     <Skeleton className="h-3 w-24 animate-pulse" />
@@ -169,7 +170,7 @@ export default function DashboardPage() {
                   <div className="flex items-center gap-2">
                     <Skeleton className="h-6 w-40 animate-pulse" />
                   </div>
-                  <div className="bg-[#0B1528] border border-slate-800 rounded-2xl p-6 flex flex-col md:flex-row md:items-center justify-between gap-6">
+                  <div className="bg-[#0B1528] border border-white/[0.05] rounded-2xl p-6 flex flex-col md:flex-row md:items-center justify-between gap-6">
                     <div className="flex items-center gap-4 flex-1">
                       <Skeleton className="h-12 w-12 rounded-xl animate-pulse" />
                       <div className="space-y-2 flex-1">
@@ -182,7 +183,7 @@ export default function DashboardPage() {
                 </div>
 
                 {/* Activity Chart */}
-                <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-6">
+                <div className="bg-white/[0.01] backdrop-blur-xl border border-white/[0.05] rounded-2xl p-6 space-y-6">
                   <div className="flex justify-between border-b border-slate-850 pb-4">
                     <Skeleton className="h-6 w-48 animate-pulse" />
                     <Skeleton className="h-6 w-24 animate-pulse" />
@@ -201,14 +202,14 @@ export default function DashboardPage() {
               {/* Right Column (1/3 width) */}
               <div className="space-y-8">
                 {/* Leaderboard */}
-                <div className="bg-[#0B1528] border border-slate-800/80 rounded-2xl p-6 space-y-5">
+                <div className="bg-[#0B1528] border border-white/[0.05]/80 rounded-2xl p-6 space-y-5">
                   <div className="flex justify-between border-b border-slate-850 pb-3">
                     <Skeleton className="h-6 w-36 animate-pulse" />
                     <Skeleton className="h-5 w-16 animate-pulse" />
                   </div>
                   <div className="space-y-3">
                     {[1, 2, 3, 4, 5].map((i) => (
-                      <div key={i} className="flex items-center justify-between p-3 rounded-xl bg-slate-900/60 border border-slate-850">
+                      <div key={i} className="flex items-center justify-between p-3 rounded-xl bg-white/[0.01] backdrop-blur-xl/60 border border-slate-850">
                         <div className="flex items-center gap-3">
                           <Skeleton className="h-6 w-6 rounded-lg animate-pulse" />
                           <Skeleton className="h-8 w-8 rounded-full animate-pulse" />
@@ -229,12 +230,12 @@ export default function DashboardPage() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-slate-950 flex flex-col text-slate-100">
+      <div className="min-h-screen bg-black bg-noise flex flex-col text-slate-100">
         <Navbar />
         <div className="flex flex-1">
           <Sidebar />
           <main className="flex-1 p-4 md:p-8 flex items-center justify-center">
-            <div className="bg-[#0B1528] border border-slate-800 rounded-2xl p-8 max-w-md w-full text-center space-y-6 shadow-xl shadow-red-950/10">
+            <div className="bg-[#0B1528] border border-white/[0.05] rounded-2xl p-8 max-w-md w-full text-center space-y-6 shadow-xl shadow-none">
               <div className="h-16 w-16 bg-red-500/10 border border-red-500/20 text-red-400 rounded-2xl flex items-center justify-center mx-auto text-3xl">
                 ⚠️
               </div>
@@ -245,14 +246,14 @@ export default function DashboardPage() {
               {error.includes('sign in') ? (
                 <Link
                   href="/login"
-                  className="inline-flex h-11 items-center justify-center rounded-xl bg-emerald-500 px-6 font-bold text-slate-950 hover:bg-emerald-400 transition-all w-full"
+                  className="inline-flex h-11 items-center justify-center rounded-xl bg-[#d9f95d] px-6 font-bold text-slate-950 hover:bg-[#d9f95d] transition-all w-full"
                 >
                   Sign In
                 </Link>
               ) : (
                 <button
                   onClick={fetchDashboardData}
-                  className="inline-flex h-11 items-center justify-center rounded-xl bg-slate-800 border border-slate-700 hover:border-slate-600 text-white px-6 font-bold hover:bg-slate-750 transition-all w-full"
+                  className="inline-flex h-11 items-center justify-center rounded-xl bg-white/10 border border-slate-700 hover:border-slate-600 text-white px-6 font-bold hover:bg-slate-750 transition-all w-full"
                 >
                   Retry Connection
                 </button>
@@ -271,109 +272,93 @@ export default function DashboardPage() {
   const maxWeeklyXP = data ? Math.max(...data.weekly_xp.map((d) => d.xp), 0) : 0;
 
   return (
-    <div className="min-h-screen bg-slate-950 flex flex-col text-slate-100">
+    <div className="min-h-screen bg-black bg-noise flex flex-col text-slate-100">
       <Navbar />
       <div className="flex flex-1">
         <Sidebar />
         <main className="flex-1 p-4 md:p-8 overflow-y-auto space-y-8 max-w-7xl mx-auto w-full">
           {/* Header HUD greeting */}
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-900 pb-6">
-            <div className="space-y-1">
-              <h1 className="text-3xl font-extrabold tracking-tight text-white flex items-center gap-2">
-                Coder HUD <span className="text-xs bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 font-bold px-2.5 py-0.5 rounded-full uppercase tracking-widest animate-pulse">Online</span>
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-white/[0.05] pb-10 relative">
+            <div className="absolute -top-20 left-0 w-[500px] h-[250px] bg-[#d9f95d]/5 rounded-[100%] blur-[120px] pointer-events-none" />
+            
+            <div className="space-y-4 relative z-10">
+              <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-1.5 text-[10px] font-mono font-bold tracking-[0.2em] text-[#d9f95d] uppercase">
+                [01] Command Center
+              </div>
+              <h1 className="text-5xl md:text-7xl font-black text-white tracking-tighter leading-[1.05]">
+                Welcome back, <br className="hidden md:block" />
+                <span className="text-[#d9f95d] font-script font-normal italic pr-2">{user?.username || 'Coder'}</span>
               </h1>
-              <p className="text-slate-400 text-sm">Welcome back, <span className="font-semibold text-emerald-400">@{user?.username}</span>! Keep your daily streak blazing.</p>
+              <p className="text-slate-400 text-lg max-w-md">Ready to execute some code today? Keep your daily streak blazing.</p>
             </div>
-            <div className="flex flex-wrap gap-2.5">
-              <span className="inline-flex h-9 items-center gap-1.5 rounded-full bg-slate-900 border border-slate-800 px-4 text-xs font-bold text-slate-300">
-                <Compass className="h-4 w-4 text-cyan-400" /> Sector: Dashboard
+            
+            <div className="flex flex-wrap gap-3 relative z-10 md:pb-2">
+              <span className="inline-flex h-10 items-center gap-2 rounded-full bg-white/5 backdrop-blur-xl border border-white/10 px-5 text-xs font-mono font-bold tracking-widest uppercase text-slate-300 shadow-xl">
+                <Compass className="h-4 w-4 text-cyan-400" /> Dashboard
               </span>
-              <span className="inline-flex h-9 items-center gap-1.5 rounded-full bg-slate-900 border border-slate-800 px-4 text-xs font-bold text-slate-300">
-                <Code2 className="h-4 w-4 text-purple-400" /> Version: 1.0.0
+              <span className="inline-flex h-10 items-center gap-2 rounded-full bg-white/5 backdrop-blur-xl border border-white/10 px-5 text-xs font-mono font-bold tracking-widest uppercase text-emerald-400 shadow-xl animate-pulse">
+                 Online
               </span>
             </div>
           </div>
 
-          {/* TOP ROW — 3 stat cards side by side */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {/* Streak Card */}
-            <motion.div 
-              whileHover={{ scale: 1.015 }}
-              className="bg-[#0B1528] border border-slate-800/80 hover:border-orange-500/40 rounded-2xl p-6 flex items-center gap-5 relative overflow-hidden group transition-all shadow-[0_4px_20px_rgba(0,0,0,0.25)]"
-            >
-              <div className="absolute top-0 right-0 h-24 w-24 bg-orange-500/5 rounded-full blur-2xl group-hover:bg-orange-500/10 transition-all" />
-              <div className="h-14 w-14 rounded-2xl bg-orange-500/10 border border-orange-500/20 flex items-center justify-center text-3xl text-orange-400">
-                <motion.span
-                  animate={{ y: [0, -4, 0] }}
-                  transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
-                >
-                  🔥
-                </motion.span>
+          {/* TOP ROW — Unified Stats Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-white/[0.05] border-b border-white/[0.05] mb-12">
+            {/* Streak Stat */}
+            <div className="py-8 px-4 md:px-8 relative group hover:bg-white/[0.02] transition-colors flex flex-col justify-center">
+              <div className="flex items-center justify-between mb-4">
+                <div className="text-[10px] font-mono font-bold uppercase tracking-[0.2em] text-slate-500 group-hover:text-orange-400 transition-colors">Current Streak</div>
+                <Flame className="h-5 w-5 text-orange-500/50 group-hover:text-orange-400 transition-colors" />
               </div>
-              <div className="space-y-1">
-                <div className="text-xs font-semibold uppercase tracking-wider text-slate-400">Current Streak</div>
-                <div className="text-2xl font-black text-white group-hover:text-orange-400 transition-colors">
-                  {user?.streak_count} Days
-                </div>
-                <div className="text-[11px] text-slate-500">
-                  {user?.streak_count && user.streak_count > 0 ? "You're on fire! Keep it up." : "Complete a lesson to start a streak!"}
-                </div>
+              <div className="flex items-baseline gap-2">
+                <div className="text-5xl font-black text-white tracking-tighter">{user?.streak_count || 0}</div>
+                <div className="text-sm font-bold text-slate-500 uppercase tracking-widest">Days</div>
               </div>
-            </motion.div>
+              <div className="mt-4 text-xs text-slate-400 font-medium">
+                {user?.streak_count && user.streak_count > 0 ? "You're on fire! Keep it up." : "Complete a lesson to start."}
+              </div>
+            </div>
 
-            {/* XP Card */}
-            <motion.div 
-              whileHover={{ scale: 1.015 }}
-              className="bg-[#0B1528] border border-slate-800/80 hover:border-amber-500/40 rounded-2xl p-6 flex items-center gap-5 relative overflow-hidden group transition-all shadow-[0_4px_20px_rgba(0,0,0,0.25)]"
-            >
-              <div className="absolute top-0 right-0 h-24 w-24 bg-amber-500/5 rounded-full blur-2xl group-hover:bg-amber-500/10 transition-all" />
-              <div className="h-14 w-14 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-3xl text-amber-400">
-                <Star className="h-7 w-7 text-amber-400 fill-amber-400/20 group-hover:rotate-45 transition-transform duration-300" />
+            {/* XP Stat */}
+            <div className="py-8 px-4 md:px-8 relative group hover:bg-white/[0.02] transition-colors flex flex-col justify-center">
+              <div className="flex items-center justify-between mb-4">
+                <div className="text-[10px] font-mono font-bold uppercase tracking-[0.2em] text-slate-500 group-hover:text-emerald-400 transition-colors">Total Experience</div>
+                <Star className="h-5 w-5 text-emerald-500/50 group-hover:text-emerald-400 transition-colors" />
               </div>
-              <div className="space-y-1">
-                <div className="text-xs font-semibold uppercase tracking-wider text-slate-400">Cumulative Experience</div>
-                <div className="text-2xl font-black text-white group-hover:text-amber-400 transition-colors">
-                  {user?.xp} XP
-                </div>
-                <div className="text-[11px] text-slate-500">Total XP accumulated overall</div>
+              <div className="flex items-baseline gap-2">
+                <div className="text-5xl font-black text-white tracking-tighter">{user?.xp || 0}</div>
+                <div className="text-sm font-bold text-slate-500 uppercase tracking-widest">XP</div>
               </div>
-            </motion.div>
+              <div className="mt-4 text-xs text-slate-400 font-medium">
+                Accumulated across all tracks.
+              </div>
+            </div>
 
-            {/* Level Card */}
-            <motion.div 
-              whileHover={{ scale: 1.015 }}
-              className="bg-[#0B1528] border border-slate-800/80 hover:border-emerald-500/40 rounded-2xl p-6 flex items-center gap-5 relative overflow-hidden group transition-all shadow-[0_4px_20px_rgba(0,0,0,0.25)]"
-            >
-              <div className="absolute top-0 right-0 h-24 w-24 bg-emerald-500/5 rounded-full blur-2xl group-hover:bg-emerald-500/10 transition-all" />
-              <div className="h-14 w-14 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-3xl text-emerald-400">
-                <Award className="h-7 w-7 text-emerald-400 group-hover:scale-110 transition-transform duration-300" />
+            {/* Level Stat */}
+            <div className="py-8 px-4 md:px-8 relative group hover:bg-white/[0.02] transition-colors flex flex-col justify-center">
+              <div className="flex items-center justify-between mb-4">
+                <div className="text-[10px] font-mono font-bold uppercase tracking-[0.2em] text-slate-500 group-hover:text-purple-400 transition-colors">Rank Standing</div>
+                <Award className="h-5 w-5 text-purple-500/50 group-hover:text-purple-400 transition-colors" />
               </div>
-              <div className="space-y-1.5 flex-1 min-w-0">
-                <div className="text-xs font-semibold uppercase tracking-wider text-slate-400">Rank Standing</div>
-                <div className="text-lg font-black text-white truncate group-hover:text-emerald-400 transition-colors flex items-center gap-1.5">
-                  Lvl {user?.level} <span className="text-xs font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">{levelName}</span>
+              <div className="flex items-baseline gap-3 mb-4">
+                <div className="text-5xl font-black text-white tracking-tighter">{user?.level || 1}</div>
+                <div className="text-[10px] font-bold text-purple-400 bg-purple-500/10 px-2 py-1 rounded border border-purple-500/20 uppercase tracking-widest">{levelName}</div>
+              </div>
+              {/* Ultra minimal progress bar */}
+              <div className="space-y-2 w-full">
+                <div className="w-full h-1 bg-white/5 rounded-full overflow-hidden">
+                  <div 
+                    className="h-full bg-[#d9f95d] rounded-full transition-all duration-500" 
+                    style={{ width: `${levelProgress.percent}%` }}
+                  />
                 </div>
-                {/* Level Progress Subtext Bar */}
-                <div className="space-y-1">
-                  <div className="w-full h-1.5 bg-slate-900 rounded-full overflow-hidden border border-slate-800">
-                    <div 
-                      className="h-full bg-gradient-to-r from-emerald-500 to-cyan-400 rounded-full transition-all duration-500" 
-                      style={{ width: `${levelProgress.percent}%` }}
-                    />
-                  </div>
-                  <div className="flex justify-between text-[9px] text-slate-500 font-semibold font-mono">
-                    <span>{levelProgress.current} / {levelProgress.next} XP</span>
-                    {levelProgress.needed > 0 ? (
-                      <span>-{levelProgress.needed} XP to Level Up</span>
-                    ) : (
-                      <span>MAX LEVEL Reached</span>
-                    )}
-                  </div>
+                <div className="flex justify-between text-[10px] font-mono text-slate-500">
+                  <span>{levelProgress.current} / {levelProgress.next}</span>
+                  <span>{levelProgress.percent.toFixed(0)}%</span>
                 </div>
               </div>
-            </motion.div>
+            </div>
           </div>
-
           {/* TWO COLUMN GRID — Content Main */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
             
@@ -383,7 +368,7 @@ export default function DashboardPage() {
               {/* CONTINUE LEARNING SECTION */}
               <div className="space-y-4">
                 <div className="flex items-center gap-2">
-                  <Zap className="h-5 w-5 text-emerald-400 fill-emerald-400/10" />
+                  <Zap className="h-5 w-5 text-cyan-400 fill-cyan-400/10" />
                   <h2 className="text-xl font-bold text-white tracking-tight">Continue Learning</h2>
                 </div>
 
@@ -392,8 +377,8 @@ export default function DashboardPage() {
                     {data.tracks_progress.map((track) => (
                       <motion.div
                         key={track.track_slug}
-                        whileHover={{ y: -2 }}
-                        className="bg-slate-900 border border-slate-800 hover:border-slate-700/80 rounded-2xl p-6 flex flex-col md:flex-row md:items-center justify-between gap-6 shadow-md transition-all relative overflow-hidden"
+                        whileHover={{ y: -1 }}
+                        className="bg-transparent border-b border-white/[0.05] last:border-0 hover:bg-white/[0.01] p-4 flex flex-col md:flex-row md:items-center justify-between gap-6 transition-all relative overflow-hidden"
                       >
                         {/* Custom visual color strip */}
                         <div 
@@ -403,19 +388,19 @@ export default function DashboardPage() {
                         
                         {/* Track Info */}
                         <div className="flex items-center gap-4 flex-1">
-                          <div className="h-12 w-12 rounded-xl bg-slate-950 border border-slate-850 flex items-center justify-center text-2xl shadow-inner">
+                          <div className="h-12 w-12 rounded-xl bg-black bg-noise border border-slate-850 flex items-center justify-center text-2xl shadow-inner">
                             {track.track_icon || '🚀'}
                           </div>
                           <div className="space-y-1.5 flex-1">
                             <h3 className="font-bold text-white text-base flex items-center gap-2">
                               {track.track_title}
-                              <span className="text-[10px] px-1.5 py-0.5 bg-slate-800 rounded font-bold text-slate-400">
+                              <span className="text-[10px] px-1.5 py-0.5 bg-white/10 rounded font-bold text-slate-400">
                                 {track.progress_percentage}% Complete
                               </span>
                             </h3>
                             {/* Track progress bar */}
                             <div className="space-y-1 max-w-md">
-                              <div className="w-full h-2 bg-slate-950 border border-slate-900 rounded-full overflow-hidden">
+                              <div className="w-full h-2 bg-black bg-noise border border-white/[0.05] rounded-full overflow-hidden">
                                 <div 
                                   className="h-full rounded-full transition-all duration-500" 
                                   style={{ 
@@ -446,14 +431,14 @@ export default function DashboardPage() {
                               </div>
                               <Link
                                 href={`/learn/${track.next_lesson.id}`}
-                                className="inline-flex h-10 items-center justify-center gap-1.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-extrabold text-xs tracking-wide px-5 hover:scale-[1.02] active:scale-[0.98] transition-all shadow-md shadow-emerald-500/10 cursor-pointer"
+                                className="inline-flex h-10 items-center justify-center gap-1.5 rounded-xl bg-[#d9f95d] hover:bg-[#d9f95d] text-slate-950 font-extrabold text-xs tracking-wide px-5 hover:scale-[1.02] active:scale-[0.98] transition-all shadow-md shadow-[#d9f95d]/10 cursor-pointer"
                               >
                                 Resume Mission <ChevronRight className="h-4 w-4 stroke-[3px]" />
                               </Link>
                             </>
                           ) : (
                             <div className="md:text-right">
-                              <div className="text-xs font-bold text-emerald-400 flex items-center gap-1 md:justify-end">
+                              <div className="text-xs font-bold text-[#d9f95d] flex items-center gap-1 md:justify-end">
                                 🎉 Track Mastered
                               </div>
                               <div className="text-[10px] text-slate-500 mt-0.5">
@@ -461,7 +446,7 @@ export default function DashboardPage() {
                               </div>
                               <Link
                                 href="/tracks"
-                                className="mt-2.5 inline-flex h-8 items-center justify-center rounded-lg bg-slate-800 hover:bg-slate-700 text-white font-bold text-[10px] px-3.5 transition-colors cursor-pointer"
+                                className="mt-2.5 inline-flex h-8 items-center justify-center rounded-lg bg-white/10 hover:bg-slate-700 text-white font-bold text-[10px] px-3.5 transition-colors cursor-pointer"
                               >
                                 Explore Other Tracks
                               </Link>
@@ -476,11 +461,11 @@ export default function DashboardPage() {
                   <motion.div 
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="bg-[#0B1528]/80 border border-dashed border-slate-800 rounded-2xl p-8 text-center space-y-6 shadow-xl relative overflow-hidden"
+                    className="border border-dashed border-white/10 rounded-xl p-12 text-center space-y-6 relative overflow-hidden"
                   >
-                    <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/5 to-cyan-500/5 opacity-50" />
-                    <div className="h-16 w-16 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 rounded-full flex items-center justify-center mx-auto text-3xl relative">
-                      <Sparkles className="h-8 w-8 text-emerald-400 animate-pulse" />
+                    <div className="absolute inset-0 bg-gradient-to-r from-orange-500/5 to-amber-500/5 opacity-50" />
+                    <div className="h-16 w-16 bg-orange-500/10 border border-orange-500/20 text-orange-500 rounded-full flex items-center justify-center mx-auto text-3xl relative">
+                      <Sparkles className="h-8 w-8 text-orange-400 animate-pulse" />
                     </div>
                     <div className="space-y-2 max-w-sm mx-auto relative">
                       <h3 className="text-lg font-bold text-white">Select Your Coding Track</h3>
@@ -489,7 +474,7 @@ export default function DashboardPage() {
                     <div className="relative">
                       <Link
                         href="/tracks"
-                        className="inline-flex h-11 items-center justify-center gap-1.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold px-6 shadow-lg shadow-emerald-500/10 hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer"
+                        className="inline-flex h-11 items-center justify-center gap-1.5 rounded-xl bg-orange-500 hover:bg-orange-400 text-white font-bold px-6 shadow-lg shadow-orange-500/20 hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer"
                       >
                         Choose Your First Track <ChevronRight className="h-4.5 w-4.5 stroke-[2.5px]" />
                       </Link>
@@ -499,12 +484,12 @@ export default function DashboardPage() {
               </div>
 
               {/* ACTIVITY THIS WEEK (Bar Chart) */}
-              <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-6 shadow-md">
-                <div className="flex items-center justify-between border-b border-slate-850 pb-4">
-                  <h3 className="text-base font-bold text-white flex items-center gap-2">
-                    <Calendar className="h-5 w-5 text-cyan-400" /> Daily Activity This Week
-                  </h3>
-                  <div className="flex items-center gap-1 text-[11px] font-bold text-slate-400 bg-slate-950 border border-slate-850 px-2.5 py-1 rounded-md">
+              <div className="space-y-6 pt-8 border-t border-white/[0.05]">
+                <div className="flex items-center justify-between border-b border-white/10 pb-6">
+                  <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-1.5 text-[10px] font-mono font-bold tracking-[0.2em] text-slate-300 uppercase">
+                    [03] Activity Chart
+                  </div>
+                  <div className="flex items-center gap-1 text-[11px] font-bold text-slate-400 bg-black bg-noise border border-slate-850 px-2.5 py-1 rounded-md">
                     <TrendingUp className="h-3.5 w-3.5 text-cyan-400" /> Last 7 Days
                   </div>
                 </div>
@@ -527,12 +512,11 @@ export default function DashboardPage() {
                           <div key={idx} className="flex-1 flex flex-col items-center h-full group relative">
                             {/* Hover tooltip */}
                             <div className="absolute -top-7 opacity-0 group-hover:opacity-100 transition-all duration-200 pointer-events-none z-10">
-                              <span className="bg-slate-950 border border-slate-850 text-white font-mono text-[9px] font-bold px-2 py-0.5 rounded shadow shadow-emerald-500/5 whitespace-nowrap">
+                              <span className="bg-black bg-noise border border-slate-850 text-white font-mono text-[9px] font-bold px-2 py-0.5 rounded shadow shadow-[#d9f95d]/5 whitespace-nowrap">
                                 ⭐ {day.xp} XP
                               </span>
                             </div>
 
-                            {/* Bar container */}
                             <div className="w-full flex-1 flex items-end justify-center relative">
                               <motion.div
                                 initial={{ height: 0 }}
@@ -540,8 +524,8 @@ export default function DashboardPage() {
                                 transition={{ delay: idx * 0.05, duration: 0.6, ease: "easeOut" }}
                                 className={`w-3/4 sm:w-1/2 rounded-t-lg relative transition-colors ${
                                   day.xp > 0 
-                                    ? "bg-gradient-to-t from-emerald-500 to-cyan-400 shadow-[0_0_10px_rgba(16,185,129,0.15)] group-hover:from-emerald-400 group-hover:to-cyan-300" 
-                                    : "bg-slate-800/40"
+                                    ? "bg-gradient-to-t from-purple-500 to-pink-500 shadow-[0_0_10px_rgba(168,85,247,0.15)] group-hover:from-purple-400 group-hover:to-pink-400" 
+                                    : "bg-white/10/40"
                                 }`}
                               />
                             </div>
@@ -556,7 +540,7 @@ export default function DashboardPage() {
                     </div>
                   ) : (
                     // Chart Empty State (No XP earned in 7 days)
-                    <div className="h-48 flex flex-col items-center justify-center text-center space-y-2 border border-slate-850 border-dashed rounded-xl bg-slate-950/30">
+                    <div className="h-48 flex flex-col items-center justify-center text-center space-y-2 border border-slate-850 border-dashed rounded-xl bg-black bg-noise/30">
                       <div className="text-2xl filter saturate-50 opacity-60">📊</div>
                       <div className="text-xs font-bold text-slate-400">No activity recorded this week</div>
                       <p className="text-[10px] text-slate-500 max-w-[240px]">Work on track modules and correct exercises to populate your weekly mini-chart stats!</p>
@@ -570,14 +554,14 @@ export default function DashboardPage() {
             <div className="space-y-8">
               
               {/* LEADERBOARD WIDGET */}
-              <div className="bg-[#0B1528] border border-slate-800/80 rounded-2xl p-6 space-y-5 shadow-lg relative overflow-hidden">
+              <div className="space-y-6 relative overflow-hidden">
                 <div className="absolute top-0 right-0 h-16 w-16 bg-cyan-500/5 rounded-full blur-xl" />
                 
-                <div className="flex items-center justify-between border-b border-slate-850 pb-3">
-                  <h3 className="text-base font-bold text-white flex items-center gap-2">
-                    <Trophy className="h-5 w-5 text-amber-400" /> Top Coders This Week
-                  </h3>
-                  <span className="text-[10px] font-bold text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20">
+                <div className="flex items-center justify-between border-b border-white/10 pb-6">
+                  <div className="inline-flex items-center gap-2 rounded-full border border-amber-500/10 bg-amber-500/5 px-4 py-1.5 text-[10px] font-mono font-bold tracking-[0.2em] text-amber-400 uppercase">
+                    [04] Top Coders
+                  </div>
+                  <span className="text-[10px] font-bold text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20 uppercase tracking-widest">
                     Weekly
                   </span>
                 </div>
@@ -588,7 +572,7 @@ export default function DashboardPage() {
                       const isCurrentUser = row.username === user?.username;
                       
                       // Custom metallic colors for top 3
-                      let rankBadgeClass = "bg-slate-900 border-slate-800 text-slate-400";
+                      let rankBadgeClass = "bg-white/[0.01] backdrop-blur-xl border-white/[0.05] text-slate-400";
                       if (row.rank === 1) rankBadgeClass = "bg-amber-500/15 border-amber-500/30 text-amber-400 shadow shadow-amber-500/10";
                       else if (row.rank === 2) rankBadgeClass = "bg-slate-300/10 border-slate-300/20 text-slate-300";
                       else if (row.rank === 3) rankBadgeClass = "bg-amber-700/15 border-amber-700/25 text-amber-600";
@@ -596,10 +580,10 @@ export default function DashboardPage() {
                       return (
                         <div
                           key={row.username}
-                          className={`flex items-center justify-between p-3 rounded-xl border transition-all ${
+                          className={`flex items-center justify-between py-3 border-b border-white/[0.05] last:border-0 transition-all ${
                             isCurrentUser
-                              ? "bg-emerald-500/5 border-emerald-500/30 shadow-[0_0_12px_rgba(16,185,129,0.05)]"
-                              : "bg-slate-900/60 border-slate-850 hover:border-slate-800"
+                              ? "bg-cyan-500/5 px-3 rounded-lg -mx-3"
+                              : "hover:bg-white/[0.01] px-3 rounded-lg -mx-3"
                           }`}
                         >
                           <div className="flex items-center gap-3 min-w-0">
@@ -614,13 +598,13 @@ export default function DashboardPage() {
                             {/* Username */}
                             <span 
                               className={`text-xs font-bold truncate max-w-[120px] ${
-                                isCurrentUser ? "text-emerald-400" : "text-slate-200"
+                                isCurrentUser ? "text-cyan-400" : "text-slate-200"
                               }`}
                               title={`@${row.username}`}
                             >
                               @{row.username}
                               {isCurrentUser && (
-                                <span className="block text-[8px] text-emerald-500 font-bold uppercase tracking-wider font-mono">You</span>
+                                <span className="block text-[8px] text-cyan-400 font-bold uppercase tracking-wider font-mono">You</span>
                               )}
                             </span>
                           </div>
@@ -644,11 +628,11 @@ export default function DashboardPage() {
               </div>
 
               {/* RECENT BADGES WIDGET */}
-              <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-4 shadow-md relative">
-                <div className="flex items-center justify-between border-b border-slate-850 pb-3">
-                  <h3 className="text-base font-bold text-white flex items-center gap-2">
-                    <Award className="h-5 w-5 text-emerald-400" /> Recent Badges
-                  </h3>
+              <div className="space-y-6 pt-12 border-t border-white/[0.05] relative">
+                <div className="flex items-center justify-between border-b border-white/10 pb-6">
+                  <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-1.5 text-[10px] font-mono font-bold tracking-[0.2em] text-slate-300 uppercase">
+                    [05] Recent Badges
+                  </div>
                 </div>
 
                 <div className="space-y-3">
@@ -665,9 +649,9 @@ export default function DashboardPage() {
                           return (
                             <div 
                               key={b.slug}
-                              className="bg-slate-950 border border-slate-850 rounded-xl p-3 flex items-center gap-3.5 group hover:border-slate-800 transition-colors"
+                              className="flex items-center gap-3.5 group hover:bg-white/[0.01] p-2 transition-colors border-b border-white/[0.05] last:border-0"
                             >
-                              <div className="h-10 w-10 rounded-lg bg-slate-900 flex items-center justify-center text-2xl filter drop-shadow group-hover:scale-110 transition-transform">
+                              <div className="h-10 w-10 rounded-lg bg-white/[0.01] backdrop-blur-xl flex items-center justify-center text-2xl filter drop-shadow group-hover:scale-110 transition-transform">
                                 {b.icon_emoji}
                               </div>
                               <div className="min-w-0 flex-1">
@@ -683,8 +667,8 @@ export default function DashboardPage() {
                       </div>
                       <div className="pt-2 border-t border-slate-850">
                         <Link 
-                          href="/profile/me" 
-                          className="text-xs text-emerald-400 hover:text-emerald-300 font-bold flex items-center gap-1 transition-colors group cursor-pointer justify-center"
+                          href="/badges" 
+                          className="text-xs text-[#d9f95d] hover:text-emerald-300 font-bold flex items-center gap-1 transition-colors group cursor-pointer justify-center"
                         >
                           View all badges 
                           <ChevronRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
@@ -693,7 +677,7 @@ export default function DashboardPage() {
                     </>
                   ) : (
                     // Badges Empty State
-                    <div className="text-center py-6 border border-slate-850 border-dashed rounded-xl bg-slate-950/30 space-y-3">
+                    <div className="text-center py-6 border border-slate-850 border-dashed rounded-xl bg-black bg-noise/30 space-y-3">
                       <div className="text-2xl filter grayscale opacity-60">🏅</div>
                       <div className="space-y-0.5 max-w-[200px] mx-auto">
                         <div className="text-xs font-bold text-slate-400">No Badges Unlocked</div>
@@ -702,7 +686,7 @@ export default function DashboardPage() {
                       <div className="pt-1.5">
                         <Link 
                           href="/tracks" 
-                          className="inline-flex h-7 items-center justify-center rounded-lg bg-slate-800 hover:bg-slate-700 text-white text-[10px] font-bold px-3.5 transition-colors cursor-pointer"
+                          className="inline-flex h-7 items-center justify-center rounded-lg bg-white/10 hover:bg-slate-700 text-white text-[10px] font-bold px-3.5 transition-colors cursor-pointer"
                         >
                           Explore Tracks
                         </Link>

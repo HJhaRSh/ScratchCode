@@ -77,9 +77,10 @@ export default function LearnLessonPage() {
   const [isHintOpen, setIsHintOpen] = useState(false);
   const [hintNumber, setHintNumber] = useState(0);
   const [hintText, setHintText] = useState<string | undefined>(undefined);
+  const [hintSnippet, setHintSnippet] = useState<string | undefined>(undefined);
   const [isHintLoading, setIsHintLoading] = useState(false);
   const [attemptsCount, setAttemptsCount] = useState(0);
-  const [unlockedHints, setUnlockedHints] = useState<{ [key: number]: string }>({});
+  const [unlockedHints, setUnlockedHints] = useState<{ [key: number]: { text: string; snippet?: string } }>({});
 
   // Success Gamification Modal States
   const [isSuccessOpen, setIsSuccessOpen] = useState(false);
@@ -398,7 +399,8 @@ export default function LearnLessonPage() {
     if (nextNum > 3) return;
 
     if (unlockedHints[nextNum]) {
-      setHintText(unlockedHints[nextNum]);
+      setHintText(unlockedHints[nextNum].text);
+      setHintSnippet(unlockedHints[nextNum].snippet);
       setHintNumber(nextNum);
       return;
     }
@@ -417,14 +419,17 @@ export default function LearnLessonPage() {
 
       const data = await res.json();
       if (res.ok) {
-        setUnlockedHints((prev) => ({ ...prev, [nextNum]: data.hint_text }));
+        setUnlockedHints((prev) => ({ ...prev, [nextNum]: { text: data.hint_text, snippet: data.snippet } }));
         setHintText(data.hint_text);
+        setHintSnippet(data.snippet);
         setHintNumber(nextNum);
       } else {
         setHintText(data.error || "AI Mentor is currently busy compiling logic. Try review your brackets and variables in the meantime!");
+        setHintSnippet(undefined);
       }
     } catch (err) {
       setHintText("Could not connect to AI Mentor. Check your connections.");
+      setHintSnippet(undefined);
     } finally {
       setIsHintLoading(false);
     }
@@ -432,10 +437,10 @@ export default function LearnLessonPage() {
 
   if (loading) {
     return (
-      <div className="h-screen w-screen bg-slate-950 flex flex-col items-center justify-center text-slate-100 font-sans">
+      <div className="h-screen w-screen bg-black bg-noise flex flex-col items-center justify-center text-slate-100 font-sans">
         <div className="flex flex-col items-center gap-4">
           <div className="relative w-12 h-12">
-            <div className="absolute inset-0 border-4 border-emerald-500/20 rounded-full" />
+            <div className="absolute inset-0 border-4 border-[#d9f95d]/20 rounded-full" />
             <div className="absolute inset-0 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin" />
           </div>
           <p className="text-sm font-semibold tracking-wider uppercase text-slate-400 animate-pulse">
@@ -448,13 +453,13 @@ export default function LearnLessonPage() {
 
   if (!lesson) {
     return (
-      <div className="h-screen w-screen bg-slate-950 flex flex-col items-center justify-center text-slate-150 p-6">
-        <div className="bg-slate-900 border border-slate-800 p-8 rounded-xl max-w-md text-center space-y-4 shadow-xl">
-          <h2 className="text-xl font-bold text-rose-500">Curriculum Error</h2>
+      <div className="h-screen w-screen bg-black bg-noise flex flex-col items-center justify-center text-slate-150 p-6">
+        <div className="bg-transparent border-y border-white/[0.05] p-8 max-w-md text-center space-y-4">
+          <h2 className="text-xl font-display font-bold tracking-wide text-rose-500">Curriculum Error</h2>
           <p className="text-sm text-slate-400">
             The requested lesson could not be located in our tracks database. Let's redirect you back safely.
           </p>
-          <Link href="/dashboard" className="inline-flex h-10 items-center justify-center px-6 rounded-md bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold transition-colors">
+          <Link href="/dashboard" className="inline-flex h-10 items-center justify-center px-6 rounded-md bg-[#d9f95d] text-black hover:bg-[#b8d945] text-slate-950 font-bold transition-colors">
             Back to Dashboard
           </Link>
         </div>
@@ -463,9 +468,9 @@ export default function LearnLessonPage() {
   }
 
   return (
-    <div className="h-screen bg-slate-950 flex flex-col overflow-hidden text-slate-100 font-sans antialiased">
+    <div className="h-screen bg-black bg-noise flex flex-col overflow-hidden text-slate-100 font-sans antialiased">
       {/* Lesson Header Navbar */}
-      <header className="h-14 border-b border-slate-900 bg-slate-950 px-4 md:px-6 flex items-center justify-between shrink-0 select-none">
+      <header className="h-14 border-b border-slate-900 bg-black bg-noise px-4 md:px-6 flex items-center justify-between shrink-0 select-none">
         {/* Left Side: Navigation Breadcrumb */}
         <div className="flex items-center gap-1.5 md:gap-3 text-xs md:text-sm font-semibold overflow-hidden whitespace-nowrap">
           <Link 
@@ -491,7 +496,7 @@ export default function LearnLessonPage() {
               {/* Streak Count with Orange Glowing Flame */}
               <div 
                 title="Current active coding streak"
-                className="flex items-center gap-1.5 text-orange-400 text-xs font-extrabold bg-orange-950/15 px-2 py-1 rounded border border-orange-500/10 shadow-sm"
+                className="flex items-center gap-1.5 text-orange-400 text-xs font-display tracking-tight font-bold bg-orange-950/15 px-2 py-1 rounded border border-orange-500/10 shadow-sm"
               >
                 <Flame className="h-4 w-4 fill-current animate-pulse text-orange-500" />
                 <span className="hidden sm:inline">{userStats.streak_count} Days</span>
@@ -501,7 +506,7 @@ export default function LearnLessonPage() {
               {/* User XP Stats */}
               <div 
                 title="Total earned XP points"
-                className="flex items-center gap-1.5 text-amber-400 text-xs font-extrabold bg-amber-950/15 px-2 py-1 rounded border border-amber-500/10 shadow-sm"
+                className="flex items-center gap-1.5 text-amber-400 text-xs font-display tracking-tight font-bold bg-amber-950/15 px-2 py-1 rounded border border-amber-500/10 shadow-sm"
               >
                 <Star className="h-4 w-4 fill-current text-amber-500" />
                 <span>{userStats.xp}<span className="hidden sm:inline"> XP</span></span>
@@ -516,28 +521,28 @@ export default function LearnLessonPage() {
                 setIsHintOpen(true);
                 if (hintNumber === 0) handleUnlockHint(1);
               }}
-              className="inline-flex h-8 items-center gap-1.5 rounded-md bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 text-xs font-bold px-2 sm:px-3 hover:bg-cyan-500/20 transition-all shadow-inner"
+              className="inline-flex h-8 items-center gap-1.5 bg-transparent border border-white/[0.05] text-white text-xs font-bold px-2 sm:px-3 hover:bg-white/[0.05] transition-all"
             >
-              <Sparkles className="h-3.5 w-3.5 text-cyan-400 shrink-0" />
+              <Sparkles className="h-3.5 w-3.5 text-white shrink-0" />
               <span className="hidden sm:inline">Get Hint</span>
               <span className="inline sm:hidden">Hint</span>
             </button>
           )}
 
           {/* Settings Trigger Icon */}
-          <button className="text-slate-500 hover:text-slate-300 transition-colors p-1 rounded hover:bg-slate-900 shrink-0">
+          <button className="text-slate-500 hover:text-slate-300 transition-colors p-1 rounded hover:bg-[#111111] shrink-0">
             <Settings className="h-4 w-4" />
           </button>
         </div>
       </header>
 
       {/* Mobile-Only Main Workspace Tab Switcher */}
-      <div className="md:hidden flex border-b border-slate-900 bg-slate-950 shrink-0">
+      <div className="md:hidden flex border-b border-slate-900 bg-black bg-noise shrink-0">
         <button
           onClick={() => setMobileView('instructions')}
           className={`flex-1 py-3 text-center text-xs font-bold uppercase tracking-wider border-b-2 transition-all ${
             mobileView === 'instructions'
-              ? 'border-emerald-500 text-emerald-400'
+              ? 'border-emerald-500 text-[#d9f95d]'
               : 'border-transparent text-slate-500'
           }`}
         >
@@ -547,7 +552,7 @@ export default function LearnLessonPage() {
           onClick={() => setMobileView('workspace')}
           className={`flex-1 py-3 text-center text-xs font-bold uppercase tracking-wider border-b-2 transition-all ${
             mobileView === 'workspace'
-              ? 'border-emerald-500 text-emerald-400'
+              ? 'border-emerald-500 text-[#d9f95d]'
               : 'border-transparent text-slate-500'
           }`}
         >
@@ -578,7 +583,7 @@ export default function LearnLessonPage() {
 
         {/* Right Pane - IDE, Output Console, Actions */}
         <div 
-          className={`w-full md:w-1/2 h-full flex flex-col overflow-hidden bg-slate-950 p-4 gap-4 ${
+          className={`w-full md:w-1/2 h-full flex flex-col overflow-hidden bg-black bg-noise p-4 gap-4 ${
             mobileView === 'workspace' ? 'flex' : 'hidden md:flex'
           }`}
         >
@@ -625,28 +630,32 @@ export default function LearnLessonPage() {
         onClose={() => setIsHintOpen(false)}
         hintNumber={hintNumber}
         hintText={hintText}
+        hintSnippet={hintSnippet}
+        language={lesson?.language}
         isLoading={isHintLoading}
         onUnlockNext={handleUnlockHint}
+        userCode={code}
+        onUserCodeChange={(val) => setCode(val || '')}
       />
 
       {/* Immersive Celebrations success overlay modal */}
       {isSuccessOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/90 p-4 animate-fade-in font-sans">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-noise/90 p-4 animate-fade-in font-sans">
           {/* Outer Card */}
-          <div className="bg-slate-900 border border-emerald-500/20 max-w-md w-full rounded-2xl p-6 md:p-8 text-center space-y-6 shadow-2xl relative overflow-hidden animate-scale-up">
+          <div className="bg-black bg-noise border-y border-[#d9f95d]/20 max-w-md w-full p-6 md:p-8 text-center space-y-6 shadow-2xl relative overflow-hidden animate-scale-up">
             {/* Glowing decorative lights */}
-            <div className="absolute -top-12 -left-12 w-24 h-24 bg-emerald-500/10 rounded-full blur-2xl" />
-            <div className="absolute -bottom-12 -right-12 w-24 h-24 bg-cyan-500/10 rounded-full blur-2xl" />
+            <div className="absolute -top-12 -left-12 w-24 h-24 bg-[#d9f95d]/10 rounded-full blur-2xl" />
+            <div className="absolute -bottom-12 -right-12 w-24 h-24 bg-white/10 rounded-full blur-2xl" />
 
-            <div className="inline-flex h-16 w-16 items-center justify-center rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400">
-              <Trophy className="h-8 w-8 animate-bounce text-emerald-400" />
+            <div className="inline-flex h-16 w-16 items-center justify-center rounded-full bg-[#d9f95d]/10 border border-[#d9f95d]/30 text-[#d9f95d]">
+              <Trophy className="h-8 w-8 animate-bounce text-[#d9f95d]" />
             </div>
 
             <div className="space-y-2">
               <h2 className="text-2xl font-black text-slate-100 tracking-tight flex items-center justify-center gap-1.5">
-                <Sparkle className="h-5 w-5 text-emerald-400 fill-current" />
+                <Sparkle className="h-5 w-5 text-[#d9f95d] fill-current" />
                 Lesson Completed!
-                <Sparkle className="h-5 w-5 text-emerald-400 fill-current" />
+                <Sparkle className="h-5 w-5 text-[#d9f95d] fill-current" />
               </h2>
               <p className="text-slate-400 text-xs md:text-sm">
                 Excellent coding! You solved the objective logic matching all strict test criteria.
@@ -656,8 +665,8 @@ export default function LearnLessonPage() {
             {/* Gamified Rewards */}
             <div className="grid grid-cols-2 gap-4">
               {/* Streak reward count card */}
-              <div className="bg-slate-950 p-4 rounded-xl border border-slate-850 text-center flex flex-col items-center justify-center">
-                <div className="flex items-center justify-center gap-1 text-orange-400 font-extrabold text-lg">
+              <div className="bg-transparent p-4 border-b border-white/[0.05] text-center flex flex-col items-center justify-center">
+                <div className="flex items-center justify-center gap-1 text-orange-400 font-display tracking-tight font-bold text-lg">
                   <Flame className="h-5 w-5 fill-current text-orange-500 animate-pulse" />
                   <span>{newStreak} Days</span>
                 </div>
@@ -667,8 +676,8 @@ export default function LearnLessonPage() {
               </div>
 
               {/* XP reward count card */}
-              <div className="bg-slate-950 p-4 rounded-xl border border-slate-850 text-center flex flex-col items-center justify-center">
-                <div className="flex items-center justify-center gap-1 text-amber-400 font-extrabold text-lg">
+              <div className="bg-transparent p-4 border-b border-white/[0.05] text-center flex flex-col items-center justify-center">
+                <div className="flex items-center justify-center gap-1 text-amber-400 font-display tracking-tight font-bold text-lg">
                   <Star className="h-5 w-5 fill-current text-amber-500" />
                   <span>+{earnedXp} XP</span>
                 </div>
@@ -680,20 +689,20 @@ export default function LearnLessonPage() {
 
             {/* Badges Unlocked Section */}
             {newBadges.length > 0 && (
-              <div className="bg-slate-950/60 p-4 border border-cyan-500/10 rounded-xl space-y-3">
-                <div className="flex items-center justify-center gap-1.5 text-cyan-400 text-[10px] uppercase tracking-wider font-extrabold">
-                  <Award className="h-4 w-4 text-cyan-400" />
+              <div className="bg-transparent p-4 border-y border-cyan-500/10 space-y-3">
+                <div className="flex items-center justify-center gap-1.5 text-white text-[10px] uppercase tracking-wider font-display tracking-tight font-bold">
+                  <Award className="h-4 w-4 text-white" />
                   <span>Achievements Unlocked</span>
                 </div>
                 
                 <div className="space-y-3.5">
                   {newBadges.map((badge, index) => (
                     <div key={index} className="flex items-center gap-3 text-left">
-                      <span className="text-2xl shrink-0 p-1.5 bg-slate-900 rounded border border-slate-800 shadow">
+                      <span className="text-2xl shrink-0 p-1.5 bg-[#111111] rounded border border-white/[0.05] shadow">
                         {badge.icon_emoji}
                       </span>
                       <div>
-                        <h4 className="text-xs font-extrabold text-slate-100 uppercase tracking-wide">
+                        <h4 className="text-xs font-display tracking-tight font-bold text-slate-100 uppercase tracking-wide">
                           {badge.title}
                         </h4>
                         <p className="text-[10px] text-slate-400 mt-0.5 leading-snug">
@@ -731,7 +740,7 @@ export default function LearnLessonPage() {
               
               <Link
                 href="/dashboard"
-                className="inline-flex h-10 items-center justify-center text-slate-400 hover:text-slate-200 text-xs font-semibold hover:bg-slate-950/20 rounded-md transition-colors"
+                className="inline-flex h-10 items-center justify-center text-slate-400 hover:text-slate-200 text-xs font-semibold hover:bg-black bg-noise/20 rounded-md transition-colors"
               >
                 Back to Dashboard
               </Link>

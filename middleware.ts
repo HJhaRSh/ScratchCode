@@ -35,12 +35,13 @@ export async function middleware(request: NextRequest) {
 
   const url = request.nextUrl.clone();
 
-  // Route protection
   const isProtectedPath =
     url.pathname === '/dashboard' ||
     url.pathname.startsWith('/learn') ||
     url.pathname.startsWith('/profile') ||
-    url.pathname === '/settings';
+    url.pathname === '/settings' ||
+    url.pathname === '/account' ||
+    url.pathname === '/badges';
 
   const isAuthPath =
     url.pathname === '/login' ||

@@ -40,6 +40,7 @@ export function useUser() {
     try {
       await supabase.auth.signOut();
       setUser(null);
+      window.location.href = '/';
     } catch (err) {
       console.error('Error signing out:', err);
     } finally {

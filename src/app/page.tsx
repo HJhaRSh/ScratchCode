@@ -2,7 +2,10 @@
 
 import React from 'react';
 import Navbar from '@/components/layout/Navbar';
+import CodingBackground from '@/components/ui/CodingBackground';
+import CodeTerminalHero from '@/components/ui/CodeTerminalHero';
 import Link from 'next/link';
+import Image from 'next/image';
 import { 
   BookOpen, 
   Lightbulb, 
@@ -19,6 +22,7 @@ import {
   Sparkles
 } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { useUser } from '@/hooks/useUser';
 
 // Custom SVG Github icon to avoid version discrepancies
 const Github = (props: React.SVGProps<SVGSVGElement>) => (
@@ -45,7 +49,7 @@ const tracks = [
     units: 12,
     hours: 15,
     difficulty: 'Beginner',
-    difficultyColor: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
+    difficultyColor: 'bg-[#d9f95d]/10 text-[#d9f95d] border-[#d9f95d]/20',
     description: 'Learn the most versatile programming language. Great for scripting, data analysis, and automation.',
     href: '/signup?track=python',
     customIcon: '🐍',
@@ -57,7 +61,7 @@ const tracks = [
     units: 15,
     hours: 18,
     difficulty: 'Beginner',
-    difficultyColor: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
+    difficultyColor: 'bg-[#d9f95d]/10 text-[#d9f95d] border-[#d9f95d]/20',
     description: 'Bring websites to life. Master DOM manipulation, events, asynchronous programming, and logic.',
     href: '/signup?track=javascript',
     customIcon: '💛',
@@ -93,7 +97,7 @@ const tracks = [
     units: 14,
     hours: 20,
     difficulty: 'Beginner',
-    difficultyColor: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
+    difficultyColor: 'bg-[#d9f95d]/10 text-[#d9f95d] border-[#d9f95d]/20',
     description: 'Deep dive into Object-Oriented programming structures, classes, compilers, and reliable system building.',
     href: '/signup?track=java',
     customIcon: '☕',
@@ -112,7 +116,7 @@ const highlights = [
     title: 'AI mentor hints',
     description: 'Stuck on a tricky challenge? Get context-aware, friendly hints that guide your reasoning, not just the code.',
     icon: Sparkles,
-    color: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20 hover:bg-emerald-500/20',
+    color: 'text-[#d9f95d] bg-[#d9f95d]/10 border-[#d9f95d]/20 hover:bg-[#d9f95d]/20',
   },
   {
     title: 'Build real projects',
@@ -145,69 +149,101 @@ const staggerItem = {
 };
 
 export default function LandingPage() {
+  const { user, loading } = useUser();
+  const ctaLink = (!loading && user) ? '/dashboard' : '/signup';
+  const heroCtaText = (!loading && user) ? 'Go to Dashboard' : 'Start for free';
+  const finalCtaText = (!loading && user) ? 'Go to Dashboard' : 'Get Started for Free';
   return (
-    <div className="min-h-screen bg-[#030712] flex flex-col text-slate-100 font-sans selection:bg-emerald-500/30 selection:text-emerald-100 overflow-x-hidden">
+    <div className="min-h-screen bg-black bg-noise flex flex-col text-slate-100 font-sans selection:bg-[#d9f95d]/30 selection:text-[#d9f95d] overflow-x-hidden relative">
+      <CodingBackground />
       <Navbar />
 
       {/* Hero Section */}
-      <section className="relative overflow-hidden pt-32 pb-24 md:pt-48 md:pb-32 border-b border-white/[0.04]">
+      <section className="relative overflow-hidden min-h-[90vh] flex items-center pt-20 pb-32 border-b border-white/[0.04]">
         {/* Soft elegant glowing backdrops */}
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_60%_60%_at_50%_-10%,rgba(16,185,129,0.1),rgba(59,130,246,0.05),transparent)]" />
-        
-        {/* Decorative Grid Lines */}
-        <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_80%_80%_at_50%_0%,black,transparent)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_60%_60%_at_70%_50%,rgba(217,249,93,0.05),transparent)] pointer-events-none" />
 
-        <div className="container mx-auto px-4 max-w-6xl text-center space-y-8 relative z-10">
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.5 }}
-            className="inline-flex items-center gap-2 rounded-full glass-panel px-4 py-1.5 text-xs font-medium text-emerald-400 border-emerald-500/20"
-          >
-            <Sparkles className="h-3.5 w-3.5" /> India's First Zero-Install Coding Platform
-          </motion.div>
-
-          <motion.h1 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.1 }}
-            className="text-5xl sm:text-6xl md:text-8xl font-black tracking-tight text-white max-w-5xl mx-auto leading-[1.1] drop-shadow-2xl"
-          >
-            Learn to code from{' '}
-            <span className="neon-text relative">
-              absolute zero.
-            </span>
-          </motion.h1>
-
-          <motion.p 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.2 }}
-            className="text-slate-400 text-lg md:text-xl max-w-2xl mx-auto leading-relaxed"
-          >
-            Short lessons. Real code. No installs. Pick a language and write your first program in under 30 seconds.
-          </motion.p>
-
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.3 }}
-            className="flex flex-col sm:flex-row justify-center gap-4 pt-6"
-          >
-            <Link
-              href="/signup"
-              className="group relative inline-flex h-12 items-center justify-center gap-2 rounded-full bg-emerald-500 px-8 font-bold text-slate-950 hover:bg-emerald-400 hover:scale-105 active:scale-95 transition-all duration-300 shadow-[0_0_30px_rgba(16,185,129,0.2)] hover:shadow-[0_0_40px_rgba(16,185,129,0.4)] overflow-hidden"
+        <div className="container mx-auto px-4 sm:px-8 max-w-7xl relative z-10 grid lg:grid-cols-2 gap-16 items-center">
+          
+          {/* Left Column - Text Content */}
+          <div className="space-y-8">
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+              className="inline-flex items-center gap-2 text-[10px] font-mono font-bold tracking-[0.2em] text-slate-400 uppercase"
             >
-              <div className="absolute inset-0 bg-white/20 translate-y-[-100%] group-hover:translate-y-[100%] transition-transform duration-500 ease-in-out" />
-              <span className="relative z-10 flex items-center gap-2">Start for free <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" /></span>
-            </Link>
-            <a
-              href="#how-it-works"
-              className="inline-flex h-12 items-center justify-center rounded-full glass-panel px-8 font-medium text-slate-300 hover:text-white hover:bg-white/5 transition-all duration-300"
+              [01] Zero-Install Coding Platform
+            </motion.div>
+
+            <motion.h1 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.1 }}
+              className="text-5xl sm:text-7xl lg:text-8xl font-black tracking-tighter text-white leading-[1.05]"
             >
-              See how it works
-            </a>
-          </motion.div>
+              Learn to <br />
+              code from <br />
+              <span className="font-script accent-lime font-normal italic pr-4">
+                absolute zero.
+              </span>
+            </motion.h1>
+
+            <motion.p 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.2 }}
+              className="text-slate-400 text-lg md:text-xl max-w-lg leading-relaxed"
+            >
+              Short lessons. Real code. No installs. Pick a language and write your first program in under 30 seconds.
+            </motion.p>
+
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.3 }}
+              className="flex flex-col sm:flex-row gap-4 pt-4"
+            >
+              <Link
+                href={ctaLink}
+                className="inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-[#d9f95d] px-8 font-display font-bold text-slate-950 hover:bg-[#b8d945] hover:scale-[1.02] active:scale-[0.98] transition-all duration-300"
+              >
+                {heroCtaText} <ArrowRight className="h-4 w-4" />
+              </Link>
+              <a
+                href="#how-it-works"
+                className="inline-flex h-12 items-center justify-center rounded-xl glass-panel px-8 font-display font-medium text-slate-300 hover:text-white hover:bg-white/5 transition-all duration-300"
+              >
+                <div className="w-2 h-2 rounded-full bg-[#d9f95d] mr-2" />
+                How it works
+              </a>
+            </motion.div>
+
+            {/* Stats Row */}
+            <motion.div
+               initial={{ opacity: 0, y: 20 }}
+               animate={{ opacity: 1, y: 0 }}
+               transition={{ duration: 0.6, delay: 0.4 }}
+               className="flex flex-wrap items-center gap-6 pt-8 text-[10px] font-mono font-bold tracking-widest text-slate-500 uppercase"
+            >
+              <div className="flex items-center gap-2">
+                <span className="accent-lime">★ 5.0</span> Learner Rating
+              </div>
+              <div className="w-1 h-1 rounded-full bg-slate-700 hidden sm:block" />
+              <div className="flex items-center gap-2">
+                <span className="accent-lime">100K+</span> Executions
+              </div>
+              <div className="w-1 h-1 rounded-full bg-slate-700 hidden sm:block" />
+              <div className="flex items-center gap-2">
+                <span className="accent-lime">Zero</span> Setup Required
+              </div>
+            </motion.div>
+          </div>
+
+          {/* Right Column - Code Terminal Animation */}
+          <div className="hidden lg:block w-full">
+            <CodeTerminalHero />
+          </div>
         </div>
       </section>
 
@@ -215,77 +251,72 @@ export default function LandingPage() {
       <motion.section 
         id="how-it-works"
         {...fadeInUp}
-        className="py-24 border-b border-white/[0.04] bg-[#030712] relative"
+        className="py-24 lg:py-32 border-b border-white/[0.04] bg-[#111111] relative overflow-hidden"
       >
-        <div className="container mx-auto px-4 max-w-6xl space-y-16 relative z-10">
-          <div className="text-center space-y-4">
-            <h2 className="text-3xl md:text-5xl font-bold text-white tracking-tight">How ScratchCode Works</h2>
-            <p className="text-slate-400 text-base md:text-lg max-w-2xl mx-auto leading-relaxed">
-              Our unique system eliminates typical learning friction. Build habits, write code, and advance one bite-sized concept at a time.
-            </p>
-          </div>
+        {/* Cyan Ambient Glow */}
+        <div className="absolute top-1/2 left-0 -translate-y-1/2 w-[600px] h-[600px] bg-[#06b6d4]/5 blur-[120px] rounded-full pointer-events-none" />
 
+        <div className="container mx-auto px-4 sm:px-8 max-w-7xl relative z-10 grid lg:grid-cols-2 gap-16 items-center">
+          
+          {/* Left Column - Visual/Cards (Reversed: Text is on Right now) */}
           <motion.div 
             variants={staggerContainer}
             initial="initial"
             whileInView="whileInView"
             viewport={{ once: true, margin: '-80px' }}
-            className="grid grid-cols-1 md:grid-cols-3 gap-6"
+            className="flex flex-col order-2 lg:order-1"
           >
             {/* Step 1 */}
-            <motion.div 
-              variants={staggerItem}
-              className="glass-panel p-8 rounded-3xl space-y-5 transition-all duration-300 group hover:border-blue-500/30 hover:shadow-[0_10px_40px_-10px_rgba(59,130,246,0.15)] relative overflow-hidden"
-            >
-              <div className="absolute -top-10 -right-10 w-32 h-32 bg-blue-500/10 blur-[40px] rounded-full pointer-events-none group-hover:bg-blue-500/20 transition-all" />
-              <div className="absolute top-0 right-0 p-6 font-mono text-white/[0.03] text-6xl font-black select-none">01</div>
-              <div className="h-14 w-14 rounded-2xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400 group-hover:bg-blue-500/20 transition-all">
-                <BookOpen className="h-7 w-7" />
+            <motion.div variants={staggerItem} className="py-8 flex flex-col sm:flex-row gap-6 items-start group relative border-b border-white/[0.05] last:border-0">
+              <div className="absolute top-0 right-0 p-4 font-mono text-white/[0.02] text-8xl font-black select-none pointer-events-none -z-10 translate-x-4 -translate-y-4">01</div>
+              <div className="h-12 w-12 shrink-0 flex items-center justify-center text-slate-500 group-hover:text-[#06b6d4] transition-all group-hover:scale-110">
+                <BookOpen className="h-8 w-8" />
               </div>
-              <div className="space-y-3 relative z-10 pt-2">
-                <h3 className="text-2xl font-bold text-white">Pick a language</h3>
-                <p className="text-slate-400 text-sm leading-relaxed">
-                  Choose from our beginner-friendly catalog, tailored specifically for learners with absolutely zero technical background.
-                </p>
+              <div className="space-y-2 relative z-10 pt-1">
+                <h3 className="text-xl font-bold text-white group-hover:text-[#06b6d4] transition-colors">Pick a language</h3>
+                <p className="text-slate-400 text-sm leading-relaxed max-w-sm">Choose from our beginner-friendly catalog, tailored specifically for learners with absolutely zero technical background.</p>
               </div>
             </motion.div>
 
             {/* Step 2 */}
-            <motion.div 
-              variants={staggerItem}
-              className="glass-panel p-8 rounded-3xl space-y-5 transition-all duration-300 group hover:border-amber-500/30 hover:shadow-[0_10px_40px_-10px_rgba(245,158,11,0.15)] relative overflow-hidden"
-            >
-              <div className="absolute -top-10 -right-10 w-32 h-32 bg-amber-500/10 blur-[40px] rounded-full pointer-events-none group-hover:bg-amber-500/20 transition-all" />
-              <div className="absolute top-0 right-0 p-6 font-mono text-white/[0.03] text-6xl font-black select-none">02</div>
-              <div className="h-14 w-14 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400 group-hover:bg-amber-500/20 transition-all">
-                <Lightbulb className="h-7 w-7" />
+            <motion.div variants={staggerItem} className="py-8 flex flex-col sm:flex-row gap-6 items-start group relative border-b border-white/[0.05] last:border-0">
+               <div className="absolute top-0 right-0 p-4 font-mono text-white/[0.02] text-8xl font-black select-none pointer-events-none -z-10 translate-x-4 -translate-y-4">02</div>
+              <div className="h-12 w-12 shrink-0 flex items-center justify-center text-slate-500 group-hover:text-[#06b6d4] transition-all group-hover:scale-110">
+                <Lightbulb className="h-8 w-8" />
               </div>
-              <div className="space-y-3 relative z-10 pt-2">
-                <h3 className="text-2xl font-bold text-white">Learn the concept</h3>
-                <p className="text-slate-400 text-sm leading-relaxed">
-                  Absorb a highly visual, 3-minute lesson highlighting exactly one practical coding concept. No boring academic theory.
-                </p>
+              <div className="space-y-2 relative z-10 pt-1">
+                <h3 className="text-xl font-bold text-white group-hover:text-[#06b6d4] transition-colors">Learn the concept</h3>
+                <p className="text-slate-400 text-sm leading-relaxed max-w-sm">Absorb a highly visual, 3-minute lesson highlighting exactly one practical coding concept. No boring academic theory.</p>
               </div>
             </motion.div>
 
             {/* Step 3 */}
-            <motion.div 
-              variants={staggerItem}
-              className="glass-panel p-8 rounded-3xl space-y-5 transition-all duration-300 group hover:border-emerald-500/30 hover:shadow-[0_10px_40px_-10px_rgba(16,185,129,0.15)] relative overflow-hidden"
-            >
-              <div className="absolute -top-10 -right-10 w-32 h-32 bg-emerald-500/10 blur-[40px] rounded-full pointer-events-none group-hover:bg-emerald-500/20 transition-all" />
-              <div className="absolute top-0 right-0 p-6 font-mono text-white/[0.03] text-6xl font-black select-none">03</div>
-              <div className="h-14 w-14 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 group-hover:bg-emerald-500/20 transition-all">
-                <Code className="h-7 w-7" />
+            <motion.div variants={staggerItem} className="py-8 flex flex-col sm:flex-row gap-6 items-start group relative border-b border-white/[0.05] last:border-0">
+               <div className="absolute top-0 right-0 p-4 font-mono text-white/[0.02] text-8xl font-black select-none pointer-events-none -z-10 translate-x-4 -translate-y-4">03</div>
+              <div className="h-12 w-12 shrink-0 flex items-center justify-center text-slate-500 group-hover:text-[#06b6d4] transition-all group-hover:scale-110">
+                <Code className="h-8 w-8" />
               </div>
-              <div className="space-y-3 relative z-10 pt-2">
-                <h3 className="text-2xl font-bold text-white">Write real code</h3>
-                <p className="text-slate-400 text-sm leading-relaxed">
-                  Solve puzzles inside our in-browser interactive compiler. Receive instant execution responses and automated smart feedback.
-                </p>
+              <div className="space-y-2 relative z-10 pt-1">
+                <h3 className="text-xl font-bold text-white group-hover:text-[#06b6d4] transition-colors">Write real code</h3>
+                <p className="text-slate-400 text-sm leading-relaxed max-w-sm">Solve puzzles inside our in-browser interactive compiler. Receive instant execution responses and automated smart feedback.</p>
               </div>
             </motion.div>
+
           </motion.div>
+
+          {/* Right Column - Text (Reversed) */}
+          <div className="space-y-8 order-1 lg:order-2 lg:pl-12">
+            <div className="inline-flex items-center gap-2 text-[10px] font-mono font-bold tracking-[0.2em] text-[#06b6d4] uppercase">
+              [02] The Process
+            </div>
+            <h2 className="text-4xl md:text-5xl lg:text-7xl font-black text-white tracking-tighter leading-[1.05]">
+              How ScratchCode <br/>
+              <span className="font-script text-[#06b6d4] font-normal italic pr-2">actually works.</span>
+            </h2>
+            <p className="text-slate-400 text-lg max-w-md leading-relaxed">
+              Our unique system eliminates typical learning friction. Build habits, write code, and advance one bite-sized concept at a time.
+            </p>
+          </div>
         </div>
       </motion.section>
 
@@ -293,67 +324,66 @@ export default function LandingPage() {
       <motion.section 
         id="tracks"
         {...fadeInUp}
-        className="py-24 border-b border-white/[0.04] bg-[#030712] relative overflow-hidden"
+        className="py-24 lg:py-32 border-b border-white/[0.04] bg-black relative overflow-hidden"
       >
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_80%_40%,rgba(16,185,129,0.03),transparent)] pointer-events-none" />
+        {/* Orange Ambient Glow */}
+        <div className="absolute top-1/2 right-0 -translate-y-1/2 w-[600px] h-[600px] bg-[#f97316]/5 blur-[120px] rounded-full pointer-events-none" />
 
-        <div className="container mx-auto px-4 max-w-6xl space-y-16">
-          <div className="text-center space-y-4">
-            <h2 className="text-3xl md:text-5xl font-bold text-white tracking-tight">Explore Our Language Tracks</h2>
-            <p className="text-slate-400 text-base md:text-lg max-w-2xl mx-auto leading-relaxed">
-              Hand-picked, structured curricula to take you from absolute zero to building projects with confidence. Select your path.
+        <div className="container mx-auto px-4 sm:px-8 max-w-7xl relative z-10 grid lg:grid-cols-2 gap-16 items-center">
+          
+          {/* Left Column - Text (Standard) */}
+          <div className="space-y-8 order-1 lg:order-1 lg:pr-12">
+            <div className="inline-flex items-center gap-2 text-[10px] font-mono font-bold tracking-[0.2em] text-[#f97316] uppercase">
+              [03] The Curriculum
+            </div>
+            <h2 className="text-4xl md:text-5xl lg:text-7xl font-black text-white tracking-tighter leading-[1.05]">
+              Explore our <br/>
+              <span className="font-script text-[#f97316] font-normal italic pr-2">language tracks.</span>
+            </h2>
+            <p className="text-slate-400 text-lg max-w-md leading-relaxed">
+              Hand-picked, structured curricula to take you from absolute zero to building projects with confidence. Select your path and start executing immediately.
             </p>
+            <div className="pt-4">
+              <Link
+                href="#tracks"
+                className="inline-flex h-12 items-center justify-center rounded-xl glass-panel px-8 font-medium text-slate-300 hover:text-white hover:bg-white/5 transition-all duration-300"
+              >
+                <div className="w-2 h-2 rounded-full bg-[#f97316] mr-2" />
+                View all tracks
+              </Link>
+            </div>
           </div>
 
+          {/* Right Column - Visual/Cards (Standard) */}
           <motion.div 
             variants={staggerContainer}
             initial="initial"
             whileInView="whileInView"
             viewport={{ once: true, margin: '-80px' }}
-            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+            className="flex flex-col order-2 lg:order-2"
           >
-            {tracks.map((track) => (
+            {tracks.slice(0, 4).map((track, i) => (
               <motion.div
                 key={track.name}
                 variants={staggerItem}
-                className="glass-panel rounded-3xl p-8 flex flex-col justify-between hover:border-white/10 hover:shadow-[0_10px_40px_-10px_rgba(0,0,0,0.6)] transition-all duration-300 group"
+                className="py-6 flex flex-col sm:flex-row items-center justify-between group border-b border-white/[0.05] last:border-0 hover:bg-white/[0.02] px-4 -mx-4 rounded-xl transition-colors"
               >
-                <div className="space-y-6">
-                  {/* Header: Icon, Name, Difficulty badge */}
-                  <div className="flex items-start justify-between">
-                    <div className={`h-12 w-12 rounded-xl flex items-center justify-center border font-mono text-2xl ${track.iconColor} group-hover:scale-110 transition-transform`}>
-                      {track.customIcon}
-                    </div>
-                    <span className={`inline-flex px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border ${track.difficultyColor}`}>
-                      {track.difficulty}
-                    </span>
+                <div className="flex items-center gap-6 w-full sm:w-auto">
+                  <div className="h-12 w-12 flex items-center justify-center font-mono text-3xl text-slate-500 group-hover:text-[#f97316] transition-colors">
+                    {track.customIcon}
                   </div>
-
-                  {/* Title & Description */}
-                  <div className="space-y-3">
-                    <h3 className="text-2xl font-bold text-white group-hover:text-emerald-400 transition-colors">{track.name}</h3>
-                    <p className="text-slate-400 text-sm leading-relaxed">{track.description}</p>
+                  <div>
+                    <h3 className="text-xl font-bold text-white group-hover:text-[#f97316] transition-colors">{track.name}</h3>
+                    <p className="text-slate-400 text-sm max-w-[280px] truncate">{track.description}</p>
                   </div>
                 </div>
 
-                {/* Info and CTA button */}
-                <div className="mt-8 pt-6 border-t border-white/[0.04] space-y-5">
-                  <div className="flex items-center justify-between text-xs text-slate-500 font-medium">
-                    <span className="flex items-center gap-1.5">
-                      <Layers className="h-4 w-4 text-emerald-500" />
-                      {track.units} Units
-                    </span>
-                    <span className="flex items-center gap-1.5">
-                      <Clock className="h-4 w-4 text-emerald-500" />
-                      Est. {track.hours} Hours
-                    </span>
-                  </div>
-
+                <div className="mt-4 sm:mt-0 w-full sm:w-auto flex justify-end">
                   <Link
-                    href={track.href}
-                    className="inline-flex w-full h-10 items-center justify-center gap-2 rounded-lg bg-white/5 border border-white/10 text-sm font-semibold text-slate-200 hover:text-slate-950 hover:bg-emerald-500 hover:border-emerald-500 hover:shadow-[0_0_20px_rgba(16,185,129,0.3)] transition-all duration-300"
+                    href={(!loading && user) ? `/tracks/${track.href.split('=')[1]}` : track.href}
+                    className="inline-flex items-center gap-2 text-sm font-semibold text-slate-500 hover:text-[#f97316] transition-colors"
                   >
-                    Start Track <ArrowRight className="h-4 w-4" />
+                    {(!loading && user) ? 'Continue Track' : 'Start Track'} <ArrowRight className="h-4 w-4" />
                   </Link>
                 </div>
               </motion.div>
@@ -366,111 +396,119 @@ export default function LandingPage() {
       <motion.section 
         id="features"
         {...fadeInUp}
-        className="py-24 border-b border-white/[0.04] bg-[#030712] relative"
+        className="py-24 lg:py-32 border-b border-white/[0.04] bg-[#111111] relative overflow-hidden"
       >
-        <div className="container mx-auto px-4 max-w-6xl space-y-16">
-          <div className="text-center space-y-4">
-            <h2 className="text-3xl md:text-5xl font-bold text-white tracking-tight">Built for Beginner Success</h2>
-            <p className="text-slate-400 text-base md:text-lg max-w-xl mx-auto leading-relaxed">
-              We design every mechanic around zero friction, continuous momentum, and deep concepts.
-            </p>
-          </div>
+        {/* Purple Ambient Glow */}
+        <div className="absolute top-1/2 left-0 -translate-y-1/2 w-[600px] h-[600px] bg-[#a855f7]/5 blur-[120px] rounded-full pointer-events-none" />
 
+        <div className="container mx-auto px-4 sm:px-8 max-w-7xl relative z-10 grid lg:grid-cols-2 gap-16 items-center">
+          
+          {/* Left Column - Cards (Reversed: Text is on Right now) */}
           <motion.div 
             variants={staggerContainer}
             initial="initial"
             whileInView="whileInView"
             viewport={{ once: true, margin: '-80px' }}
-            className="grid grid-cols-1 md:grid-cols-3 gap-6"
+            className="grid sm:grid-cols-2 gap-x-8 gap-y-16 order-2 lg:order-1"
           >
-            {highlights.map((feat) => {
+            {highlights.map((feat, i) => {
               const IconComponent = feat.icon;
               return (
                 <motion.div
                   key={feat.title}
                   variants={staggerItem}
-                  className="glass-panel rounded-3xl p-8 space-y-5 group hover:border-white/10 transition-all duration-300"
+                  className="flex flex-col items-start gap-4 group relative"
                 >
-                  <div className={`h-12 w-12 rounded-2xl flex items-center justify-center border transition-colors ${feat.color}`}>
-                    <IconComponent className="h-6 w-6" />
+                  <div className="h-12 w-12 flex items-center justify-start text-slate-500 group-hover:text-[#a855f7] transition-all group-hover:scale-110 group-hover:-translate-y-1">
+                    <IconComponent className="h-8 w-8" />
                   </div>
-                  <h3 className="text-xl font-bold text-white">{feat.title}</h3>
-                  <p className="text-slate-400 text-sm leading-relaxed">
-                    {feat.description}
-                  </p>
+                  <div className="space-y-2 relative z-10">
+                    <h3 className="text-xl font-bold text-white group-hover:text-[#a855f7] transition-colors">{feat.title}</h3>
+                    <p className="text-slate-400 text-sm leading-relaxed">
+                      {feat.description}
+                    </p>
+                  </div>
                 </motion.div>
               );
             })}
           </motion.div>
+
+          {/* Right Column - Text (Reversed) */}
+          <div className="space-y-8 order-1 lg:order-2 lg:pl-12">
+            <div className="inline-flex items-center gap-2 text-[10px] font-mono font-bold tracking-[0.2em] text-[#a855f7] uppercase">
+              [04] The Advantage
+            </div>
+            <h2 className="text-4xl md:text-5xl lg:text-7xl font-black text-white tracking-tighter leading-[1.05]">
+              Built for <br/>
+              <span className="font-script text-[#a855f7] font-normal italic pr-2">beginner success.</span>
+            </h2>
+            <p className="text-slate-400 text-lg max-w-md leading-relaxed">
+              We design every mechanic around zero friction, continuous momentum, and deep concepts. Don't waste time on configuration.
+            </p>
+          </div>
         </div>
       </motion.section>
 
       {/* Final Call To Action */}
       <motion.section 
         {...fadeInUp}
-        className="py-32 bg-[#030712] relative overflow-hidden text-center"
+        className="py-32 relative overflow-hidden flex flex-col items-center text-center border-t border-white/[0.02]"
       >
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(16,185,129,0.06),transparent)]" />
-        <div className="container mx-auto px-4 max-w-3xl space-y-8 relative z-10">
-          <h2 className="text-4xl md:text-6xl font-bold text-white leading-tight tracking-tight">
-            Ready to write your first line of code?
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[400px] bg-[#d9f95d]/10 rounded-[100%] blur-[120px] pointer-events-none" />
+        
+        <div className="container mx-auto px-4 max-w-4xl relative z-10 space-y-10">
+          <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-1.5 text-[10px] font-mono font-bold tracking-[0.2em] text-slate-300 uppercase">
+            [05] Start Your Journey
+          </div>
+          
+          <h2 className="text-5xl md:text-7xl lg:text-8xl font-black text-white tracking-tighter leading-[1.05]">
+            Ready to write <br/>
+            <span className="text-slate-500 font-normal italic pr-2">your first line?</span>
           </h2>
-          <p className="text-slate-400 text-base md:text-xl max-w-xl mx-auto leading-relaxed">
-            No credit cards, no setups. Just pick a path and experience the thrill of compile success in 30 seconds.
+          
+          <p className="text-slate-400 text-lg md:text-xl max-w-2xl mx-auto leading-relaxed">
+            No credit cards, no complex setups. Just pick a language and experience the thrill of compile success in 30 seconds.
           </p>
-          <div className="pt-6">
+          
+          <div className="pt-8">
             <Link
-              href="/signup"
-              className="inline-flex h-14 items-center justify-center gap-2 rounded-full bg-white px-10 text-base font-bold text-slate-950 hover:bg-slate-200 hover:scale-105 active:scale-95 transition-all shadow-[0_0_30px_rgba(255,255,255,0.15)]"
+              href={ctaLink}
+              className="inline-flex h-14 items-center justify-center gap-2 rounded-xl bg-white px-10 text-base font-display tracking-wide font-bold text-black hover:bg-[#d9f95d] hover:scale-105 active:scale-95 transition-all shadow-[0_0_40px_-10px_rgba(255,255,255,0.2)]"
             >
-              Get Started for Free <ArrowRight className="h-5 w-5" />
+              {finalCtaText} <ArrowRight className="h-5 w-5" />
             </Link>
           </div>
         </div>
       </motion.section>
 
       {/* Footer */}
-      <footer className="bg-[#030712] border-t border-white/[0.04] py-16 text-slate-400 relative z-10">
-        <div className="container mx-auto px-4 max-w-6xl space-y-12">
-          {/* Main Footer Info */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="space-y-4">
-              <div className="flex items-center space-x-2">
-                <div className="h-8 w-8 rounded-lg bg-emerald-500/10 flex items-center justify-center border border-emerald-500/20">
-                  <Terminal className="h-4.5 w-4.5 text-emerald-400" />
-                </div>
-                <span className="font-bold text-lg text-white">ScratchCode</span>
-              </div>
-              <p className="text-sm text-slate-500 max-w-xs leading-relaxed">
-                India's premiere zero-install platform teaching absolute beginners programming through real browser execution.
+      <footer className="bg-black border-t border-white/[0.05] pt-20 pb-10 text-slate-400 relative z-10">
+        <div className="container mx-auto px-6 max-w-7xl">
+          <div className="flex flex-col lg:flex-row justify-between items-start gap-16 lg:gap-8 mb-20">
+            <div className="space-y-6 max-w-sm">
+              <Link href="/" className="inline-block group">
+                <span className="font-logo text-3xl font-bold text-white tracking-tighter hover:text-[#d9f95d] transition-colors">&lt;scratch.code&gt;</span>
+              </Link>
+              <p className="text-sm text-slate-500 leading-relaxed">
+                India's premiere zero-install platform. Teaching absolute beginners programming through real, immediate browser execution.
               </p>
             </div>
             
-            <div className="grid grid-cols-2 md:col-span-2 gap-8 md:justify-items-end">
-              <div className="space-y-3">
-                <h4 className="text-xs font-bold uppercase tracking-wider text-slate-200">Legal</h4>
-                <ul className="space-y-3 text-sm">
-                  <li>
-                    <Link href="/privacy" className="hover:text-white transition-colors">Privacy Policy</Link>
-                  </li>
-                  <li>
-                    <Link href="/terms" className="hover:text-white transition-colors">Terms of Service</Link>
-                  </li>
+            <div className="flex gap-16 sm:gap-24">
+              <div className="space-y-6">
+                <h4 className="text-xs font-display font-bold uppercase tracking-widest text-white">Legal</h4>
+                <ul className="space-y-4 text-sm font-medium">
+                  <li><Link href="/privacy" className="hover:text-white transition-colors">Privacy Policy</Link></li>
+                  <li><Link href="/terms" className="hover:text-white transition-colors">Terms of Service</Link></li>
                 </ul>
               </div>
               
-              <div className="space-y-3">
-                <h4 className="text-xs font-bold uppercase tracking-wider text-slate-200">Community</h4>
-                <ul className="space-y-3 text-sm">
+              <div className="space-y-6">
+                <h4 className="text-xs font-display font-bold uppercase tracking-widest text-white">Social</h4>
+                <ul className="space-y-4 text-sm font-medium">
                   <li>
-                    <a 
-                      href="https://github.com" 
-                      target="_blank" 
-                      rel="noopener noreferrer" 
-                      className="flex items-center gap-1.5 hover:text-white transition-colors"
-                    >
-                      <Github className="h-4 w-4" />
-                      GitHub
+                    <a href="https://github.com" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 hover:text-white transition-colors">
+                      <Github className="h-4 w-4" /> GitHub
                     </a>
                   </li>
                 </ul>
@@ -478,9 +516,9 @@ export default function LandingPage() {
             </div>
           </div>
 
-          <div className="pt-8 border-t border-white/[0.04] flex flex-col sm:flex-row justify-between items-center gap-4 text-xs font-medium text-slate-500">
-            <p>© {new Date().getFullYear()} ScratchCode. All rights reserved. Created with ❤️ for future developers.</p>
-            <p>Made in India.</p>
+          <div className="pt-8 border-t border-white/[0.05] flex flex-col sm:flex-row justify-between items-center gap-4 text-[10px] uppercase tracking-widest font-bold text-slate-600">
+            <p>© {new Date().getFullYear()} ScratchCode. All rights reserved.</p>
+            <p className="flex items-center gap-1.5">Made with <span className="text-[#d9f95d]">♥</span> in India</p>
           </div>
         </div>
       </footer>

@@ -63,9 +63,9 @@ export default function CodeEditor({
   }, [value, lessonId]);
 
   return (
-    <div className="w-full h-full bg-slate-950 border border-slate-900 rounded-lg overflow-hidden flex flex-col shadow-lg shadow-black/25">
+    <div className="w-full h-full bg-transparent border border-white/[0.05] flex flex-col">
       {/* Editor Header */}
-      <div className="bg-slate-950 border-b border-slate-900 px-4 py-2.5 flex items-center justify-between shrink-0 select-none">
+      <div className="bg-transparent border-b border-white/[0.05] px-4 py-2.5 flex items-center justify-between shrink-0 select-none">
         <span className="text-xs font-bold font-mono text-slate-400 capitalize tracking-wider flex items-center gap-1.5">
           <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
           {mapLanguage(language)} Editor
@@ -104,7 +104,7 @@ export default function CodeEditor({
             padding: { top: 12, bottom: 12 },
           }}
           loading={
-            <div className="absolute inset-0 flex flex-col items-center justify-center bg-slate-950 text-slate-400 text-xs font-mono gap-3">
+            <div className="absolute inset-0 flex flex-col items-center justify-center bg-transparent text-slate-400 text-xs font-mono gap-3">
               <div className="w-8 h-8 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin" />
               Loading Sandbox Editor...
             </div>

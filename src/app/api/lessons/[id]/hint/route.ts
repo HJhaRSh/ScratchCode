@@ -77,16 +77,18 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
 
     // 5. System and User Prompt Setup
     const systemPrompt = `You are a patient, encouraging coding mentor helping a beginner learner.
-Your job is to give a hint that nudges the learner in the right direction
-WITHOUT giving them the answer or writing code for them.
-Hint 1: Give a conceptual nudge. Remind them of the concept they need.
-Hint 2: Point to the specific part of their code that needs attention.
-Hint 3: Give a very specific structural hint (but still no code).
+Your job is to give a hint that nudges the learner in the right direction, spot mistakes in their code, and provide structural corrections.
+
+You MUST respond in strict JSON format with exactly two keys:
+{
+  "hint_text": "Your conversational response. Be concise (2-3 sentences max). Spot their mistake clearly. Be warm and encouraging.",
+  "snippet": "A small code snippet showing the correction, the exact syntax needed, or a structural outline. Leave as an empty string if no code snippet is needed."
+}
+
 Rules:
-- Maximum 2-3 sentences. Be concise.
-- Be warm, encouraging. Never say 'wrong' or 'incorrect'. Say 'almost' or 'close'.
-- Do not write code. Do not show the solution. Ever.
-- Address the learner as 'you', not 'the user'.`;
+- Address the learner as 'you'.
+- Spot the specific syntax or logic error if present in their code.
+- Provide a useful structural snippet in the "snippet" field.`;
 
     const userMessage = `Lesson goal: ${lesson.title}
 The learner is trying to: ${exerciseDescription}
@@ -95,22 +97,34 @@ Their current code:
 ${code || ''}
 \`\`\`
 The error or wrong output they got: ${error_output || 'None'}
-This is hint number ${hint_number || 1} of 3. Give hint ${hint_number || 1}.`;
+This is hint number ${hint_number || 1} of 3. Give hint ${hint_number || 1} in JSON format.`;
 
     // 6. Groq API Call
     let hintText = "You are so close! Re-check if your parameters match the requested structures.";
+    let hintSnippet = "";
 
     if (process.env.GROQ_API_KEY) {
       const response = await groq.chat.completions.create({
         model: 'llama-3.1-8b-instant',
-        max_tokens: 200,
+        max_tokens: 400,
+        response_format: { type: 'json_object' },
         messages: [
           { role: 'system', content: systemPrompt },
           { role: 'user', content: userMessage },
         ],
       });
 
-      hintText = response.choices[0]?.message?.content || hintText;
+      const responseContent = response.choices[0]?.message?.content;
+      if (responseContent) {
+        try {
+          const parsed = JSON.parse(responseContent);
+          hintText = parsed.hint_text || hintText;
+          hintSnippet = parsed.snippet || "";
+        } catch (e) {
+          console.error("Failed to parse JSON hint response", e);
+          hintText = responseContent;
+        }
+      }
     }
 
     // 7. Save hint usage record to HintUsage table
@@ -119,7 +133,7 @@ This is hint number ${hint_number || 1} of 3. Give hint ${hint_number || 1}.`;
         user_id: dbUser.id,
         lesson_id: lesson.id,
         hint_number: Number(hint_number || 1),
-        response_text: hintText,
+        response_text: JSON.stringify({ hint_text: hintText, snippet: hintSnippet }),
       },
     });
 
@@ -127,6 +141,7 @@ This is hint number ${hint_number || 1} of 3. Give hint ${hint_number || 1}.`;
     return NextResponse.json({
       hint_number: Number(hint_number || 1),
       hint_text: hintText,
+      snippet: hintSnippet,
     });
   } catch (err: any) {
     console.error('Error generating AI hint:', err);

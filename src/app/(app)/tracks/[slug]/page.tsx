@@ -97,7 +97,7 @@ const TRACK_THEMES: Record<string, {
 };
 
 const defaultTheme = {
-  accent: 'text-emerald-400 border-emerald-500/20 bg-emerald-500/10',
+  accent: 'text-[#d9f95d] border-[#d9f95d]/20 bg-[#d9f95d]/10',
   gradient: 'from-emerald-600 to-teal-500',
   shadow: 'shadow-emerald-500/10',
   bannerBg: 'bg-gradient-to-r from-emerald-950/30 to-teal-950/10',
@@ -177,15 +177,15 @@ export default function TrackDetailPage({ params }: { params: Promise<{ slug: st
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#070d19] flex flex-col text-slate-100 font-sans">
+      <div className="min-h-screen bg-black bg-noise flex flex-col text-slate-100 font-sans">
         <Navbar />
         <div className="flex flex-1">
           <Sidebar />
           <div className="flex-1 p-6 md:p-8 space-y-6 max-w-4xl mx-auto w-full animate-pulse">
-            <div className="h-6 w-24 bg-slate-800 rounded" />
-            <div className="h-28 bg-[#0B1528] border border-slate-800 rounded-2xl" />
-            <div className="h-40 bg-[#0B1528] border border-slate-800 rounded-2xl" />
-            <div className="h-20 bg-[#0B1528] border border-slate-800 rounded-2xl" />
+            <div className="h-6 w-24 bg-white/5 rounded" />
+            <div className="h-28 bg-transparent border-b border-white/[0.05]" />
+            <div className="h-40 bg-transparent border-b border-white/[0.05]" />
+            <div className="h-20 bg-transparent border-b border-white/[0.05]" />
           </div>
         </div>
       </div>
@@ -194,7 +194,7 @@ export default function TrackDetailPage({ params }: { params: Promise<{ slug: st
 
   if (error || !track) {
     return (
-      <div className="min-h-screen bg-[#070d19] flex flex-col text-slate-100 font-sans">
+      <div className="min-h-screen bg-black bg-noise flex flex-col text-slate-100 font-sans">
         <Navbar />
         <div className="flex flex-1">
           <Sidebar />
@@ -230,7 +230,7 @@ export default function TrackDetailPage({ params }: { params: Promise<{ slug: st
     : 0;
 
   return (
-    <div className="min-h-screen bg-[#070d19] flex flex-col text-slate-100 font-sans selection:bg-emerald-500 selection:text-slate-950">
+    <div className="min-h-screen bg-black bg-noise flex flex-col text-slate-100 font-sans selection:bg-[#d9f95d] text-black selection:text-slate-950">
       <Navbar />
       <div className="flex flex-1">
         <Sidebar />
@@ -248,18 +248,18 @@ export default function TrackDetailPage({ params }: { params: Promise<{ slug: st
             initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
-            className={`border border-slate-800/80 rounded-2xl p-6 md:p-8 ${theme.bannerBg} relative overflow-hidden flex flex-col md:flex-row items-start md:items-center justify-between gap-6 shadow-2xl ${theme.shadow}`}
+            className={`border-b border-white/[0.05] pb-8 ${theme.bannerBg} relative flex flex-col md:flex-row items-start md:items-center justify-between gap-6 px-4 md:px-0`}
           >
             <div className="space-y-4 max-w-2xl">
               <div className="flex items-center gap-3.5">
-                <div className={`h-14 w-14 rounded-2xl flex items-center justify-center border font-mono text-4xl bg-slate-950 border-slate-800`}>
+                <div className={`h-14 w-14 rounded-2xl flex items-center justify-center border font-mono text-4xl bg-black bg-noise border-white/[0.05]`}>
                   {track.icon}
                 </div>
                 <div>
-                  <h1 className="text-2xl md:text-3xl font-extrabold text-white tracking-tight">{track.title}</h1>
+                  <h1 className="text-2xl md:text-3xl font-display tracking-tight font-bold text-white tracking-tight">{track.title}</h1>
                   <div className="flex flex-wrap gap-4 text-xs font-semibold text-slate-400 mt-1">
-                    <span className="flex items-center gap-1"><BookOpen className="h-3.5 w-3.5 text-emerald-400" /> {track.units.length} units</span>
-                    <span className="flex items-center gap-1"><Clock className="h-3.5 w-3.5 text-cyan-400" /> {track.estimated_hours} hours est.</span>
+                    <span className="flex items-center gap-1"><BookOpen className="h-3.5 w-3.5 text-[#d9f95d]" /> {track.units.length} units</span>
+                    <span className="flex items-center gap-1"><Clock className="h-3.5 w-3.5 text-white" /> {track.estimated_hours} hours est.</span>
                     <span className="flex items-center gap-1"><Trophy className="h-3.5 w-3.5 text-amber-400" /> {track.total_lessons} lessons</span>
                   </div>
                 </div>
@@ -274,7 +274,7 @@ export default function TrackDetailPage({ params }: { params: Promise<{ slug: st
                   <span className="text-slate-400 font-medium">Curriculum Completion</span>
                   <span className="text-white font-bold">{progressPercent}% ({track.completed_lessons}/{allLessons.length} lessons)</span>
                 </div>
-                <div className="h-2.5 w-full bg-slate-950 rounded-full overflow-hidden border border-slate-900">
+                <div className="h-2.5 w-full bg-black bg-noise rounded-full overflow-hidden border border-slate-900">
                   <motion.div
                     initial={{ width: 0 }}
                     animate={{ width: `${progressPercent}%` }}
@@ -294,7 +294,7 @@ export default function TrackDetailPage({ params }: { params: Promise<{ slug: st
               >
                 <Link
                   href={allCompleted ? `/learn/${allLessons[0]?.id}` : `/learn/${nextIncompleteLesson.id}`}
-                  className={`inline-flex w-full md:w-auto h-12 px-6 items-center justify-center gap-2 rounded-xl bg-gradient-to-r ${theme.gradient} text-slate-950 font-extrabold text-sm hover:brightness-110 shadow-lg ${theme.shadow} transition-all`}
+                  className={`inline-flex w-full md:w-auto h-12 px-6 items-center justify-center gap-2 rounded-xl bg-gradient-to-r ${theme.gradient} text-slate-950 font-display tracking-tight font-bold text-sm hover:brightness-110 shadow-lg ${theme.shadow} transition-all`}
                 >
                   <Play className="h-4.5 w-4.5 fill-current" />
                   <span>{allCompleted ? 'Review Curriculum' : 'Continue Learning'}</span>
@@ -305,7 +305,7 @@ export default function TrackDetailPage({ params }: { params: Promise<{ slug: st
 
           {/* Units Accordion */}
           <div className="space-y-6">
-            <h2 className="text-xl font-bold text-slate-200">Curriculum Units</h2>
+            <h2 className="text-xl font-display font-bold tracking-wide text-slate-200">Curriculum Units</h2>
 
             <div className="space-y-4">
               {track.units.map((unit) => {
@@ -313,18 +313,18 @@ export default function TrackDetailPage({ params }: { params: Promise<{ slug: st
                 return (
                   <div
                     key={unit.id}
-                    className="bg-[#0B1528] border border-slate-800/80 rounded-2xl overflow-hidden hover:border-slate-800 transition-colors duration-300"
+                    className="bg-transparent border-b border-white/[0.05] overflow-hidden transition-colors duration-300"
                   >
                     {/* Unit Accordion Header */}
                     <button
                       onClick={() => toggleUnit(unit.id)}
-                      className="w-full p-5 bg-slate-950/60 border-b border-slate-900/60 hover:bg-slate-900/40 flex justify-between items-center text-left transition-colors duration-200 gap-4"
+                      className="w-full py-5 px-4 hover:bg-white/[0.02] flex justify-between items-center text-left transition-colors duration-200 gap-4"
                     >
                       <div className="space-y-1">
-                        <span className="text-xs font-bold text-emerald-400 uppercase tracking-widest">
+                        <span className="text-xs font-bold text-[#d9f95d] uppercase tracking-widest">
                           Unit {unit.unit_number}
                         </span>
-                        <h3 className="text-lg font-bold text-white">
+                        <h3 className="text-lg font-display font-bold text-white">
                           {unit.title}
                         </h3>
                         <p className="text-slate-400 text-xs leading-relaxed max-w-xl">
@@ -340,7 +340,7 @@ export default function TrackDetailPage({ params }: { params: Promise<{ slug: st
                             ⭐ {unit.xp_reward} XP
                           </span>
                         </div>
-                        <div className="h-8 w-8 rounded-full bg-slate-900 border border-slate-800 flex items-center justify-center text-slate-400">
+                        <div className="h-8 w-8 rounded-full bg-[#111111] border border-white/[0.05] flex items-center justify-center text-slate-400">
                           {isExpanded ? <ChevronDown className="h-4.5 w-4.5" /> : <ChevronRight className="h-4.5 w-4.5" />}
                         </div>
                       </div>
@@ -354,7 +354,7 @@ export default function TrackDetailPage({ params }: { params: Promise<{ slug: st
                           animate={{ height: 'auto', opacity: 1 }}
                           exit={{ height: 0, opacity: 0 }}
                           transition={{ duration: 0.3, ease: 'easeInOut' }}
-                          className="overflow-hidden bg-[#0B1528]/40 divide-y divide-slate-850/60"
+                          className="overflow-hidden bg-transparent divide-y divide-white/[0.05]"
                         >
                           {unit.lessons.map((lesson) => {
                             const isCompleted = lesson.status === 'COMPLETED';
@@ -371,18 +371,18 @@ export default function TrackDetailPage({ params }: { params: Promise<{ slug: st
 
                             // Define layout color states
                             let statusClass = 'opacity-50 text-slate-500';
-                            let iconClass = 'text-slate-500 bg-slate-900 border-slate-800';
+                            let iconClass = 'text-slate-500 bg-black bg-noise border-white/[0.05]';
                             let statusIndicator = <Lock className="h-3.5 w-3.5" />;
 
                             if (isCompleted) {
-                              statusClass = 'hover:bg-slate-900/20';
-                              iconClass = 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20';
-                              statusIndicator = <CheckCircle2 className="h-4.5 w-4.5 text-emerald-400" />;
+                              statusClass = 'hover:bg-white/[0.02]';
+                              iconClass = 'text-[#d9f95d] bg-[#d9f95d]/10 border-[#d9f95d]/20';
+                              statusIndicator = <CheckCircle2 className="h-4.5 w-4.5 text-[#d9f95d]" />;
                             } else if (isAvailable) {
-                              statusClass = 'hover:bg-slate-900/30';
-                              iconClass = 'text-cyan-400 bg-cyan-500/10 border-cyan-500/20';
+                              statusClass = 'hover:bg-white/[0.02]';
+                              iconClass = 'text-white bg-white/10 border-cyan-500/20';
                               statusIndicator = (
-                                <span className="inline-flex h-7 px-3 items-center justify-center rounded-lg bg-cyan-500/10 border border-cyan-500/20 text-xs font-bold text-cyan-400 hover:bg-cyan-500 hover:text-slate-950 transition-colors duration-200">
+                                <span className="inline-flex h-7 px-3 items-center justify-center rounded-lg bg-white/10 border border-cyan-500/20 text-xs font-bold text-white hover:bg-white hover:text-slate-950 transition-colors duration-200">
                                   Start <ChevronRight className="h-3 ml-0.5" />
                                 </span>
                               );
@@ -397,10 +397,10 @@ export default function TrackDetailPage({ params }: { params: Promise<{ slug: st
                                   </div>
                                   <div>
                                     <div className="flex items-center gap-2">
-                                      <h4 className="text-sm font-bold text-slate-200 group-hover:text-emerald-400 transition-colors duration-200">
+                                      <h4 className="text-sm font-bold text-slate-200 group-hover:text-[#d9f95d] transition-colors duration-200">
                                         {lesson.title}
                                       </h4>
-                                      <span className="text-[10px] uppercase tracking-wider font-bold text-slate-500 px-1.5 py-0.5 rounded bg-slate-900 border border-slate-800">
+                                      <span className="text-[10px] uppercase tracking-wider font-bold text-slate-500 px-1.5 py-0.5 rounded bg-[#111111] border border-white/[0.05]">
                                         {lesson.type}
                                       </span>
                                     </div>
