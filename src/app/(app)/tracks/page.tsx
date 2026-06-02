@@ -31,10 +31,10 @@ const TRACK_METADATA: Record<string, {
 }> = {
   'python': {
     difficulty: 'Beginner',
-    difficultyColor: 'bg-blue-500/10 text-blue-400 border-blue-500/20',
-    iconBg: 'bg-blue-500/10 border-blue-500/20 text-blue-400',
-    gradient: 'from-blue-600 via-blue-500 to-cyan-400',
-    textColor: 'text-blue-400',
+    difficultyColor: 'bg-[#d9f95d]/10 text-[#d9f95d] border-[#d9f95d]/20',
+    iconBg: 'bg-[#d9f95d]/10 border-[#d9f95d]/20 text-[#d9f95d]',
+    gradient: 'from-[#d9f95d] via-lime-400 to-emerald-400',
+    textColor: 'text-[#d9f95d]',
   },
   'javascript': {
     difficulty: 'Beginner',

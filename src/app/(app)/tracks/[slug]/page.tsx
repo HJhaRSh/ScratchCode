@@ -65,10 +65,10 @@ const TRACK_THEMES: Record<string, {
   bannerBg: string;
 }> = {
   'python': {
-    accent: 'text-blue-400 border-blue-500/20 bg-blue-500/10',
-    gradient: 'from-blue-600 to-cyan-500',
-    shadow: 'shadow-blue-500/10',
-    bannerBg: 'bg-gradient-to-r from-blue-950/40 to-cyan-950/20',
+    accent: 'text-[#d9f95d] border-[#d9f95d]/20 bg-[#d9f95d]/10',
+    gradient: 'from-[#d9f95d] to-lime-500',
+    shadow: 'shadow-[#d9f95d]/10',
+    bannerBg: 'bg-gradient-to-r from-[#d9f95d]/10 to-transparent',
   },
   'javascript': {
     accent: 'text-amber-400 border-amber-500/20 bg-amber-500/10',
@@ -380,9 +380,9 @@ export default function TrackDetailPage({ params }: { params: Promise<{ slug: st
                               statusIndicator = <CheckCircle2 className="h-4.5 w-4.5 text-[#d9f95d]" />;
                             } else if (isAvailable) {
                               statusClass = 'hover:bg-white/[0.02]';
-                              iconClass = 'text-white bg-white/10 border-cyan-500/20';
+                              iconClass = 'text-white bg-white/5 border-white/10';
                               statusIndicator = (
-                                <span className="inline-flex h-7 px-3 items-center justify-center rounded-lg bg-white/10 border border-cyan-500/20 text-xs font-bold text-white hover:bg-white hover:text-slate-950 transition-colors duration-200">
+                                <span className="inline-flex h-7 px-3 items-center justify-center rounded-lg bg-white/10 border border-white/10 text-xs font-bold text-white hover:bg-white hover:text-slate-950 transition-colors duration-200">
                                   Start <ChevronRight className="h-3 ml-0.5" />
                                 </span>
                               );
