@@ -1,0 +1,133 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum LessonType {
+  CONCEPT
+  EXERCISE
+  PROJECT
+}
+
+enum ProgressStatus {
+  NOT_STARTED
+  IN_PROGRESS
+  COMPLETED
+}
+
+model User {
+  id                  String               @id @default(cuid())
+  supabase_id         String               @unique
+  username            String               @unique
+  email               String               @unique
+  avatar_url          String?
+  xp                  Int                  @default(0)
+  level               Int                  @default(1)
+  streak_count        Int                  @default(0)
+  streak_last_date    DateTime?
+  streak_freeze_count Int                  @default(1)
+  created_at          DateTime             @default(now())
+  
+  progress            UserLessonProgress[]
+  badges              UserBadge[]
+  hints               HintUsage[]
+}
+
+model Track {
+  id           String   @id @default(cuid())
+  slug         String   @unique // python | javascript | html-css | c-cpp | java
+  title        String
+  description  String
+  icon         String
+  color_hex    String?
+  total_units  Int
+  total_lessons Int
+  is_published Boolean  @default(false)
+  
+  units        Unit[]
+}
+
+model Unit {
+  id           String   @id @default(cuid())
+  track_id     String
+  track        Track    @relation(fields: [track_id], references: [id], onDelete: Cascade)
+  unit_number  Int
+  title        String
+  description  String
+  xp_reward    Int
+  is_published Boolean  @default(false)
+  
+  lessons      Lesson[]
+}
+
+model Lesson {
+  id               String               @id @default(cuid())
+  unit_id          String
+  unit             Unit                 @relation(fields: [unit_id], references: [id], onDelete: Cascade)
+  lesson_number    Int
+  title            String
+  type             LessonType
+  duration_minutes Int
+  content_json     Json
+  starter_code     String?
+  solution_code    String?
+  test_cases_json  Json?
+  xp_reward        Int
+  language         String
+  is_published     Boolean              @default(false)
+  
+  progress         UserLessonProgress[]
+  hints            HintUsage[]
+}
+
+model UserLessonProgress {
+  id            String         @id @default(cuid())
+  user_id       String
+  user          User           @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  lesson_id     String
+  lesson        Lesson         @relation(fields: [lesson_id], references: [id], onDelete: Cascade)
+  status        ProgressStatus @default(NOT_STARTED)
+  attempts      Int            @default(0)
+  code_snapshot String?
+  completed_at  DateTime?
+  xp_earned     Int            @default(0)
+
+  @@unique([user_id, lesson_id])
+}
+
+model Badge {
+  id          String      @id @default(cuid())
+  slug        String      @unique
+  title       String
+  description String
+  icon_emoji  String
+  
+  users       UserBadge[]
+}
+
+model UserBadge {
+  id        String   @id @default(cuid())
+  user_id   String
+  user      User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  badge_id  String
+  badge     Badge    @relation(fields: [badge_id], references: [id], onDelete: Cascade)
+  earned_at DateTime @default(now())
+
+  @@unique([user_id, badge_id])
+}
+
+model HintUsage {
+  id            String   @id @default(cuid())
+  user_id       String
+  user          User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  lesson_id     String
+  lesson        Lesson   @relation(fields: [lesson_id], references: [id], onDelete: Cascade)
+  hint_number   Int
+  requested_at  DateTime @default(now())
+  response_text String
+}

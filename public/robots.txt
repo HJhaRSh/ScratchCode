@@ -1,0 +1,10 @@
+User-agent: *
+Allow: /
+Allow: /tracks
+
+Disallow: /api/
+Disallow: /dashboard
+Disallow: /learn/
+Disallow: /profile/
+
+Sitemap: https://scratch-code.vercel.app/sitemap.xml
