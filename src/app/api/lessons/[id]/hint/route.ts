@@ -1,7 +1,7 @@
 export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
-import { groq } from '@/lib/groq';
+import Groq from 'groq-sdk';
 import { createClient } from '@/lib/supabase/server';
 import { checkRateLimit } from '@/lib/ratelimit';
 
@@ -104,27 +104,36 @@ This is hint number ${hint_number || 1} of 3. Give hint ${hint_number || 1} in J
     let hintText = "You are so close! Re-check if your parameters match the requested structures.";
     let hintSnippet = "";
 
-    if (process.env.GROQ_API_KEY) {
-      const response = await groq.chat.completions.create({
-        model: 'llama-3.1-8b-instant',
-        max_tokens: 400,
-        response_format: { type: 'json_object' },
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: userMessage },
-        ],
-      });
+    if (!process.env.GROQ_API_KEY) {
+      return NextResponse.json(
+        { error: 'GROQ_API_KEY is not configured on the server', code: 'INTERNAL_SERVER_ERROR' },
+        { status: 500 }
+      );
+    }
 
-      const responseContent = response.choices[0]?.message?.content;
-      if (responseContent) {
-        try {
-          const parsed = JSON.parse(responseContent);
-          hintText = parsed.hint_text || hintText;
-          hintSnippet = parsed.snippet || "";
-        } catch (e) {
-          console.error("Failed to parse JSON hint response", e);
-          hintText = responseContent;
-        }
+    const groq = new Groq({
+      apiKey: process.env.GROQ_API_KEY,
+    });
+
+    const response = await groq.chat.completions.create({
+      model: 'llama-3.1-8b-instant',
+      max_tokens: 400,
+      response_format: { type: 'json_object' },
+      messages: [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: userMessage },
+      ],
+    });
+
+    const responseContent = response.choices[0]?.message?.content;
+    if (responseContent) {
+      try {
+        const parsed = JSON.parse(responseContent);
+        hintText = parsed.hint_text || hintText;
+        hintSnippet = parsed.snippet || "";
+      } catch (e) {
+        console.error("Failed to parse JSON hint response", e);
+        hintText = responseContent;
       }
     }
 
