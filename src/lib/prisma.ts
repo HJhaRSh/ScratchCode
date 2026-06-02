@@ -10,6 +10,11 @@ declare const globalThis: {
 
 const prisma = new Proxy({} as ReturnType<typeof prismaClientSingleton>, {
   get(target, prop) {
+    // Prevent premature instantiation during build by bundler/Promise checks
+    if (typeof prop === 'string' && ['__esModule', 'then', 'default', '$$typeof'].includes(prop)) {
+      return undefined;
+    }
+    
     if (!globalThis.prismaGlobal) {
       globalThis.prismaGlobal = prismaClientSingleton();
     }
