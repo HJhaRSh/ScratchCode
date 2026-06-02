@@ -5,23 +5,11 @@ const prismaClientSingleton = () => {
 };
 
 declare const globalThis: {
-  prismaGlobal: ReturnType<typeof prismaClientSingleton>;
+  prismaGlobal: ReturnType<typeof prismaClientSingleton> | undefined;
 } & typeof global;
 
-const prisma = new Proxy({} as ReturnType<typeof prismaClientSingleton>, {
-  get(target, prop) {
-    // Prevent premature instantiation during build by bundler/Promise checks
-    if (typeof prop === 'string' && ['__esModule', 'then', 'default', '$$typeof'].includes(prop)) {
-      return undefined;
-    }
-    
-    if (!globalThis.prismaGlobal) {
-      globalThis.prismaGlobal = prismaClientSingleton();
-    }
-    return (globalThis.prismaGlobal as any)[prop];
-  }
-});
+const prisma = globalThis.prismaGlobal ?? prismaClientSingleton();
 
 export default prisma;
 
-if (process.env.NODE_ENV !== 'production') globalThis.prismaGlobal = prisma as any;
+if (process.env.NODE_ENV !== 'production') globalThis.prismaGlobal = prisma;
