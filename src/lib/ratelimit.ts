@@ -20,7 +20,7 @@ export async function checkRateLimit(userId: string): Promise<{
   currentCount: number;
   limit: number;
 }> {
-  const limit = 3;
+  const limit = 50;
   const todayStr = new Date().toISOString().split('T')[0];
   const redisKey = `hints:${userId}:${todayStr}`;
 

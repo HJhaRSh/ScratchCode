@@ -455,12 +455,23 @@ export default function LearnLessonPage() {
         setHintSnippet(data.snippet);
         setHintNumber(nextNum);
       } else {
-        setHintText(data.error || "AI Mentor is currently busy compiling logic. Try review your brackets and variables in the meantime!");
-        setHintSnippet(undefined);
+        const errMsg = data.error || "AI Mentor is currently busy compiling logic.";
+        if (hintNumber > 0 && unlockedHints[hintNumber]) {
+          setHintText(`⚠️ ERROR: ${errMsg}\n\n---\n\nPREVIOUS HINT (${hintNumber}):\n${unlockedHints[hintNumber].text}`);
+          setHintSnippet(unlockedHints[hintNumber].snippet);
+        } else {
+          setHintText(`⚠️ ${errMsg}`);
+          setHintSnippet(undefined);
+        }
       }
     } catch (err) {
-      setHintText("Could not connect to AI Mentor. Check your connections.");
-      setHintSnippet(undefined);
+      if (hintNumber > 0 && unlockedHints[hintNumber]) {
+        setHintText(`⚠️ ERROR: Could not connect to AI Mentor.\n\n---\n\nPREVIOUS HINT (${hintNumber}):\n${unlockedHints[hintNumber].text}`);
+        setHintSnippet(unlockedHints[hintNumber].snippet);
+      } else {
+        setHintText("⚠️ Could not connect to AI Mentor. Check your connections.");
+        setHintSnippet(undefined);
+      }
     } finally {
       setIsHintLoading(false);
     }

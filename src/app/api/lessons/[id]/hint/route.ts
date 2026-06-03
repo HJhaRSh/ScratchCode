@@ -55,7 +55,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     const rateLimit = await checkRateLimit(dbUser.id);
     if (!rateLimit.allowed) {
       return NextResponse.json(
-        { error: 'You have reached your daily limit of 3 hints. Keep trying, or come back tomorrow for more guidance!', code: 'RATE_LIMIT_EXCEEDED' },
+        { error: 'You have reached your daily limit of 50 hints. Keep trying, or come back tomorrow for more guidance!', code: 'RATE_LIMIT_EXCEEDED' },
         { status: 429 }
       );
     }
