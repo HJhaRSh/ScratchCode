@@ -922,24 +922,6 @@ export default function DashboardPage() {
           </div>
         </main>
       </div>
-
-      {/* Mobile Bottom Navigation Bar */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-black/90 backdrop-blur-xl border-t border-white/[0.07] flex items-center">
-        {[
-          { href: '/dashboard', icon: Compass, label: 'Dashboard', color: 'text-cyan-400' },
-          { href: '/tracks', icon: BookOpen, label: 'Tracks', color: 'text-orange-400' },
-          { href: '/badges', icon: Award, label: 'Badges', color: 'text-purple-400' },
-        ].map(({ href, icon: Icon, label, color }) => (
-          <Link
-            key={href}
-            href={href}
-            className={`flex-1 flex flex-col items-center justify-center py-3 gap-1 transition-colors ${color}`}
-          >
-            <Icon className="h-5 w-5" />
-            <span className="text-[10px] font-bold uppercase tracking-wider">{label}</span>
-          </Link>
-        ))}
-      </nav>
     </div>
   );
 }

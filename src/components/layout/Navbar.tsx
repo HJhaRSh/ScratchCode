@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Menu, X, ArrowRight, User, Settings, LogOut, ChevronDown } from 'lucide-react';
+import { Menu, X, ArrowRight, User, Settings, LogOut, ChevronDown, Compass, BookOpen, Award } from 'lucide-react';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useUser } from '@/hooks/useUser';
@@ -35,8 +35,10 @@ export default function Navbar() {
   ];
 
   const navLinks = isAppPage ? appNavLinks : landingNavLinks;
+  const showBottomNav = isAppPage && !pathname.startsWith('/learn');
 
   return (
+    <>
     <header className="fixed top-0 left-0 right-0 z-50 bg-black/50 backdrop-blur-lg py-4 transition-all duration-300">
       <div className="container mx-auto px-4 md:px-8 max-w-7xl flex items-center justify-between">
         
@@ -169,5 +171,26 @@ export default function Navbar() {
         </div>
       )}
     </header>
+
+      {/* Mobile Bottom Navigation Bar (Global for App Pages) */}
+      {showBottomNav && (
+        <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-black/90 backdrop-blur-xl border-t border-white/[0.07] flex items-center pb-safe">
+          {[
+            { href: '/dashboard', icon: Compass, label: 'Dashboard', color: pathname === '/dashboard' ? 'text-cyan-400' : 'text-slate-500 hover:text-cyan-400' },
+            { href: '/tracks', icon: BookOpen, label: 'Tracks', color: pathname.startsWith('/tracks') ? 'text-orange-400' : 'text-slate-500 hover:text-orange-400' },
+            { href: '/badges', icon: Award, label: 'Badges', color: pathname.startsWith('/badges') ? 'text-purple-400' : 'text-slate-500 hover:text-purple-400' },
+          ].map(({ href, icon: Icon, label, color }) => (
+            <Link
+              key={href}
+              href={href}
+              className={`flex-1 flex flex-col items-center justify-center py-3 gap-1 transition-colors ${color}`}
+            >
+              <Icon className="h-5 w-5" />
+              <span className="text-[10px] font-bold uppercase tracking-wider">{label}</span>
+            </Link>
+          ))}
+        </nav>
+      )}
+    </>
   );
 }

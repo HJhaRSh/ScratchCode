@@ -68,7 +68,7 @@ export default function BadgesPage() {
       <Navbar />
       <div className="flex flex-1">
         <Sidebar />
-        <main className="flex-1 p-4 md:p-8 overflow-y-auto space-y-8 max-w-7xl mx-auto w-full">
+        <main className="flex-1 p-4 md:p-8 pb-24 md:pb-8 overflow-y-auto space-y-8 max-w-7xl mx-auto w-full">
           {/* Header */}
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-white/[0.05] pb-10 relative">
             <div className={`absolute -top-20 left-0 w-[500px] h-[250px] ${headerColor.bgOrb} rounded-[100%] blur-[120px] pointer-events-none`} />
