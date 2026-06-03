@@ -437,20 +437,22 @@ json.dumps(_steps)
           {/* AI Fix panel even for hard errors */}
           <AnimatePresence>
             {showAiPanel && (
-              <AiFixPanel
-                loading={loadingAiFix}
-                result={aiFixResult}
-                onCopy={handleCopyFixed}
-                onApply={onApplyFix ? handleApplyFix : undefined}
-                copied={copied}
-              />
+              <div className="absolute inset-0 z-50 flex justify-end">
+                <AiFixPanel
+                  loading={loadingAiFix}
+                  result={aiFixResult}
+                  onCopy={handleCopyFixed}
+                  onApply={onApplyFix ? handleApplyFix : undefined}
+                  copied={copied}
+                />
+              </div>
             )}
           </AnimatePresence>
         </div>
       ) : currentStep ? (
-        <div className="flex-1 flex min-h-0">
+        <div className="flex-1 flex flex-col lg:flex-row min-h-0">
           {/* ── LEFT: Code Panel ── */}
-          <div className="w-[38%] flex flex-col border-r border-white/8 bg-transparent">
+          <div className="w-full lg:w-[38%] h-1/2 lg:h-auto flex flex-col border-b lg:border-b-0 lg:border-r border-white/8 bg-transparent">
             <div className="flex-1 overflow-auto p-3 font-mono text-[13px] leading-6">
               <div className="text-center text-slate-600 text-[11px] mb-3 pb-2 border-b border-white/5">
                 {language === 'python' ? 'Python 3.11' : 'JavaScript'} — line-by-line trace
@@ -716,13 +718,15 @@ json.dumps(_steps)
             {/* AI Fix Side Panel */}
             <AnimatePresence>
               {showAiPanel && (
-                <AiFixPanel
-                  loading={loadingAiFix}
-                  result={aiFixResult}
-                  onCopy={handleCopyFixed}
-                  onApply={onApplyFix ? handleApplyFix : undefined}
-                  copied={copied}
-                />
+                <div className="absolute inset-0 z-50 flex justify-end">
+                  <AiFixPanel
+                    loading={loadingAiFix}
+                    result={aiFixResult}
+                    onCopy={handleCopyFixed}
+                    onApply={onApplyFix ? handleApplyFix : undefined}
+                    copied={copied}
+                  />
+                </div>
               )}
             </AnimatePresence>
           </div>
@@ -755,7 +759,7 @@ function AiFixPanel({ loading, result, onCopy, onApply, copied }: AiFixPanelProp
       animate={{ x: 0, opacity: 1 }}
       exit={{ x: '100%', opacity: 0 }}
       transition={{ type: 'spring', damping: 26, stiffness: 240 }}
-      className="w-[340px] shrink-0 flex flex-col border-l border-white/[0.05] overflow-hidden bg-[#0a0a0a] bg-noise"
+      className="absolute top-0 right-0 bottom-0 w-full sm:w-[340px] z-50 shrink-0 flex flex-col border-l border-white/[0.05] overflow-hidden bg-[#0a0a0a] bg-noise"
     >
       {/* Panel header */}
       <div className="flex items-center gap-2 px-4 py-3 border-b border-white/[0.05] bg-transparent">

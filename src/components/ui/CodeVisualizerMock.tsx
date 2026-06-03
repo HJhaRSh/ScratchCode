@@ -236,7 +236,7 @@ export default function CodeVisualizerMock() {
                 animate={{ x: 0, opacity: 1 }}
                 exit={{ x: '100%', opacity: 0 }}
                 transition={{ type: 'spring', damping: 26, stiffness: 240 }}
-                className="absolute right-0 top-0 bottom-0 w-[240px] bg-[#0a0a0a] bg-noise border-l border-white/[0.05] flex flex-col shadow-2xl z-10"
+                className="absolute right-0 top-0 bottom-0 w-full sm:w-[280px] bg-[#0a0a0a] bg-noise border-l border-white/[0.05] flex flex-col shadow-2xl z-10"
               >
                 <div className="flex items-center gap-2 px-3 py-2 border-b border-white/[0.05]">
                   <div className="w-5 h-5 rounded-lg bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center shrink-0">
