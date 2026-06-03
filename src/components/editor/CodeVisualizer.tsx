@@ -546,13 +546,11 @@ json.dumps(_steps)
                         emerald: 'border-emerald-500/30 bg-emerald-500/5',
                         amber: 'border-amber-500/30 bg-amber-500/5',
                         sky: 'border-sky-500/30 bg-sky-500/5',
-                        emerald: 'border-emerald-500/30 bg-emerald-500/5',
                       };
                       const headerMap: Record<string, string> = {
                         emerald: 'bg-emerald-500/10 border-emerald-500/20 text-emerald-200',
                         amber: 'bg-amber-500/10 border-amber-500/20 text-amber-200',
                         sky: 'bg-sky-500/10 border-sky-500/20 text-sky-200',
-                        emerald: 'bg-emerald-500/10 border-emerald-500/20 text-emerald-200',
                       };
                       return (
                         <motion.div key={idx}
