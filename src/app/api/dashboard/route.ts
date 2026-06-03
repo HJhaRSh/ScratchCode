@@ -59,7 +59,6 @@ export async function GET() {
     const progressMap = new Map(progressRecords.map(r => [r.lesson_id, r.status]));
 
     const tracksProgress = tracks.map((track) => {
-      // Flatten all lessons in order
       const trackLessons = track.units.flatMap((unit) =>
         unit.lessons.map((lesson) => ({
           ...lesson,
@@ -77,7 +76,6 @@ export async function GET() {
         ? Math.min(100, Math.round((completedLessons / totalLessons) * 100))
         : 0;
 
-      // Prefer IN_PROGRESS lessons first (exact resume point), then first NOT_STARTED
       const inProgressLesson = trackLessons.find(
         (lesson) => progressMap.get(lesson.id) === 'IN_PROGRESS'
       );
@@ -123,7 +121,7 @@ export async function GET() {
       earned_at: ub.earned_at,
     }));
 
-    // 4. Activity this week (last 7 days of XP)
+    // 4. Activity this week (last 7 days of XP) — for the bar chart
     const sevenDaysAgo = new Date();
     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 6);
     sevenDaysAgo.setHours(0, 0, 0, 0);
@@ -142,7 +140,6 @@ export async function GET() {
       },
     });
 
-    // Generate timezone-resilient date keys (YYYY-MM-DD) based on local time
     const getLocalDateKey = (date: Date): string => {
       const year = date.getFullYear();
       const month = String(date.getMonth() + 1).padStart(2, '0');
@@ -172,18 +169,79 @@ export async function GET() {
       });
     }
 
-    // 5. Leaderboard (top 5 users by XP this week - last 7 days)
+    // 5. Full Activity Log — ALL completed lessons with rich details
+    const activityLogRaw = await prisma.userLessonProgress.findMany({
+      where: {
+        user_id: prismaUser.id,
+        status: 'COMPLETED',
+      },
+      orderBy: { completed_at: 'desc' },
+      take: 50,
+      include: {
+        lesson: {
+          select: {
+            id: true,
+            title: true,
+            type: true,
+            language: true,
+            duration_minutes: true,
+            xp_reward: true,
+            unit: {
+              select: {
+                title: true,
+                unit_number: true,
+                track: {
+                  select: {
+                    title: true,
+                    slug: true,
+                    icon: true,
+                    color_hex: true,
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    });
+
+    const activityLog = activityLogRaw.map((record) => ({
+      lesson_id: record.lesson_id,
+      lesson_title: record.lesson.title,
+      lesson_type: record.lesson.type,
+      language: record.lesson.language,
+      duration_minutes: record.lesson.duration_minutes,
+      xp_reward: record.lesson.xp_reward,
+      xp_earned: record.xp_earned,
+      attempts: record.attempts,
+      completed_at: record.completed_at,
+      track_title: record.lesson.unit.track.title,
+      track_slug: record.lesson.unit.track.slug,
+      track_icon: record.lesson.unit.track.icon,
+      track_color: record.lesson.unit.track.color_hex,
+      unit_title: record.lesson.unit.title,
+    }));
+
+    // 6. Overall progress stats
+    const totalCompleted = await prisma.userLessonProgress.count({
+      where: { user_id: prismaUser.id, status: 'COMPLETED' },
+    });
+    const totalInProgress = await prisma.userLessonProgress.count({
+      where: { user_id: prismaUser.id, status: 'IN_PROGRESS' },
+    });
+    const totalEstimatedMinutes = activityLogRaw.reduce(
+      (sum, r) => sum + r.lesson.duration_minutes,
+      0
+    );
+    const totalAttempts = activityLogRaw.reduce((sum, r) => sum + r.attempts, 0);
+
+    // 7. Leaderboard (top 5 users by XP this week)
     const weeklyProgressAllUsers = await prisma.userLessonProgress.findMany({
       where: {
         status: 'COMPLETED',
-        completed_at: {
-          gte: sevenDaysAgo,
-        },
+        completed_at: { gte: sevenDaysAgo },
       },
-      select: {
-        user_id: true,
-        xp_earned: true,
-      },
+      select: { user_id: true, xp_earned: true },
     });
 
     const userXPMap = new Map<string, number>();
@@ -193,12 +251,7 @@ export async function GET() {
     });
 
     const allUsers = await prisma.user.findMany({
-      select: {
-        id: true,
-        username: true,
-        avatar_url: true,
-        xp: true,
-      },
+      select: { id: true, username: true, avatar_url: true, xp: true },
     });
 
     const leaderboard = allUsers
@@ -208,7 +261,6 @@ export async function GET() {
         xp_this_week: userXPMap.get(user.id) || 0,
         total_xp: user.xp,
       }))
-      // Sort: weekly XP desc, then total XP desc
       .sort((a, b) => b.xp_this_week - a.xp_this_week || b.total_xp - a.total_xp)
       .slice(0, 5)
       .map((user, index) => ({
@@ -218,7 +270,6 @@ export async function GET() {
         xp_this_week: user.xp_this_week,
       }));
 
-    // Assemble payload matching DashboardResponse structure
     const dashboardData = {
       user: {
         xp: prismaUser.xp,
@@ -232,6 +283,13 @@ export async function GET() {
       recent_badges: recentBadges,
       weekly_xp: weeklyXP,
       leaderboard: leaderboard,
+      activity_log: activityLog,
+      stats: {
+        total_completed: totalCompleted,
+        total_in_progress: totalInProgress,
+        total_estimated_minutes: totalEstimatedMinutes,
+        total_attempts: totalAttempts,
+      },
     };
 
     return NextResponse.json(dashboardData);

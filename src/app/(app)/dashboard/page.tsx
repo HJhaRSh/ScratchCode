@@ -10,15 +10,20 @@ import {
   Award, 
   ChevronRight, 
   Zap, 
-  Loader2, 
   Trophy, 
-  Calendar,
   Sparkles,
   TrendingUp,
   Compass,
-  Code2
+  Code2,
+  CheckCircle2,
+  Clock,
+  BookOpen,
+  BarChart2,
+  ListChecks,
+  ArrowRight,
+  Target,
 } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import Skeleton from '@/components/ui/Skeleton';
 
 interface ExtendedTrackProgress {
@@ -35,6 +40,30 @@ interface ExtendedTrackProgress {
     unit_title: string;
     in_progress?: boolean;
   };
+}
+
+interface ActivityLogEntry {
+  lesson_id: string;
+  lesson_title: string;
+  lesson_type: 'CONCEPT' | 'EXERCISE' | 'PROJECT';
+  language: string;
+  duration_minutes: number;
+  xp_reward: number;
+  xp_earned: number;
+  attempts: number;
+  completed_at: string | null;
+  track_title: string;
+  track_slug: string;
+  track_icon: string;
+  track_color: string | null;
+  unit_title: string;
+}
+
+interface DashboardStats {
+  total_completed: number;
+  total_in_progress: number;
+  total_estimated_minutes: number;
+  total_attempts: number;
 }
 
 interface ExtendedDashboardData {
@@ -65,6 +94,8 @@ interface ExtendedDashboardData {
     avatar_url?: string | null;
     xp_this_week: number;
   }[];
+  activity_log: ActivityLogEntry[];
+  stats: DashboardStats;
 }
 
 const LEVEL_NAMES: Record<number, string> = {
@@ -102,6 +133,8 @@ export default function DashboardPage() {
   const [data, setData] = useState<ExtendedDashboardData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [activityTab, setActivityTab] = useState<'chart' | 'log'>('chart');
+  const [logFilter, setLogFilter] = useState<'ALL' | 'CONCEPT' | 'EXERCISE' | 'PROJECT'>('ALL');
 
   const fetchDashboardData = async () => {
     try {
@@ -490,70 +523,261 @@ export default function DashboardPage() {
                 )}
               </div>
 
-              {/* ACTIVITY THIS WEEK (Bar Chart) */}
-              <div className="space-y-6 pt-8 border-t border-white/[0.05]">
-                <div className="flex items-center justify-between border-b border-white/10 pb-6">
+              {/* ACTIVITY TRACKER — Tabbed: XP Chart + Full Log */}
+              <div className="space-y-0 pt-8 border-t border-white/[0.05]">
+                {/* Section header + tabs */}
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/10 pb-5 mb-6">
                   <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-1.5 text-[10px] font-mono font-bold tracking-[0.2em] text-slate-300 uppercase">
-                    [03] Activity Chart
+                    [03] Progress Tracker
                   </div>
-                  <div className="flex items-center gap-1 text-[11px] font-bold text-slate-400 bg-black bg-noise border border-slate-850 px-2.5 py-1 rounded-md">
-                    <TrendingUp className="h-3.5 w-3.5 text-cyan-400" /> Last 7 Days
+                  {/* Tabs */}
+                  <div className="flex items-center bg-white/[0.03] border border-white/[0.06] rounded-lg p-0.5 gap-0.5">
+                    <button
+                      onClick={() => setActivityTab('chart')}
+                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[11px] font-bold transition-all ${
+                        activityTab === 'chart'
+                          ? 'bg-white/10 text-white'
+                          : 'text-slate-500 hover:text-slate-300'
+                      }`}
+                    >
+                      <BarChart2 className="h-3.5 w-3.5" /> XP Chart
+                    </button>
+                    <button
+                      onClick={() => setActivityTab('log')}
+                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[11px] font-bold transition-all ${
+                        activityTab === 'log'
+                          ? 'bg-white/10 text-white'
+                          : 'text-slate-500 hover:text-slate-300'
+                      }`}
+                    >
+                      <ListChecks className="h-3.5 w-3.5" /> Activity Log
+                      {data && data.stats.total_completed > 0 && (
+                        <span className="bg-[#d9f95d]/20 text-[#d9f95d] font-mono text-[9px] px-1.5 py-0.5 rounded">
+                          {data.stats.total_completed}
+                        </span>
+                      )}
+                    </button>
                   </div>
                 </div>
 
-                {/* Pure CSS Bar Chart */}
-                <div className="space-y-4">
-                  {data && data.weekly_xp.some((day) => day.xp > 0) ? (
-                    <div className="h-48 flex items-end gap-3 sm:gap-6 px-2 pt-4 relative">
-                      {/* Grid guideline accents */}
-                      <div className="absolute inset-x-0 bottom-0 border-b border-slate-850" />
-                      <div className="absolute inset-x-0 bottom-1/2 border-b border-slate-850 border-dashed" />
-                      <div className="absolute inset-x-0 top-0 border-b border-slate-850/50" />
-
-                      {data.weekly_xp.map((day, idx) => {
-                        const heightPercent = maxWeeklyXP > 0 
-                          ? Math.round((day.xp / maxWeeklyXP) * 100) 
-                          : 0;
-
-                        return (
-                          <div key={idx} className="flex-1 flex flex-col items-center h-full group relative">
-                            {/* Hover tooltip */}
-                            <div className="absolute -top-7 opacity-0 group-hover:opacity-100 transition-all duration-200 pointer-events-none z-10">
-                              <span className="bg-black bg-noise border border-slate-850 text-white font-mono text-[9px] font-bold px-2 py-0.5 rounded shadow shadow-[#d9f95d]/5 whitespace-nowrap">
-                                ⭐ {day.xp} XP
-                              </span>
-                            </div>
-
-                            <div className="w-full flex-1 flex items-end justify-center relative">
-                              <motion.div
-                                initial={{ height: 0 }}
-                                animate={{ height: `${day.xp > 0 ? Math.max(10, heightPercent) : 0}%` }}
-                                transition={{ delay: idx * 0.05, duration: 0.6, ease: "easeOut" }}
-                                className={`w-3/4 sm:w-1/2 rounded-t-lg relative transition-colors ${
-                                  day.xp > 0 
-                                    ? "bg-gradient-to-t from-purple-500 to-pink-500 shadow-[0_0_10px_rgba(168,85,247,0.15)] group-hover:from-purple-400 group-hover:to-pink-400" 
-                                    : "bg-white/10/40"
-                                }`}
-                              />
-                            </div>
-
-                            {/* X-axis day Label */}
-                            <div className="text-[10px] font-semibold text-slate-500 mt-2 font-mono group-hover:text-slate-300 transition-colors uppercase">
-                              {day.day}
-                            </div>
+                <AnimatePresence mode="wait">
+                  {activityTab === 'chart' ? (
+                    <motion.div
+                      key="chart"
+                      initial={{ opacity: 0, y: 4 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -4 }}
+                      transition={{ duration: 0.15 }}
+                      className="space-y-6"
+                    >
+                      {/* Overall Stats Row */}
+                      {data && (
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                          <div className="bg-white/[0.02] border border-white/[0.05] rounded-xl p-3 text-center">
+                            <div className="text-2xl font-black text-[#d9f95d]">{data.stats.total_completed}</div>
+                            <div className="text-[10px] text-slate-500 font-bold uppercase tracking-wider mt-0.5">Completed</div>
                           </div>
-                        );
-                      })}
-                    </div>
+                          <div className="bg-white/[0.02] border border-white/[0.05] rounded-xl p-3 text-center">
+                            <div className="text-2xl font-black text-emerald-400">
+                              {data.stats.total_estimated_minutes >= 60
+                                ? `${Math.floor(data.stats.total_estimated_minutes / 60)}h ${data.stats.total_estimated_minutes % 60}m`
+                                : `${data.stats.total_estimated_minutes}m`}
+                            </div>
+                            <div className="text-[10px] text-slate-500 font-bold uppercase tracking-wider mt-0.5">Time Spent</div>
+                          </div>
+                          <div className="bg-white/[0.02] border border-white/[0.05] rounded-xl p-3 text-center">
+                            <div className="text-2xl font-black text-purple-400">{data.stats.total_attempts}</div>
+                            <div className="text-[10px] text-slate-500 font-bold uppercase tracking-wider mt-0.5">Attempts</div>
+                          </div>
+                          <div className="bg-white/[0.02] border border-white/[0.05] rounded-xl p-3 text-center">
+                            <div className="text-2xl font-black text-amber-400">
+                              {data.stats.total_attempts > 0
+                                ? (data.stats.total_completed / data.stats.total_attempts * 100).toFixed(0)
+                                : 0}%
+                            </div>
+                            <div className="text-[10px] text-slate-500 font-bold uppercase tracking-wider mt-0.5">Success Rate</div>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* 7-Day XP Bar Chart */}
+                      <div className="space-y-3">
+                        <div className="flex items-center gap-1.5 text-[11px] font-bold text-slate-400">
+                          <TrendingUp className="h-3.5 w-3.5 text-cyan-400" />
+                          XP Earned — Last 7 Days
+                        </div>
+                        {data && data.weekly_xp.some((day) => day.xp > 0) ? (
+                          <div className="h-44 flex items-end gap-3 sm:gap-5 px-2 pt-4 relative">
+                            <div className="absolute inset-x-0 bottom-0 border-b border-white/[0.05]" />
+                            <div className="absolute inset-x-0 bottom-1/2 border-b border-white/[0.04] border-dashed" />
+                            <div className="absolute inset-x-0 top-0 border-b border-white/[0.03]" />
+                            {data.weekly_xp.map((day, idx) => {
+                              const heightPercent = maxWeeklyXP > 0 ? Math.round((day.xp / maxWeeklyXP) * 100) : 0;
+                              const isToday = idx === 6;
+                              return (
+                                <div key={idx} className="flex-1 flex flex-col items-center h-full group relative">
+                                  <div className="absolute -top-8 opacity-0 group-hover:opacity-100 transition-all duration-150 pointer-events-none z-10">
+                                    <div className="bg-[#111] border border-white/10 text-white font-mono text-[9px] font-bold px-2 py-1 rounded shadow whitespace-nowrap">
+                                      ⭐ {day.xp} XP
+                                    </div>
+                                  </div>
+                                  <div className="w-full flex-1 flex items-end justify-center">
+                                    <motion.div
+                                      initial={{ height: 0 }}
+                                      animate={{ height: `${day.xp > 0 ? Math.max(8, heightPercent) : 0}%` }}
+                                      transition={{ delay: idx * 0.05, duration: 0.5, ease: 'easeOut' }}
+                                      className={`w-3/4 sm:w-1/2 rounded-t-md transition-colors ${
+                                        isToday
+                                          ? 'bg-gradient-to-t from-[#d9f95d] to-emerald-400 shadow-[0_0_12px_rgba(217,249,93,0.2)]'
+                                          : day.xp > 0
+                                          ? 'bg-gradient-to-t from-purple-500 to-pink-400 shadow-[0_0_8px_rgba(168,85,247,0.15)] group-hover:from-purple-400 group-hover:to-pink-300'
+                                          : 'bg-white/[0.04]'
+                                      }`}
+                                    />
+                                  </div>
+                                  <div className={`text-[10px] font-mono font-semibold mt-2 uppercase transition-colors ${
+                                    isToday ? 'text-[#d9f95d]' : 'text-slate-500 group-hover:text-slate-300'
+                                  }`}>
+                                    {isToday ? 'Today' : day.day}
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        ) : (
+                          <div className="h-44 flex flex-col items-center justify-center text-center space-y-2 border border-white/[0.05] border-dashed rounded-xl bg-white/[0.01]">
+                            <div className="text-2xl opacity-40">📊</div>
+                            <div className="text-xs font-bold text-slate-400">No XP earned this week</div>
+                            <p className="text-[10px] text-slate-500 max-w-[200px]">Complete lessons to populate your chart</p>
+                          </div>
+                        )}
+                      </div>
+                    </motion.div>
                   ) : (
-                    // Chart Empty State (No XP earned in 7 days)
-                    <div className="h-48 flex flex-col items-center justify-center text-center space-y-2 border border-slate-850 border-dashed rounded-xl bg-black bg-noise/30">
-                      <div className="text-2xl filter saturate-50 opacity-60">📊</div>
-                      <div className="text-xs font-bold text-slate-400">No activity recorded this week</div>
-                      <p className="text-[10px] text-slate-500 max-w-[240px]">Work on track modules and correct exercises to populate your weekly mini-chart stats!</p>
-                    </div>
+                    <motion.div
+                      key="log"
+                      initial={{ opacity: 0, y: 4 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -4 }}
+                      transition={{ duration: 0.15 }}
+                      className="space-y-4"
+                    >
+                      {/* Filter chips */}
+                      <div className="flex items-center gap-2 flex-wrap">
+                        {(['ALL', 'CONCEPT', 'EXERCISE', 'PROJECT'] as const).map((f) => (
+                          <button
+                            key={f}
+                            onClick={() => setLogFilter(f)}
+                            className={`text-[10px] font-bold uppercase tracking-wider px-3 py-1 rounded-full border transition-all ${
+                              logFilter === f
+                                ? 'bg-white/10 border-white/20 text-white'
+                                : 'border-white/[0.06] text-slate-500 hover:text-slate-300 hover:border-white/10'
+                            }`}
+                          >
+                            {f === 'ALL' ? 'All Types' : f}
+                          </button>
+                        ))}
+                      </div>
+
+                      {/* Activity log entries */}
+                      {data && data.activity_log.length > 0 ? (
+                        <div className="space-y-0 max-h-[480px] overflow-y-auto pr-1 custom-scrollbar">
+                          {data.activity_log
+                            .filter((e) => logFilter === 'ALL' || e.lesson_type === logFilter)
+                            .map((entry, idx) => {
+                              const completedDate = entry.completed_at ? new Date(entry.completed_at) : null;
+                              const dateStr = completedDate
+                                ? completedDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+                                : 'Unknown';
+                              const timeStr = completedDate
+                                ? completedDate.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
+                                : '';
+                              const typeColors: Record<string, string> = {
+                                CONCEPT: 'text-cyan-400 bg-cyan-500/10 border-cyan-500/20',
+                                EXERCISE: 'text-orange-400 bg-orange-500/10 border-orange-500/20',
+                                PROJECT: 'text-purple-400 bg-purple-500/10 border-purple-500/20',
+                              };
+                              const typeIcons: Record<string, string> = {
+                                CONCEPT: '📖',
+                                EXERCISE: '⚡',
+                                PROJECT: '🚀',
+                              };
+
+                              return (
+                                <motion.div
+                                  key={`${entry.lesson_id}-${idx}`}
+                                  initial={{ opacity: 0, x: -8 }}
+                                  animate={{ opacity: 1, x: 0 }}
+                                  transition={{ delay: idx * 0.03 }}
+                                  className="flex items-start gap-4 py-4 border-b border-white/[0.04] last:border-0 hover:bg-white/[0.01] px-2 -mx-2 rounded-lg transition-colors group"
+                                >
+                                  {/* Track color strip + icon */}
+                                  <div className="flex flex-col items-center gap-1 shrink-0">
+                                    <div
+                                      className="h-9 w-9 rounded-lg flex items-center justify-center text-lg border border-white/[0.06]"
+                                      style={{ backgroundColor: `${entry.track_color}15` || '#ffffff08' }}
+                                    >
+                                      {entry.track_icon || '📚'}
+                                    </div>
+                                  </div>
+
+                                  {/* Main content */}
+                                  <div className="flex-1 min-w-0">
+                                    <div className="flex items-center gap-2 flex-wrap mb-1">
+                                      <Link
+                                        href={`/learn/${entry.lesson_id}`}
+                                        className="text-sm font-bold text-slate-200 hover:text-white transition-colors truncate"
+                                      >
+                                        {entry.lesson_title}
+                                      </Link>
+                                      <span className={`text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded border ${typeColors[entry.lesson_type]}`}>
+                                        {typeIcons[entry.lesson_type]} {entry.lesson_type}
+                                      </span>
+                                    </div>
+
+                                    <div className="text-[10px] text-slate-500 mb-2">
+                                      {entry.track_title} · {entry.unit_title}
+                                    </div>
+
+                                    {/* Stats row */}
+                                    <div className="flex items-center gap-3 flex-wrap">
+                                      <span className="flex items-center gap-1 text-[10px] font-mono font-bold text-amber-400">
+                                        ⭐ +{entry.xp_earned} XP
+                                      </span>
+                                      <span className="flex items-center gap-1 text-[10px] text-slate-500">
+                                        <Clock className="h-3 w-3" /> {entry.duration_minutes}m lesson
+                                      </span>
+                                      <span className="flex items-center gap-1 text-[10px] text-slate-500">
+                                        <Target className="h-3 w-3" /> {entry.attempts} {entry.attempts === 1 ? 'attempt' : 'attempts'}
+                                      </span>
+                                      <span className="flex items-center gap-1 text-[10px] text-slate-500">
+                                        <Code2 className="h-3 w-3" /> {entry.language}
+                                      </span>
+                                    </div>
+                                  </div>
+
+                                  {/* Date / time */}
+                                  <div className="shrink-0 text-right">
+                                    <div className="text-[10px] font-bold text-slate-400">{dateStr}</div>
+                                    <div className="text-[9px] text-slate-600 mt-0.5">{timeStr}</div>
+                                    <div className="mt-1">
+                                      <CheckCircle2 className="h-4 w-4 text-emerald-500 ml-auto" />
+                                    </div>
+                                  </div>
+                                </motion.div>
+                              );
+                            })}
+                        </div>
+                      ) : (
+                        <div className="h-44 flex flex-col items-center justify-center text-center space-y-2 border border-white/[0.05] border-dashed rounded-xl">
+                          <BookOpen className="h-8 w-8 text-slate-600" />
+                          <div className="text-xs font-bold text-slate-400">No completed lessons yet</div>
+                          <p className="text-[10px] text-slate-500 max-w-[200px]">Complete lessons to see your full activity history</p>
+                        </div>
+                      )}
+                    </motion.div>
                   )}
-                </div>
+                </AnimatePresence>
               </div>
             </div>
 
