@@ -1,6 +1,4 @@
 <div align="center">
-  <img src="https://via.placeholder.com/1200x300/0B1528/d9f95d?text=ScratchCode" alt="ScratchCode Banner" />
-  <br />
   <h1>🚀 ScratchCode</h1>
   <p><strong>Gamified Interactive Learning Platform for Coding</strong></p>
   
