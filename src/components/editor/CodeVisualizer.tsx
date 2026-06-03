@@ -365,8 +365,7 @@ json.dumps(_steps)
       animate={{ y: 0, opacity: 1 }}
       exit={{ y: '100%', opacity: 0 }}
       transition={{ type: 'spring', damping: 28, stiffness: 220 }}
-      className="absolute bottom-0 left-0 right-0 h-[72vh] border-t border-white/10 shadow-2xl flex flex-col z-50 overflow-hidden font-sans"
-      style={{ background: 'linear-gradient(180deg, #0f0f1a 0%, #12121f 100%)' }}
+      className="absolute bottom-0 left-0 right-0 h-[72vh] border-t border-white/[0.1] shadow-2xl flex flex-col z-50 overflow-hidden font-sans bg-[#0a0a0a] bg-noise"
     >
       {/* ── Header ── */}
       <div className="flex items-center justify-between px-5 py-2.5 border-b border-white/8 shrink-0" style={{ background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(12px)' }}>
@@ -397,7 +396,7 @@ json.dumps(_steps)
           {traceHasError && !loading && (
             <button
               onClick={() => setShowAiPanel((v) => !v)}
-              className="flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold bg-violet-500/20 text-violet-300 border border-violet-500/30 hover:bg-violet-500/30 transition-all"
+              className="flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 hover:bg-cyan-500/20 transition-all"
             >
               <Sparkles className="w-3 h-3" />
               AI Fix {showAiPanel ? '▾' : '▸'}
@@ -451,7 +450,7 @@ json.dumps(_steps)
       ) : currentStep ? (
         <div className="flex-1 flex min-h-0">
           {/* ── LEFT: Code Panel ── */}
-          <div className="w-[38%] flex flex-col border-r border-white/8" style={{ background: '#0d0d18' }}>
+          <div className="w-[38%] flex flex-col border-r border-white/8 bg-transparent">
             <div className="flex-1 overflow-auto p-3 font-mono text-[13px] leading-6">
               <div className="text-center text-slate-600 text-[11px] mb-3 pb-2 border-b border-white/5">
                 {language === 'python' ? 'Python 3.11' : 'JavaScript'} — line-by-line trace
@@ -549,7 +548,7 @@ json.dumps(_steps)
           {/* ── RIGHT: Output + Memory + AI Panel ── */}
           <div className="flex-1 flex min-h-0 relative overflow-hidden">
             {/* Main right content */}
-            <div className="flex-1 flex flex-col min-h-0" style={{ background: '#0f0f1c' }}>
+            <div className="flex-1 flex flex-col min-h-0 bg-transparent">
               {/* Print Output */}
               <div className="h-[30%] flex flex-col border-b border-white/8 p-3">
                 <div className="flex items-center gap-2 mb-2">
@@ -756,17 +755,16 @@ function AiFixPanel({ loading, result, onCopy, onApply, copied }: AiFixPanelProp
       animate={{ x: 0, opacity: 1 }}
       exit={{ x: '100%', opacity: 0 }}
       transition={{ type: 'spring', damping: 26, stiffness: 240 }}
-      className="w-[340px] shrink-0 flex flex-col border-l border-violet-500/20 overflow-hidden"
-      style={{ background: 'linear-gradient(180deg, #13102a 0%, #0f0d1f 100%)' }}
+      className="w-[340px] shrink-0 flex flex-col border-l border-white/[0.05] overflow-hidden bg-[#0a0a0a] bg-noise"
     >
       {/* Panel header */}
-      <div className="flex items-center gap-2 px-4 py-3 border-b border-violet-500/20" style={{ background: 'rgba(139,92,246,0.08)' }}>
-        <div className="w-6 h-6 rounded-lg bg-violet-500/20 border border-violet-500/30 flex items-center justify-center shrink-0">
-          <Sparkles className="w-3.5 h-3.5 text-violet-300" />
+      <div className="flex items-center gap-2 px-4 py-3 border-b border-white/[0.05] bg-transparent">
+        <div className="w-6 h-6 rounded-lg bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center shrink-0">
+          <Sparkles className="w-3.5 h-3.5 text-cyan-400" />
         </div>
         <div>
-          <div className="text-[12px] font-bold text-violet-200 leading-tight">AI Fix Suggestion</div>
-          <div className="text-[10px] text-violet-400/70">Powered by Groq · Llama 3.3 70B</div>
+          <div className="text-[12px] font-bold text-cyan-400 leading-tight uppercase tracking-wider">AI Fix Suggestion</div>
+          <div className="text-[10px] text-slate-500">Powered by Groq · Llama 3.3 70B</div>
         </div>
       </div>
 
@@ -775,23 +773,23 @@ function AiFixPanel({ loading, result, onCopy, onApply, copied }: AiFixPanelProp
           /* Loading skeleton */
           <div className="flex flex-col gap-3">
             <div className="flex items-center gap-2 mb-1">
-              <div className="w-3 h-3 border border-violet-400 border-t-transparent rounded-full animate-spin" />
-              <span className="text-violet-300 text-xs">Analysing error with AI...</span>
+              <div className="w-3 h-3 border border-cyan-400 border-t-transparent rounded-full animate-spin" />
+              <span className="text-cyan-400 text-xs font-semibold">Analysing error with AI...</span>
             </div>
             {[80, 100, 60, 90, 70].map((w, i) => (
-              <div key={i} className="h-2.5 rounded-full bg-violet-500/10 animate-pulse" style={{ width: `${w}%`, animationDelay: `${i * 0.1}s` }} />
+              <div key={i} className="h-2.5 rounded-full bg-cyan-500/10 animate-pulse" style={{ width: `${w}%`, animationDelay: `${i * 0.1}s` }} />
             ))}
-            <div className="mt-2 h-24 rounded-xl bg-violet-500/5 border border-violet-500/10 animate-pulse" />
+            <div className="mt-2 h-24 rounded-xl bg-cyan-500/5 border border-cyan-500/10 animate-pulse" />
           </div>
         ) : result ? (
           <>
             {/* Explanation */}
             <div>
               <div className="flex items-center gap-1.5 mb-2">
-                <div className="w-1 h-3 rounded-full bg-violet-400" />
-                <span className="text-[10px] font-bold uppercase tracking-widest text-violet-400">What went wrong</span>
+                <div className="w-1 h-3 rounded-full bg-rose-400" />
+                <span className="text-[10px] font-bold uppercase tracking-widest text-rose-400">What went wrong</span>
               </div>
-              <p className="text-slate-300 text-[12px] leading-relaxed bg-white/3 rounded-xl p-3 border border-white/8">
+              <p className="text-slate-300 text-[12px] leading-relaxed bg-black/20 rounded-xl p-3 border border-white/[0.05]">
                 {result.explanation}
               </p>
             </div>
@@ -820,16 +818,16 @@ function AiFixPanel({ loading, result, onCopy, onApply, copied }: AiFixPanelProp
 
       {/* Apply fix button */}
       {result && onApply && (
-        <div className="p-4 border-t border-violet-500/20 shrink-0" style={{ background: 'rgba(0,0,0,0.3)' }}>
+        <div className="p-4 border-t border-white/[0.05] shrink-0 bg-transparent">
           <button
             onClick={onApply}
-            className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl font-bold text-sm bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-500 hover:to-purple-500 text-white transition-all shadow-lg shadow-violet-900/30 active:scale-95"
+            className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl font-bold text-sm bg-[#d9f95d] hover:bg-[#b8d945] text-slate-950 transition-all shadow-lg shadow-[#d9f95d]/10 active:scale-95"
           >
             <Check className="w-4 h-4" />
-            Apply Fix & Close Visualizer
+            Apply Fix & Close
             <ChevronRight className="w-4 h-4" />
           </button>
-          <p className="text-center text-[10px] text-slate-600 mt-1.5">Replaces your code with the AI-fixed version</p>
+          <p className="text-center text-[10px] text-slate-500 mt-1.5 font-medium">Replaces your code with the AI-fixed version</p>
         </div>
       )}
     </motion.div>
