@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Menu, X, ArrowRight, User, Settings, LogOut, ChevronDown, Compass, BookOpen, Award } from 'lucide-react';
+import { Menu, X, ArrowRight, User, Settings, LogOut, ChevronDown, Compass, BookOpen, Award, Play } from 'lucide-react';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useUser } from '@/hooks/useUser';
@@ -23,18 +23,13 @@ export default function Navbar() {
     pathname.startsWith('/learn');
 
   const landingNavLinks = [
-    { name: 'Tracks', href: '#tracks' },
-    { name: 'How it works', href: '#how-it-works' },
-    { name: 'Features', href: '#features' },
+    { name: 'Tracks', href: '/#tracks' },
+    { name: 'How it works', href: '/#how-it-works' },
+    { name: 'Visualizer', href: '/visualizer' },
+    { name: 'Features', href: '/#features' },
   ];
 
-  const appNavLinks = [
-    { name: 'Dashboard', href: '/dashboard' },
-    { name: 'Tracks', href: '/tracks' },
-    { name: 'Badges', href: '/badges' },
-  ];
-
-  const navLinks = isAppPage ? appNavLinks : landingNavLinks;
+  const navLinks = landingNavLinks;
   const showBottomNav = isAppPage && !pathname.startsWith('/learn');
 
   return (
@@ -179,6 +174,7 @@ export default function Navbar() {
             { href: '/dashboard', icon: Compass, label: 'Dashboard', color: pathname === '/dashboard' ? 'text-cyan-400' : 'text-slate-500 hover:text-cyan-400' },
             { href: '/tracks', icon: BookOpen, label: 'Tracks', color: pathname.startsWith('/tracks') ? 'text-orange-400' : 'text-slate-500 hover:text-orange-400' },
             { href: '/badges', icon: Award, label: 'Badges', color: pathname.startsWith('/badges') ? 'text-purple-400' : 'text-slate-500 hover:text-purple-400' },
+            { href: '/visualizer', icon: Play, label: 'Visualizer', color: pathname === '/visualizer' ? 'text-green-400' : 'text-slate-500 hover:text-green-400' },
           ].map(({ href, icon: Icon, label, color }) => (
             <Link
               key={href}

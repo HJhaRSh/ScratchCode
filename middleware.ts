@@ -45,6 +45,7 @@ export async function middleware(request: NextRequest) {
 
   const isProtectedPath =
     url.pathname === '/dashboard' ||
+    url.pathname === '/visualizer' ||
     url.pathname.startsWith('/learn') ||
     url.pathname.startsWith('/profile') ||
     url.pathname === '/settings' ||

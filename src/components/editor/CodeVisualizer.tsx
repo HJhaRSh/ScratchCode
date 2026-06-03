@@ -333,9 +333,9 @@ json.dumps(_steps)
             <span className="font-semibold text-white text-sm tracking-wide">Code Visualizer</span>
           </div>
           {loading && (
-            <div className="flex items-center gap-2 px-2 py-0.5 rounded-full bg-indigo-500/10 border border-indigo-500/20">
-              <div className="w-3 h-3 border border-indigo-400 border-t-transparent rounded-full animate-spin" />
-              <span className="text-indigo-300 text-xs">Analysing...</span>
+            <div className="flex items-center gap-2 px-2 py-0.5 rounded-full bg-green-500/10 border border-green-500/20">
+              <div className="w-3 h-3 border border-green-400 border-t-transparent rounded-full animate-spin" />
+              <span className="text-green-300 text-xs">Analysing...</span>
             </div>
           )}
           {!loading && steps.length > 0 && (
@@ -352,7 +352,7 @@ json.dumps(_steps)
       {loading ? (
         <div className="flex-1 flex items-center justify-center">
           <div className="flex flex-col items-center gap-4">
-            <div className="w-10 h-10 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin" />
+            <div className="w-10 h-10 border-2 border-green-500 border-t-transparent rounded-full animate-spin" />
             <div className="text-center">
               <div className="text-white font-medium text-sm">Analysing your code</div>
               <div className="text-slate-500 text-xs mt-1">Setting up Python tracer...</div>
@@ -403,7 +403,7 @@ json.dumps(_steps)
                 <span className="text-slate-600 text-[11px] w-6 text-right">{currentStep.step}</span>
                 <div className="flex-1 relative h-1.5 bg-white/5 rounded-full overflow-hidden">
                   <motion.div 
-                    className="absolute left-0 top-0 h-full rounded-full bg-gradient-to-r from-indigo-500 to-violet-500"
+                    className="absolute left-0 top-0 h-full rounded-full bg-gradient-to-r from-green-500 to-emerald-500"
                     animate={{ width: `${((currentStepIndex) / Math.max(1, steps.length - 1)) * 100}%` }}
                     transition={{ type: 'spring', stiffness: 300, damping: 30 }}
                   />
@@ -413,7 +413,7 @@ json.dumps(_steps)
               <input 
                 type="range" min={0} max={Math.max(0, steps.length - 1)} value={currentStepIndex}
                 onChange={(e) => setCurrentStepIndex(Number(e.target.value))}
-                className="w-full accent-indigo-500 mb-2 h-0.5"
+                className="w-full accent-green-500 mb-2 h-0.5"
               />
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-1">
@@ -432,12 +432,12 @@ json.dumps(_steps)
                   <div className="flex rounded-lg border border-white/10 overflow-hidden">
                     {(['Slow', 'Normal', 'Fast'] as const).map(s => (
                       <button key={s} onClick={() => setSpeed(s)}
-                        className={`px-2 py-1 text-[10px] font-bold transition-colors ${speed === s ? 'bg-indigo-500/30 text-indigo-300' : 'bg-white/3 text-slate-500 hover:text-slate-300'}`}
+                        className={`px-2 py-1 text-[10px] font-bold transition-colors ${speed === s ? 'bg-green-500/30 text-green-300' : 'bg-white/3 text-slate-500 hover:text-slate-300'}`}
                       >{s[0]}</button>
                     ))}
                   </div>
                   <button onClick={() => setIsPlaying(!isPlaying)}
-                    className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold transition-all ${isPlaying ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30' : 'bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 hover:bg-indigo-500/30'}`}
+                    className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold transition-all ${isPlaying ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30' : 'bg-green-500/20 text-green-300 border border-green-500/30 hover:bg-green-500/30'}`}
                   >
                     {isPlaying ? <><Pause className="h-3 w-3" /> Pause</> : <><Play className="h-3 w-3" /> Play</>}
                   </button>
@@ -482,13 +482,13 @@ json.dumps(_steps)
                           initial={{ opacity: 0, x: -8 }}
                           animate={{ opacity: 1, x: 0 }}
                           transition={{ delay: fIdx * 0.05 }}
-                          className={`rounded-xl border shrink-0 overflow-hidden ${isTopFrame ? 'border-indigo-500/40' : 'border-white/10'}`}
+                          className={`rounded-xl border shrink-0 overflow-hidden ${isTopFrame ? 'border-green-500/40' : 'border-white/10'}`}
                           style={{ background: isTopFrame ? 'rgba(99,102,241,0.08)' : 'rgba(255,255,255,0.03)' }}
                         >
-                          <div className={`flex items-center gap-2 px-3 py-1.5 border-b ${isTopFrame ? 'border-indigo-500/20 bg-indigo-500/10' : 'border-white/5 bg-white/3'}`}>
-                            <div className={`w-1.5 h-1.5 rounded-full ${isTopFrame ? 'bg-indigo-400' : 'bg-slate-600'}`} />
-                            <span className={`text-[11px] font-semibold ${isTopFrame ? 'text-indigo-200' : 'text-slate-400'}`}>{frame.name}</span>
-                            {isTopFrame && <span className="ml-auto text-[9px] bg-indigo-500/20 text-indigo-300 px-1.5 py-0.5 rounded-full">active</span>}
+                          <div className={`flex items-center gap-2 px-3 py-1.5 border-b ${isTopFrame ? 'border-green-500/20 bg-green-500/10' : 'border-white/5 bg-white/3'}`}>
+                            <div className={`w-1.5 h-1.5 rounded-full ${isTopFrame ? 'bg-green-400' : 'bg-slate-600'}`} />
+                            <span className={`text-[11px] font-semibold ${isTopFrame ? 'text-green-200' : 'text-slate-400'}`}>{frame.name}</span>
+                            {isTopFrame && <span className="ml-auto text-[9px] bg-green-500/20 text-green-300 px-1.5 py-0.5 rounded-full">active</span>}
                           </div>
                           <div className="p-2 flex flex-col gap-1">
                             {Object.keys(frame.variables || {}).length === 0 ? (
@@ -501,7 +501,7 @@ json.dumps(_steps)
                                     <span className="text-slate-400 font-mono min-w-[60px] text-right pr-2 shrink-0 text-[11px]">{name}</span>
                                     <div className="flex-1 px-2 py-0.5 rounded bg-black/30 border border-white/8 font-mono text-[11px]">
                                       {isObj ? (
-                                        <span className="text-violet-400 italic text-[10px]">→ {state.type}</span>
+                                        <span className="text-emerald-400 italic text-[10px]">→ {state.type}</span>
                                       ) : state.type === 'str' ? (
                                         <span className="text-emerald-400">"{state.value}"</span>
                                       ) : state.type === 'int' || state.type === 'float' ? (
@@ -518,7 +518,7 @@ json.dumps(_steps)
                                       state.type === 'str' ? 'text-emerald-500/70 bg-emerald-500/8' :
                                       state.type === 'int' || state.type === 'float' ? 'text-sky-500/70 bg-sky-500/8' :
                                       state.type === 'bool' ? 'text-amber-500/70 bg-amber-500/8' :
-                                      'text-violet-500/70 bg-violet-500/8'
+                                      'text-emerald-500/70 bg-emerald-500/8'
                                     }`}>{state.type}</span>
                                   </div>
                                 );
@@ -541,15 +541,15 @@ json.dumps(_steps)
                       const isInstance = (state.type ?? '').endsWith('instance');
                       const isList = state.type === 'list';
                       const isFunc = state.type === 'function';
-                      const accentColor = isClass ? 'violet' : isInstance ? 'amber' : isList ? 'sky' : 'emerald';
+                      const accentColor = isClass ? 'emerald' : isInstance ? 'amber' : isList ? 'sky' : 'emerald';
                       const colorMap: Record<string, string> = {
-                        violet: 'border-violet-500/30 bg-violet-500/5',
+                        emerald: 'border-emerald-500/30 bg-emerald-500/5',
                         amber: 'border-amber-500/30 bg-amber-500/5',
                         sky: 'border-sky-500/30 bg-sky-500/5',
                         emerald: 'border-emerald-500/30 bg-emerald-500/5',
                       };
                       const headerMap: Record<string, string> = {
-                        violet: 'bg-violet-500/10 border-violet-500/20 text-violet-200',
+                        emerald: 'bg-emerald-500/10 border-emerald-500/20 text-emerald-200',
                         amber: 'bg-amber-500/10 border-amber-500/20 text-amber-200',
                         sky: 'bg-sky-500/10 border-sky-500/20 text-sky-200',
                         emerald: 'bg-emerald-500/10 border-emerald-500/20 text-emerald-200',
@@ -582,7 +582,7 @@ json.dumps(_steps)
                                   <div className="px-3 py-1.5 text-slate-400 min-w-[80px] border-r border-white/8 bg-white/3 text-[11px]">{k}</div>
                                   <div className="px-3 py-1.5 text-slate-200 flex-1">
                                     {typeof v === 'string' && v.startsWith('function ') ? (
-                                      <span className="text-violet-300 text-[11px]">{v}</span>
+                                      <span className="text-emerald-300 text-[11px]">{v}</span>
                                     ) : (
                                       String(v)
                                     )}
@@ -605,7 +605,7 @@ json.dumps(_steps)
       ) : (
         <div className="flex-1 flex items-center justify-center text-slate-500">
           <div className="flex flex-col items-center gap-3">
-            <div className="w-8 h-8 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin" />
+            <div className="w-8 h-8 border-2 border-green-500 border-t-transparent rounded-full animate-spin" />
             <span className="text-sm">Loading trace...</span>
           </div>
         </div>

@@ -3,7 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { BookOpen, Compass, Award, Code2 } from 'lucide-react';
+import { BookOpen, Compass, Award, Code2, Play } from 'lucide-react';
 
 const NAV_ITEMS = [
   {
@@ -26,6 +26,13 @@ const NAV_ITEMS = [
     icon: Award,
     activeColor: 'text-purple-400',
     indicatorColor: 'bg-purple-400',
+  },
+  {
+    name: 'Visualizer',
+    href: '/visualizer',
+    icon: Play,
+    activeColor: 'text-green-400',
+    indicatorColor: 'bg-green-400',
   }
 ];
 

@@ -4,9 +4,10 @@ import React from 'react';
 import Navbar from '@/components/layout/Navbar';
 import CodingBackground from '@/components/ui/CodingBackground';
 import CodeTerminalHero from '@/components/ui/CodeTerminalHero';
+import CodeVisualizerMock from '@/components/ui/CodeVisualizerMock';
 import Link from 'next/link';
 import Image from 'next/image';
-import { 
+import { Play, 
   BookOpen, 
   Lightbulb, 
   Code, 
@@ -401,11 +402,49 @@ export default function LandingPage() {
         </div>
       </motion.section>
 
+      {/* Code Visualizer Showcase Section */}
+      <motion.section
+        id="visualizer"
+        {...fadeInUp}
+        className="py-24 lg:py-32 border-b border-white/[0.04] bg-[#111111] relative overflow-hidden"
+      >
+        {/* Green ambient glow */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[500px] bg-green-500/10 blur-[140px] rounded-full pointer-events-none" />
+
+        <div className="container mx-auto px-4 sm:px-8 max-w-7xl relative z-10">
+          {/* Header */}
+          <div className="text-center mb-16 space-y-4">
+            <div className="inline-flex items-center gap-2 text-[10px] font-mono font-bold tracking-[0.2em] text-green-400 uppercase">
+              [04] The Visualizer
+            </div>
+            <h2 className="text-4xl md:text-5xl lg:text-7xl font-black text-white tracking-tighter leading-[1.05]">
+              See your code{' '}<br/>
+              <span className="font-script text-green-400 font-normal italic pr-2">come alive.</span>
+            </h2>
+            <p className="text-slate-400 text-lg max-w-2xl mx-auto leading-relaxed">
+              Our built-in Code Visualizer lets you step through every line of your Python code, watch variables change in real time, and understand memory — all inside the browser.
+            </p>
+          </div>
+
+          {/* Mock visualizer UI */}
+          <CodeVisualizerMock />
+
+          <div className="flex justify-center mt-12">
+            <Link
+              href="/visualizer"
+              className="inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-green-400 px-8 font-display font-bold text-slate-950 hover:bg-green-500 hover:scale-[1.02] active:scale-[0.98] transition-all duration-300"
+            >
+              Try it live <Play className="w-4 h-4 fill-current" />
+            </Link>
+          </div>
+        </div>
+      </motion.section>
+
       {/* Feature Highlights Section */}
       <motion.section 
         id="features"
         {...fadeInUp}
-        className="py-24 lg:py-32 border-b border-white/[0.04] bg-[#111111] relative overflow-hidden"
+        className="py-24 lg:py-32 border-b border-white/[0.04] bg-black relative overflow-hidden"
       >
         {/* Purple Ambient Glow */}
         <div className="absolute top-1/2 left-0 -translate-y-1/2 w-[600px] h-[600px] bg-[#a855f7]/5 blur-[120px] rounded-full pointer-events-none" />
@@ -445,7 +484,7 @@ export default function LandingPage() {
           {/* Right Column - Text (Reversed) */}
           <div className="space-y-8 order-1 lg:order-2 lg:pl-12">
             <div className="inline-flex items-center gap-2 text-[10px] font-mono font-bold tracking-[0.2em] text-[#a855f7] uppercase">
-              [04] The Advantage
+              [05] The Advantage
             </div>
             <h2 className="text-4xl md:text-5xl lg:text-7xl font-black text-white tracking-tighter leading-[1.05]">
               Built for <br/>
@@ -454,160 +493,6 @@ export default function LandingPage() {
             <p className="text-slate-400 text-lg max-w-md leading-relaxed">
               We design every mechanic around zero friction, continuous momentum, and deep concepts. Don't waste time on configuration.
             </p>
-          </div>
-        </div>
-      </motion.section>
-
-      {/* Code Visualizer Showcase Section */}
-      <motion.section
-        {...fadeInUp}
-        className="py-24 lg:py-32 border-b border-white/[0.04] bg-black relative overflow-hidden"
-      >
-        {/* Violet ambient glow */}
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[500px] bg-violet-500/6 blur-[140px] rounded-full pointer-events-none" />
-
-        <div className="container mx-auto px-4 sm:px-8 max-w-7xl relative z-10">
-          {/* Header */}
-          <div className="text-center mb-16 space-y-4">
-            <div className="inline-flex items-center gap-2 text-[10px] font-mono font-bold tracking-[0.2em] text-violet-400 uppercase">
-              [05] The Visualizer
-            </div>
-            <h2 className="text-4xl md:text-5xl lg:text-7xl font-black text-white tracking-tighter leading-[1.05]">
-              See your code{' '}<br/>
-              <span className="font-script text-violet-400 font-normal italic pr-2">come alive.</span>
-            </h2>
-            <p className="text-slate-400 text-lg max-w-2xl mx-auto leading-relaxed">
-              Our built-in Code Visualizer lets you step through every line of your Python code, watch variables change in real time, and understand memory — all inside the browser.
-            </p>
-          </div>
-
-          {/* Mock visualizer UI */}
-          <motion.div
-            initial={{ opacity: 0, y: 40 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-            className="rounded-2xl border border-violet-500/20 overflow-hidden shadow-[0_0_80px_-20px_rgba(139,92,246,0.3)] max-w-5xl mx-auto"
-            style={{ background: 'linear-gradient(180deg,#0f0f1a,#12121f)' }}
-          >
-            {/* Mock header bar */}
-            <div className="flex items-center justify-between px-5 py-3 border-b border-white/8" style={{background:'rgba(0,0,0,0.5)'}}>
-              <div className="flex items-center gap-2">
-                <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                <span className="font-semibold text-white text-sm">Code Visualizer</span>
-                <span className="text-[10px] text-slate-500 bg-white/5 border border-white/10 px-2 py-0.5 rounded-full">24 steps traced</span>
-              </div>
-              <div className="flex gap-1.5">
-                <div className="w-3 h-3 rounded-full bg-rose-500/40" />
-                <div className="w-3 h-3 rounded-full bg-amber-500/40" />
-                <div className="w-3 h-3 rounded-full bg-emerald-500/40" />
-              </div>
-            </div>
-
-            {/* Mock content */}
-            <div className="flex min-h-[340px]">
-              {/* Left: Code */}
-              <div className="w-[45%] border-r border-white/8 p-4 font-mono text-[12px] leading-6" style={{background:'#0d0d18'}}>
-                {[
-                  { n: 1, code: 'class Student:', active: false, executed: false },
-                  { n: 2, code: '  def __init__(self, name, age):', active: false, executed: true },
-                  { n: 3, code: '    self.name = name', active: true, executed: false },
-                  { n: 4, code: '    self.age = age', active: false, executed: false },
-                  { n: 5, code: '', active: false, executed: false },
-                  { n: 6, code: '  def greet(self):', active: false, executed: false },
-                  { n: 7, code: '    print(self.name)', active: false, executed: false },
-                  { n: 8, code: '', active: false, executed: false },
-                  { n: 9, code: 's = Student("Harsh", 21)', active: false, executed: false },
-                ].map(row => (
-                  <div key={row.n} className={`flex items-center rounded-md px-1 ${
-                    row.active ? 'bg-rose-500/10 ring-1 ring-rose-500/20' :
-                    row.executed ? 'bg-emerald-500/8' : ''
-                  }`}>
-                    <div className="w-4 text-center text-[10px] shrink-0">
-                      {row.active && <span className="text-rose-400">▶</span>}
-                      {row.executed && <span className="text-emerald-400">✓</span>}
-                    </div>
-                    <div className="w-6 text-right text-slate-600 text-[10px] pr-2 shrink-0">{row.n}</div>
-                    <div className={`flex-1 ${
-                      row.active ? 'text-rose-100' : row.executed ? 'text-emerald-100/80' : 'text-slate-400'
-                    }`}>{row.code || ' '}</div>
-                  </div>
-                ))}
-                {/* Playback controls */}
-                <div className="mt-6 pt-4 border-t border-white/5 flex items-center justify-between">
-                  <div className="flex gap-1">
-                    {['|◀','◀','▶','▶|'].map(btn => (
-                      <div key={btn} className="px-2 py-1 text-[10px] font-mono rounded-md border border-white/10 bg-white/5 text-slate-400">{btn}</div>
-                    ))}
-                  </div>
-                  <div className="text-[10px] text-slate-500 font-mono">Step 3 / 24</div>
-                  <div className="flex items-center gap-1.5 px-3 py-1 rounded-lg text-[10px] font-semibold bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
-                    ▶ Play
-                  </div>
-                </div>
-              </div>
-
-              {/* Right: Frames + Objects */}
-              <div className="flex-1 flex flex-col">
-                {/* Output */}
-                <div className="h-16 border-b border-white/8 p-3 flex flex-col" style={{background:'rgba(0,0,0,0.3)'}}>
-                  <div className="text-[9px] font-bold uppercase tracking-widest text-slate-600 mb-1">Print Output</div>
-                  <div className="text-[11px] font-mono text-emerald-400">No output yet...</div>
-                </div>
-                {/* Frames + Objects */}
-                <div className="flex-1 flex gap-0">
-                  <div className="flex-1 border-r border-white/8 p-3">
-                    <div className="text-[9px] font-bold uppercase tracking-widest text-slate-600 mb-2">Frames</div>
-                    <div className="rounded-xl border border-indigo-500/30 overflow-hidden" style={{background:'rgba(99,102,241,0.06)'}}>
-                      <div className="flex items-center gap-2 px-3 py-1.5 border-b border-indigo-500/20 bg-indigo-500/10">
-                        <div className="w-1.5 h-1.5 rounded-full bg-indigo-400" />
-                        <span className="text-[10px] font-semibold text-indigo-200">__init__</span>
-                        <span className="ml-auto text-[8px] bg-indigo-500/20 text-indigo-300 px-1.5 py-0.5 rounded-full">active</span>
-                      </div>
-                      <div className="p-2 space-y-1">
-                        {[['self','→ Student instance','violet'],['name','"Harsh"','emerald'],['age','21','sky']].map(([k,v,c])=>(
-                          <div key={k} className="flex items-center gap-1 text-[11px] rounded-md px-1 py-0.5">
-                            <span className="text-slate-500 font-mono w-12 text-right pr-1 text-[10px]">{k}</span>
-                            <div className="flex-1 px-2 py-0.5 rounded bg-black/30 border border-white/8 font-mono text-[10px]">
-                              <span className={`text-${c}-400`}>{v}</span>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                  <div className="flex-1 p-3">
-                    <div className="text-[9px] font-bold uppercase tracking-widest text-slate-600 mb-2">Objects</div>
-                    <div className="rounded-xl border border-amber-500/30 overflow-hidden mb-2" style={{background:'rgba(245,158,11,0.04)'}}>
-                      <div className="flex items-center px-3 py-1.5 border-b border-amber-500/20 bg-amber-500/8">
-                        <span className="text-[9px] font-bold uppercase tracking-wider text-amber-200">Student instance</span>
-                      </div>
-                      {[['name','"Harsh"'],['age','21']].map(([k,v])=>(
-                        <div key={k} className="flex border-b border-white/5 last:border-0 text-[11px] font-mono">
-                          <div className="px-3 py-1.5 text-slate-500 w-16 border-r border-white/8 bg-white/3 text-[10px]">{k}</div>
-                          <div className="px-3 py-1.5 text-slate-300 flex-1">{v}</div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </motion.div>
-
-          {/* Feature pills */}
-          <div className="flex flex-wrap gap-3 justify-center mt-10">
-            {[
-              { icon: '🔍', text: 'Line-by-line step tracing' },
-              { icon: '📦', text: 'Live variable & object tracking' },
-              { icon: '🧠', text: 'Full call stack visualization' },
-              { icon: '🎮', text: 'Play / Pause / Auto-step' },
-              { icon: '⚡', text: 'Works for Python instantly' },
-            ].map(({ icon, text }) => (
-              <div key={text} className="flex items-center gap-2 px-4 py-2 rounded-full bg-violet-500/8 border border-violet-500/20 text-slate-300 text-sm font-medium">
-                <span>{icon}</span> {text}
-              </div>
-            ))}
           </div>
         </div>
       </motion.section>

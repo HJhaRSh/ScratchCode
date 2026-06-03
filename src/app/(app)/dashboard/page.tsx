@@ -415,7 +415,7 @@ export default function DashboardPage() {
                   <p className="text-slate-400 text-xs leading-relaxed max-w-lg">Step through your Python code line-by-line. Watch variables update, track object memory, and understand exactly how your program runs.</p>
                 </div>
                 <Link
-                  href="/learn"
+                  href="/visualizer"
                   className="shrink-0 inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-violet-500/20 hover:bg-violet-500/30 border border-violet-500/30 text-violet-200 font-bold text-xs transition-all"
                 >
                   Open in Editor <ArrowRight className="h-3.5 w-3.5" />
