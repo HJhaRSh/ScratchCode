@@ -54,7 +54,7 @@ async function main() {
               { type: 'callout', variant: 'info', text: 'Python was created by Guido van Rossum in 1991. The name comes from Monty Python, not the snake!' },
               { type: 'heading', text: 'Installing Python & VS Code' },
               { type: 'list', items: ['Download Python from python.org', 'Download VS Code from code.visualstudio.com', 'Install the Python extension in VS Code', 'Open terminal and type: python --version to verify'] },
-              { type: 'exercise', title: 'Verify Your Setup', description: "Write a Python program that prints: 'Python is awesome!'", hint: "Use the print() function." }
+              { type: 'exercise', title: 'Verify Your Setup', description: "1. Create a new Python file.\n2. Use the print() function.\n3. Output the exact phrase: 'Python is awesome!'", hint: "Use the print() function." }
             ]
           },
           starter_code: "# Print a message below\n",
@@ -79,7 +79,7 @@ async function main() {
               { type: 'list', items: ['Must start with a letter or underscore', 'Cannot use spaces (use snake_case: my_name)', 'Cannot use reserved words like if, for, class', 'Case sensitive: name and Name are different'] },
               { type: 'callout', variant: 'warning', text: "Always convert user input! input() always returns a string. Use int() or float() to convert: age = int(input('Enter age: '))" },
               { type: 'code_block', language: 'python', code: "# Common mistake\nage = input('Enter your age: ')\nprint(age + 1)  # ERROR! string + int\n\n# Fix\nage = int(input('Enter your age: '))\nprint(age + 1)  # Works!" },
-              { type: 'exercise', title: 'Personal Info Card', description: 'Create variables for your name (string), age (int), gpa (float), and is_engineer (bool). Print all four on separate lines.', hint: 'Use print() on each variable.' }
+              { type: 'exercise', title: 'Personal Info Card', description: "1. Define variables for name, age, gpa, and is_engineer.\n2. Assign appropriate values matching the data types.\n3. Use print() to output each variable on a new line.", hint: 'Use print() on each variable.' }
             ]
           },
           starter_code: "# Create your variables below\nname = \nage = \ngpa = \nis_engineer = \n\n# Print them\n",
@@ -104,7 +104,7 @@ async function main() {
               { type: 'callout', variant: 'warning', text: 'Common mistake: Using = instead of == for comparison. = assigns a value, == checks equality.' },
               { type: 'heading', text: 'Assignment Operators' },
               { type: 'code_block', language: 'python', code: "x = 10\nx += 5   # x = x + 5 → 15\nx -= 3   # x = x - 3 → 12\nx *= 2   # x = x * 2 → 24" },
-              { type: 'exercise', title: 'Simple Calculator', description: 'Take two numbers a = 15 and b = 4. Print the result of: addition, subtraction, multiplication, floor division, modulus, and power.', hint: 'Use arithmetic operators + - * // % **' }
+              { type: 'exercise', title: 'Simple Calculator', description: "1. Create variables a = 15 and b = 4.\n2. Calculate and print their addition (+).\n3. Calculate and print subtraction (-).\n4. Calculate and print multiplication (*).\n5. Calculate and print floor division (//).\n6. Calculate and print modulus (%).\n7. Calculate and print power (**).", hint: 'Use arithmetic operators + - * // % **' }
             ]
           },
           starter_code: "a = 15\nb = 4\n\n# Print all 6 operations below\n",
@@ -130,7 +130,7 @@ async function main() {
               { type: 'callout', variant: 'tip', text: 'Use f-strings — they are the modern, readable way to embed variables inside strings. Prefer them over + concatenation.' },
               { type: 'heading', text: 'Escape Sequences' },
               { type: 'code_block', language: 'python', code: "print('It\\'s a great day')  # It's a great day\nprint('Line1\\nLine2')       # newline\nprint('Col1\\tCol2')         # tab" },
-              { type: 'exercise', title: 'String Explorer', description: "Given name = 'python programming', do the following on separate lines: 1) print it in uppercase, 2) print its length, 3) print only the first 6 characters, 4) replace 'python' with 'awesome'.", hint: 'Use .upper(), len(), slicing [:6], and .replace().' }
+              { type: 'exercise', title: 'String Explorer', description: "1. Create a variable name = 'python programming'.\n2. Print the string in all uppercase.\n3. Print the total length of the string.\n4. Slice and print only the first 6 characters.\n5. Replace the word 'python' with 'awesome' and print the result.", hint: 'Use .upper(), len(), slicing [:6], and .replace().' }
             ]
           },
           starter_code: "name = 'python programming'\n\n# 1. Uppercase\n\n# 2. Length\n\n# 3. First 6 characters\n\n# 4. Replace\n",
@@ -147,7 +147,7 @@ async function main() {
           content_json: {
             sections: [
               { type: 'heading', text: 'Project Brief' },
-              { type: 'paragraph', text: 'You will write a Python program that asks the user for their name, age, and favourite subject, then prints a formatted info card using f-strings.' },
+              { type: 'list', items: ['Prompt the user to enter their name, age, and favourite subject.', 'Convert the age input to an integer.', 'Use f-strings to format the collected data into a structured layout.', 'Print a divider line to match the expected output.'] },
               { type: 'code_block', language: 'python', code: "# Expected Output:\n# ====================\n# 👤 Name    : Harsh\n# 🎂 Age     : 21\n# 📚 Subject : Computer Science\n# 🐍 Status  : Python Learner Level 1\n# ====================" },
               { type: 'callout', variant: 'tip', text: "Use int() to convert the age input. Use f-strings for formatting. Use print('='*22) to create the divider line." }
             ]
@@ -180,7 +180,7 @@ async function main() {
               { type: 'heading', text: 'Iterating a List' },
               { type: 'code_block', language: 'python', code: "fruits = ['apple', 'banana', 'mango']\nfor fruit in fruits:\n    print(fruit)\n\n# With index\nfor i, fruit in enumerate(fruits):\n    print(f'{i}: {fruit}')" },
               { type: 'callout', variant: 'warning', text: "Lists are zero-indexed. The first element is at index 0, not 1. Accessing an index that doesn't exist raises an IndexError." },
-              { type: 'exercise', title: 'Grade Tracker', description: 'Create a list of 5 marks. Print: the highest mark (use max()), the lowest mark (use min()), the average (sum/len), and the sorted list.', hint: 'Use sum(), len(), min(), max() and sorted().' }
+              { type: 'exercise', title: 'Grade Tracker', description: "1. Initialize a list with 5 integer marks.\n2. Find and print the highest mark using max().\n3. Find and print the lowest mark using min().\n4. Calculate and print the average by dividing sum() by len().\n5. Print the list in sorted order.", hint: 'Use sum(), len(), min(), max() and sorted().' }
             ]
           },
           starter_code: "marks = [72, 88, 65, 95, 80]\n\n# Highest\n\n# Lowest\n\n# Average\n\n# Sorted\n",
@@ -219,7 +219,7 @@ async function main() {
               { type: 'code_block', language: 'python', code: "student = {\n    'name': 'Harsh',\n    'age': 21,\n    'gpa': 8.5,\n    'is_student': True\n}\n\nprint(student['name'])         # Harsh\nprint(student.get('age'))      # 21\nprint(student.get('phone', 'N/A'))  # N/A (default)\n\n# Modifying\nstudent['age'] = 22\nstudent['city'] = 'Mumbai'\ndel student['is_student']\n\nprint(student.keys())   # all keys\nprint(student.values()) # all values\nprint(student.items())  # all pairs" },
               { type: 'heading', text: 'Iterating a Dictionary' },
               { type: 'code_block', language: 'python', code: "for key, value in student.items():\n    print(f'{key}: {value}')" },
-              { type: 'exercise', title: 'Student Info Store', description: "Create a dictionary for a student with keys: name, age, city, marks (a list of 3 marks). Print each key-value pair using a for loop. Then add a new key grade with value 'A'.", hint: 'Use .items() in the for loop.' }
+              { type: 'exercise', title: 'Student Info Store', description: "1. Define a dictionary with keys: name, age, city, and marks (a list of 3 numbers).\n2. Iterate through the dictionary using a for loop and .items().\n3. Print each key and value.\n4. Add a new key 'grade' with the value 'A' to the dictionary.", hint: 'Use .items() in the for loop.' }
             ]
           },
           starter_code: "student = {\n    'name': 'Rahul',\n    'age': 20,\n    'city': 'Mumbai',\n    'marks': [85, 90, 78]\n}\n\n# Print all key-value pairs\n\n# Add grade key\n",
@@ -255,7 +255,7 @@ async function main() {
               { type: 'heading', text: 'What is a List Comprehension?' },
               { type: 'paragraph', text: 'List comprehensions let you create lists in one line. They are faster and more Pythonic than writing a for loop.' },
               { type: 'code_block', language: 'python', code: "# Traditional way\nsquares = []\nfor i in range(1, 6):\n    squares.append(i ** 2)\n\n# List comprehension\nsquares = [i ** 2 for i in range(1, 6)]\nprint(squares)  # [1, 4, 9, 16, 25]\n\n# With condition\nevens = [i for i in range(1, 11) if i % 2 == 0]\nprint(evens)  # [2, 4, 6, 8, 10]\n\n# Transform strings\nnames = ['harsh', 'rahul', 'priya']\ncaps = [name.upper() for name in names]" },
-              { type: 'exercise', title: 'Comprehension Challenge', description: "Using list comprehensions: 1) Create a list of cubes of numbers 1-10. 2) Create a list of all numbers from 1-50 divisible by both 3 and 5. 3) From names = ['alice', 'bob', 'charlie', 'dave'], create a list of names with more than 4 characters.", hint: 'Use [expression for item in list if condition].' }
+              { type: 'exercise', title: 'Comprehension Challenge', description: "1. Write a list comprehension to get cubes of numbers from 1 to 10.\n2. Write a list comprehension for numbers between 1 and 50 that are divisible by both 3 and 5.\n3. Given a list of names, write a list comprehension to filter names with a length greater than 4.\n4. Print all three resulting lists.", hint: 'Use [expression for item in list if condition].' }
             ]
           },
           starter_code: "# 1. Cubes of 1-10\n\n# 2. Divisible by 3 and 5 (1-50)\n\n# 3. Names with more than 4 chars\nnames = ['alice', 'bob', 'charlie', 'dave']\n",
@@ -272,7 +272,7 @@ async function main() {
           content_json: {
             sections: [
               { type: 'heading', text: 'Project Brief' },
-              { type: 'paragraph', text: 'Build a student grade book using a dictionary of lists. The program should store marks for 3 subjects, calculate each student\'s average, and print a formatted report.' },
+              { type: 'list', items: ['Initialize a dictionary with student names as keys and a list of 3 marks as values.', 'Iterate through the dictionary to calculate the average mark for each student.', 'Determine the grade based on the average (>=90: A+, >=80: A, >=70: B, else C).', 'Print a formatted table displaying the name, average, and grade for each student.'] },
               { type: 'code_block', language: 'python', code: "# Expected Output:\n# ================================\n# 📊 STUDENT GRADE REPORT\n# ================================\n# Harsh    | Avg: 87.3 | Grade: A\n# Rahul    | Avg: 72.0 | Grade: B\n# Priya    | Avg: 91.7 | Grade: A+\n# ================================" },
               { type: 'callout', variant: 'tip', text: 'Use a dictionary where each key is a student name and value is a list of 3 marks. Loop through .items() to compute averages.' }
             ]
@@ -304,7 +304,7 @@ async function main() {
               { type: 'heading', text: 'Logical Operators in Conditions' },
               { type: 'code_block', language: 'python', code: "age = 20\nhas_id = True\n\nif age >= 18 and has_id:\n    print('Entry allowed')\n\nif age < 13 or age > 60:\n    print('Special discount')\n\nif not has_id:\n    print('ID required')" },
               { type: 'callout', variant: 'warning', text: 'Indentation is everything in Python. Each block inside if/elif/else must be consistently indented (4 spaces recommended).' },
-              { type: 'exercise', title: 'Grade Calculator', description: "Ask the user for marks out of 100. Print: A+ (>=90), A (>=80), B (>=70), C (>=60), F (<60). Also print 'Distinction!' if marks >= 75 AND marks come from a science subject (use a boolean variable is_science = True).", hint: 'Use if/elif/else structure.' }
+              { type: 'exercise', title: 'Grade Calculator', description: "1. Prompt the user to input their marks out of 100 and convert it to an integer.\n2. Use if/elif/else to determine and print the correct grade (A+, A, B, C, F).\n3. Create a boolean variable is_science = True.\n4. Check if marks >= 75 and is_science is True, then print 'Distinction!'", hint: 'Use if/elif/else structure.' }
             ]
           },
           starter_code: "marks = int(input('Enter marks: '))\nis_science = True\n\n# Grade logic\n\n# Distinction check\n",
@@ -324,7 +324,7 @@ async function main() {
               { type: 'paragraph', text: "A while loop runs as long as a condition is True. Always make sure the condition eventually becomes False — otherwise you'll have an infinite loop." },
               { type: 'code_block', language: 'python', code: "count = 1\nwhile count <= 5:\n    print(f'Count: {count}')\n    count += 1  # MUST update, or infinite loop!\n\n# While with break\nwhile True:\n    answer = input('Type quit to exit: ')\n    if answer == 'quit':\n        break\n    print(f'You typed: {answer}')" },
               { type: 'callout', variant: 'warning', text: 'Forgetting to update the loop variable (count += 1) causes an infinite loop. Your program will hang. Use Ctrl+C to stop it.' },
-              { type: 'exercise', title: 'Number Guessing Game (Logic)', description: "secret = 7. Start with guess = 0. Use a while loop to keep incrementing guess by 1 each iteration and print it. Stop when guess equals secret. Print 'Found it!' when done.", hint: 'Increment guess inside the loop.' }
+              { type: 'exercise', title: 'Number Guessing Game (Logic)', description: "1. Initialize variables secret = 7 and guess = 0.\n2. Create a while loop that runs as long as guess is not equal to secret.\n3. Inside the loop, increment guess by 1 and print it.\n4. Once the loop exits, print 'Found it!'", hint: 'Increment guess inside the loop.' }
             ]
           },
           starter_code: "secret = 7\nguess = 0\n\n# While loop here\n",
@@ -344,7 +344,7 @@ async function main() {
               { type: 'code_block', language: 'python', code: "# Loop through a range\nfor i in range(1, 6):\n    print(i)  # 1 2 3 4 5\n\n# Range with step\nfor i in range(0, 20, 5):\n    print(i)  # 0 5 10 15\n\n# Loop through a list\nfruits = ['apple', 'banana', 'mango']\nfor fruit in fruits:\n    print(fruit)\n\n# Loop else (runs if loop completes without break)\nfor i in range(5):\n    print(i)\nelse:\n    print('Loop done!')" },
               { type: 'heading', text: 'Break, Continue, Pass' },
               { type: 'code_block', language: 'python', code: "# break — exit loop immediately\nfor i in range(10):\n    if i == 5:\n        break\n    print(i)  # prints 0-4\n\n# continue — skip current iteration\nfor i in range(10):\n    if i % 2 == 0:\n        continue\n    print(i)  # prints odd numbers only\n\n# pass — placeholder, does nothing\nfor i in range(5):\n    pass  # TODO: add logic later" },
-              { type: 'exercise', title: 'Pattern Printer', description: 'Using nested for loops: 1) Print a right-angled triangle of stars with 5 rows. 2) Print multiplication table of 7 (7x1 to 7x10). 3) Print all prime numbers from 1 to 50.', hint: 'Use nested loops for the triangle.' }
+              { type: 'exercise', title: 'Pattern Printer', description: "1. Use nested for loops to print a right-angled triangle of '*' with 5 rows.\n2. Write a for loop to print the multiplication table of 7 (from 1 to 10).\n3. Use a for loop with an inner loop to find and print all prime numbers between 1 and 50.", hint: 'Use nested loops for the triangle.' }
             ]
           },
           starter_code: "# 1. Triangle of stars\n\n# 2. Multiplication table of 7\n\n# 3. Prime numbers from 1-50\n",
@@ -380,7 +380,7 @@ async function main() {
               { type: 'heading', text: 'What is a Lambda?' },
               { type: 'paragraph', text: 'A lambda is an anonymous, single-expression function. It\'s defined inline and doesn\'t need a def statement.' },
               { type: 'code_block', language: 'python', code: "# Regular function\ndef square(x):\n    return x ** 2\n\n# Lambda equivalent\nsquare = lambda x: x ** 2\nprint(square(5))  # 25\n\n# Multiple arguments\nadd = lambda x, y: x + y\nprint(add(3, 4))  # 7\n\n# Lambda with sorted()\nstudents = [('Harsh', 87), ('Priya', 95), ('Rahul', 72)]\nsorted_students = sorted(students, key=lambda s: s[1], reverse=True)\nprint(sorted_students)" },
-              { type: 'exercise', title: 'Lambda Challenge', description: 'Write lambdas for: 1) cube of a number, 2) check if a number is even (returns True/False), 3) convert Celsius to Fahrenheit (F = C * 9/5 + 32). Test each with a sample value.', hint: 'Use lambda arguments: expression format.' }
+              { type: 'exercise', title: 'Lambda Challenge', description: "1. Define a lambda function to calculate the cube of a number.\n2. Define a lambda function to return True if a number is even, False otherwise.\n3. Define a lambda function to convert Celsius to Fahrenheit.\n4. Call and print the result for each lambda function with test values.", hint: 'Use lambda arguments: expression format.' }
             ]
           },
           starter_code: "# 1. Cube\ncube = \n\n# 2. Is even\nis_even = \n\n# 3. Celsius to Fahrenheit\nto_fahrenheit = \n\n# Test them\nprint(cube(3))\nprint(is_even(4))\nprint(to_fahrenheit(100))\n",
@@ -397,7 +397,7 @@ async function main() {
           content_json: {
             sections: [
               { type: 'heading', text: 'Project Brief' },
-              { type: 'paragraph', text: 'Build a complete number guessing game. The computer picks a random number between 1 and 100. The user gets 7 attempts to guess it. After each guess, print "Too high!", "Too low!", or "Correct!". Show remaining attempts.' },
+              { type: 'list', items: ['Generate a random number between 1 and 100 using the random module.', 'Create a loop that allows the user up to 7 attempts.', 'Prompt the user for a guess and convert it to an integer.', 'Compare the guess to the secret number and print "Too high!", "Too low!", or "Correct!".', 'Keep track of and display the remaining attempts.'] },
               { type: 'code_block', language: 'python', code: "# Expected Output:\n# 🎮 Welcome to the Number Guessing Game!\n# I've picked a number between 1 and 100.\n# You have 7 attempts.\n# \n# Attempt 1/7 — Enter guess: 50\n# Too high! Try lower.\n# Attempt 2/7 — Enter guess: 25\n# Too low! Try higher.\n# ...\n# Correct! You got it in 5 attempts! 🎉" },
               { type: 'callout', variant: 'tip', text: 'Use import random and random.randint(1, 100) to generate the secret number.' }
             ]
@@ -430,7 +430,7 @@ async function main() {
               { type: 'heading', text: 'Default Parameters & Keyword Arguments' },
               { type: 'code_block', language: 'python', code: "def greet(name, message='Good morning'):\n    print(f'{message}, {name}!')\n\ngreet('Harsh')                    # Good morning, Harsh!\ngreet('Priya', 'Good evening')    # Good evening, Priya!\ngreet(message='Hey', name='Rahul')# Hey, Rahul!" },
               { type: 'callout', variant: 'warning', text: 'Parameters with default values must come after parameters without defaults. def func(a=1, b) is invalid.' },
-              { type: 'exercise', title: 'Unit Converter', description: 'Write 3 functions: 1) km_to_miles(km) — 1 km = 0.621371 miles, 2) kg_to_pounds(kg) — 1 kg = 2.20462 lbs, 3) celsius_to_fahrenheit(c). Call each function with a test value and print the result using f-strings.', hint: 'Define each function with appropriate formulas.' }
+              { type: 'exercise', title: 'Unit Converter', description: "1. Write a function km_to_miles(km) using the conversion factor 0.621371.\n2. Write a function kg_to_pounds(kg) using the conversion factor 2.20462.\n3. Write a function celsius_to_fahrenheit(c) using the formula (C * 9/5) + 32.\n4. Call all 3 functions with sample values and print the results beautifully using f-strings.", hint: 'Define each function with appropriate formulas.' }
             ]
           },
           starter_code: "# Define your 3 functions\n\n\n# Test them\nprint(km_to_miles(10))\nprint(kg_to_pounds(70))\nprint(celsius_to_fahrenheit(37))\n",
@@ -468,7 +468,7 @@ async function main() {
               { type: 'paragraph', text: 'Recursion is when a function calls itself. Every recursive function needs: 1) A base case (when to stop), and 2) A recursive case (calling itself with a smaller input).' },
               { type: 'code_block', language: 'python', code: "# Factorial using recursion\n# 5! = 5 * 4 * 3 * 2 * 1 = 120\ndef factorial(n):\n    if n == 0 or n == 1:  # Base case\n        return 1\n    return n * factorial(n - 1)  # Recursive case\n\nprint(factorial(5))  # 120\nprint(factorial(0))  # 1\n\n# Fibonacci using recursion\n# 0, 1, 1, 2, 3, 5, 8, 13...\ndef fibonacci(n):\n    if n <= 1:  # Base case\n        return n\n    return fibonacci(n-1) + fibonacci(n-2)\n\nprint(fibonacci(7))  # 13" },
               { type: 'callout', variant: 'warning', text: 'Without a base case, recursion runs forever and causes a RecursionError: maximum recursion depth exceeded.' },
-              { type: 'exercise', title: 'Recursive Challenges', description: "Write recursive functions for: 1) power(base, exp) — calculates base^exp without using **, 2) sum_digits(n) — returns sum of all digits in a number (e.g. sum_digits(123) = 6), 3) countdown(n) — prints n, n-1, ... 1, 'Go!'", hint: 'Identify your base case and recursive calls.' }
+              { type: 'exercise', title: 'Recursive Challenges', description: "1. Write a recursive function power(base, exp) to calculate base to the power of exp.\n2. Write a recursive function sum_digits(n) that adds up all digits in an integer.\n3. Write a recursive function countdown(n) that prints numbers from n down to 1, followed by 'Go!'.\n4. Test each function.", hint: 'Identify your base case and recursive calls.' }
             ]
           },
           starter_code: "# 1. Power\ndef power(base, exp):\n    pass\n\n# 2. Sum of digits\ndef sum_digits(n):\n    pass\n\n# 3. Countdown\ndef countdown(n):\n    pass\n\n# Test\nprint(power(2, 8))\nprint(sum_digits(456))\ncountdown(5)\n",
@@ -502,7 +502,7 @@ async function main() {
           content_json: {
             sections: [
               { type: 'heading', text: 'Project Brief' },
-              { type: 'paragraph', text: "Build a fully functional calculator that keeps running until the user types 'exit'. Support: +, -, *, /, // (floor div), % (modulus), ** (power)." },
+              { type: 'list', items: ['Define a dictionary mapping operator strings (+, -, *, etc.) to lambda functions.', 'Create a main while loop that continuously prompts the user.', 'Accept two numbers and an operator as input, parsing them appropriately.', 'Handle potential errors like ZeroDivisionError using try/except.', 'Break the loop and exit if the user types \'exit\'.'] },
               { type: 'code_block', language: 'python', code: "# Expected Output:\n# 🧮 Python Calculator\n# Operations: +  -  *  /  //  %  **\n# Type 'exit' to quit\n# \n# Enter first number: 15\n# Enter operator: **\n# Enter second number: 3\n# Result: 15 ** 3 = 3375\n# \n# Enter first number: exit\n# Goodbye! 👋" },
               { type: 'callout', variant: 'tip', text: "Use a dictionary to map operators to lambda functions: ops = {'+': lambda a,b: a+b, ...}. Handle ZeroDivisionError with try/except." }
             ]
@@ -534,7 +534,7 @@ async function main() {
               { type: 'code_block', language: 'python', code: "# Writing to a file\nwith open('notes.txt', 'w') as f:\n    f.write('Hello, File!\\n')\n    f.write('This is line 2\\n')\n\n# Reading entire file\nwith open('notes.txt', 'r') as f:\n    content = f.read()\n    print(content)\n\n# Reading line by line\nwith open('notes.txt', 'r') as f:\n    for line in f:\n        print(line.strip())\n\n# Appending to file\nwith open('notes.txt', 'a') as f:\n    f.write('Appended line\\n')" },
               { type: 'callout', variant: 'tip', text: "Always use 'with open()' — it automatically closes the file even if an error occurs. Never rely on manually calling f.close()." },
               { type: 'callout', variant: 'info', text: "File modes: 'r' = read, 'w' = write (overwrites!), 'a' = append, 'r+' = read and write" },
-              { type: 'exercise', title: 'To-Do List File App', description: 'Write a program that: 1) Writes 3 to-do items to a file called todo.txt, 2) Reads and prints all items from the file, 3) Appends a 4th item, 4) Reads and prints the updated file.', hint: "Use 'w' mode for writing, 'r' for reading, and 'a' for appending." }
+              { type: 'exercise', title: 'To-Do List File App', description: "1. Open 'todo.txt' in write mode ('w') and write 3 different tasks.\n2. Open the file in read mode ('r') and print its contents.\n3. Open the file in append mode ('a') and add a 4th task.\n4. Re-open in read mode ('r') and print the final updated contents.", hint: "Use 'w' mode for writing, 'r' for reading, and 'a' for appending." }
             ]
           },
           starter_code: "# Step 1: Write 3 items\nwith open('todo.txt', 'w') as f:\n    pass\n\n# Step 2: Read and print\n\n# Step 3: Append item 4\n\n# Step 4: Read updated file\n",
@@ -555,7 +555,7 @@ async function main() {
               { type: 'code_block', language: 'python', code: "# Basic try-except\ntry:\n    result = 10 / 0\nexcept ZeroDivisionError:\n    print('Cannot divide by zero!')\n\n# Multiple exceptions\ntry:\n    num = int(input('Enter number: '))\n    result = 100 / num\n    print(f'Result: {result}')\nexcept ValueError:\n    print('Invalid input — enter a number!')\nexcept ZeroDivisionError:\n    print('Cannot divide by zero!')\nelse:\n    print('Success!')  # runs if no exception\nfinally:\n    print('This always runs')  # cleanup code" },
               { type: 'heading', text: 'Common Exception Types' },
               { type: 'list', items: ['ValueError — wrong data type conversion', 'ZeroDivisionError — dividing by zero', 'IndexError — list index out of range', 'KeyError — dictionary key not found', "FileNotFoundError — file doesn't exist", 'TypeError — wrong type for operation'] },
-              { type: 'exercise', title: 'Robust Input Handler', description: 'Write a function safe_divide(a, b) that handles ZeroDivisionError. Write a function safe_open(filename) that handles FileNotFoundError. Write a function safe_convert(value) that converts to int and handles ValueError. Test all three.', hint: 'Use try-except blocks.' }
+              { type: 'exercise', title: 'Robust Input Handler', description: "1. Write safe_divide(a, b) with a try-except block for ZeroDivisionError.\n2. Write safe_open(filename) with a try-except block for FileNotFoundError.\n3. Write safe_convert(value) with a try-except block for ValueError when casting to int.\n4. Test all three functions with inputs that trigger the errors.", hint: 'Use try-except blocks.' }
             ]
           },
           starter_code: "def safe_divide(a, b):\n    pass\n\ndef safe_open(filename):\n    pass\n\ndef safe_convert(value):\n    pass\n\n# Tests\nprint(safe_divide(10, 0))\nprint(safe_open('ghost.txt'))\nprint(safe_convert('abc'))\n",
@@ -588,7 +588,7 @@ async function main() {
             sections: [
               { type: 'heading', text: 'Reading & Writing CSV' },
               { type: 'code_block', language: 'python', code: "import csv\n\n# Writing CSV\nstudents = [\n    ['Name', 'Age', 'Marks'],\n    ['Harsh', 21, 87],\n    ['Priya', 20, 95],\n    ['Rahul', 22, 72]\n]\n\nwith open('students.csv', 'w', newline='') as f:\n    writer = csv.writer(f)\n    writer.writerows(students)\n\n# Reading CSV\nwith open('students.csv', 'r') as f:\n    reader = csv.reader(f)\n    for row in reader:\n        print(row)\n\n# CSV as dictionary\nwith open('students.csv', 'r') as f:\n    reader = csv.DictReader(f)\n    for row in reader:\n        print(f\"{row['Name']}: {row['Marks']}\")" },
-              { type: 'exercise', title: 'CSV Student Report', description: "Create a CSV file with columns: Name, Maths, Science, English. Add 4 student rows. Read it back and print each student's name with their average marks.", hint: 'Use csv module to write and read.' }
+              { type: 'exercise', title: 'CSV Student Report', description: "1. Import the csv module.\n2. Create data with headers (Name, Maths, Science, English) and 4 student rows.\n3. Write the data to 'students.csv'.\n4. Read the file back, calculate each student's average marks, and print 'Name: Average'.", hint: 'Use csv module to write and read.' }
             ]
           },
           starter_code: "import csv\n\n# Write the CSV\ndata = [\n    ['Name', 'Maths', 'Science', 'English'],\n    # Add 4 rows\n]\n\n# Write to file\n\n# Read and calculate averages\n",
@@ -605,7 +605,7 @@ async function main() {
           content_json: {
             sections: [
               { type: 'heading', text: 'Project Brief' },
-              { type: 'paragraph', text: 'Build a command-line to-do list app that saves tasks to a file so they persist between runs. Support: add task, view all tasks, mark complete, delete task, exit.' },
+              { type: 'list', items: ['Write a function to load tasks from tasks.txt into a list upon startup.', 'Write a function to save the current list of tasks to tasks.txt.', 'Implement a menu loop displaying options: Add, View, Mark complete, Delete, Exit.', 'Implement logic for each option, updating the task list and saving to the file accordingly.'] },
               { type: 'code_block', language: 'python', code: "# Expected Output:\n# 📝 To-Do List App\n# 1. Add task\n# 2. View tasks\n# 3. Mark complete\n# 4. Delete task\n# 5. Exit\n# \n# Choice: 1\n# Task: Buy groceries\n# ✅ Task added!\n# \n# Choice: 2\n# [ ] 1. Buy groceries\n# [✓] 2. Submit assignment" }
             ]
           },
@@ -635,7 +635,7 @@ async function main() {
               { type: 'paragraph', text: 'Object-Oriented Programming organises code around objects — real-world entities that have attributes (data) and methods (behaviour).' },
               { type: 'code_block', language: 'python', code: "class Dog:\n    # Class attribute — shared by all dogs\n    species = 'Canis lupus familiaris'\n\n    # Constructor — runs when object is created\n    def __init__(self, name, age):\n        self.name = name  # Instance attribute\n        self.age = age\n\n    # Method\n    def bark(self):\n        print(f'{self.name} says: Woof!')\n\n    def __str__(self):\n        return f'Dog({self.name}, {self.age})'\n\n# Create objects\ndog1 = Dog('Bruno', 3)\ndog2 = Dog('Max', 5)\n\ndog1.bark()           # Bruno says: Woof!\nprint(dog1.name)      # Bruno\nprint(Dog.species)    # Canis lupus...\nprint(dog1)           # Dog(Bruno, 3)" },
               { type: 'callout', variant: 'info', text: 'self refers to the current object instance. It must be the first parameter of every instance method.' },
-              { type: 'exercise', title: 'Bank Account Class', description: "Create a BankAccount class with: attributes: owner (str), balance (float, default 0). Methods: deposit(amount), withdraw(amount) — handle insufficient funds, get_balance() — returns formatted balance string, __str__ — prints 'Account[owner]: ₹balance'. Create 2 accounts and test all methods.", hint: 'Define methods with self as the first parameter.' }
+              { type: 'exercise', title: 'Bank Account Class', description: "1. Create BankAccount class with __init__(owner, balance=0).\n2. Implement deposit(amount) to increase balance.\n3. Implement withdraw(amount) to decrease balance (check if sufficient funds).\n4. Implement get_balance() and __str__().\n5. Instantiate 2 accounts and perform transactions.", hint: 'Define methods with self as the first parameter.' }
             ]
           },
           starter_code: "class BankAccount:\n    def __init__(self, owner, balance=0):\n        pass\n\n    def deposit(self, amount):\n        pass\n\n    def withdraw(self, amount):\n        pass\n\n    def get_balance(self):\n        pass\n\n    def __str__(self):\n        pass\n\n# Test\nacc1 = BankAccount('Harsh', 5000)\nacc1.deposit(2000)\nacc1.withdraw(1500)\nprint(acc1)\nprint(acc1.get_balance())\n",
@@ -654,7 +654,7 @@ async function main() {
               { type: 'heading', text: 'What is Inheritance?' },
               { type: 'paragraph', text: 'Inheritance lets a child class reuse and extend a parent class. This avoids code repetition and models real-world hierarchies.' },
               { type: 'code_block', language: 'python', code: "class Employee:\n    def __init__(self, name, salary):\n        self.name = name\n        self.salary = salary\n\n    def work(self):\n        print(f'{self.name} is working.')\n\n    def __str__(self):\n        return f'{self.name} (₹{self.salary})'\n\n# Programmer inherits from Employee\nclass Programmer(Employee):\n    def __init__(self, name, salary, language):\n        super().__init__(name, salary)  # Call parent constructor\n        self.language = language\n\n    def code(self):\n        print(f'{self.name} is coding in {self.language}.')\n\n    # Method overriding\n    def work(self):\n        print(f'{self.name} is writing {self.language} code.')\n\np = Programmer('Harsh', 80000, 'Python')\np.work()   # overridden method\np.code()\nprint(p)   # uses parent __str__" },
-              { type: 'exercise', title: 'Animal Hierarchy', description: "Create: Animal(name, sound) with a speak() method that prints '{name} says {sound}'. Dog(Animal) that adds fetch() method. Cat(Animal) that adds purr() method. Bird(Animal, can_fly=True) that adds fly() — prints 'Flying!' or 'Cannot fly' based on can_fly. Create one instance of each and test all methods.", hint: 'Use super().__init__() where necessary.' }
+              { type: 'exercise', title: 'Animal Hierarchy', description: "1. Define base class Animal with __init__(name, sound) and speak() method.\n2. Create Dog class inheriting from Animal, add fetch() method.\n3. Create Cat class inheriting from Animal, add purr() method.\n4. Create Bird class inheriting from Animal, add fly() method checking can_fly.\n5. Create instances and test all specific methods.", hint: 'Use super().__init__() where necessary.' }
             ]
           },
           starter_code: "class Animal:\n    pass\n\nclass Dog(Animal):\n    pass\n\nclass Cat(Animal):\n    pass\n\nclass Bird(Animal):\n    pass\n\n# Test all\n",
@@ -704,7 +704,7 @@ async function main() {
               { type: 'heading', text: 'Dunder (Magic) Methods' },
               { type: 'paragraph', text: 'Dunder methods let you define how your objects behave with built-in operators like +, -, *, len(), str().' },
               { type: 'code_block', language: 'python', code: "class Vector:\n    def __init__(self, x, y):\n        self.x = x\n        self.y = y\n\n    def __add__(self, other):      # v1 + v2\n        return Vector(self.x + other.x, self.y + other.y)\n\n    def __mul__(self, scalar):     # v * 3\n        return Vector(self.x * scalar, self.y * scalar)\n\n    def __len__(self):             # len(v)\n        return int((self.x**2 + self.y**2) ** 0.5)\n\n    def __str__(self):             # print(v)\n        return f'Vector({self.x}, {self.y})'\n\nv1 = Vector(2, 3)\nv2 = Vector(1, 4)\nprint(v1 + v2)    # Vector(3, 7)\nprint(v1 * 3)     # Vector(6, 9)\nprint(len(v1))    # 3" },
-              { type: 'exercise', title: 'Complex Number Class', description: "Build a Complex class with real and imag parts. Implement: __add__ (add two complex numbers), __sub__ (subtract), __mul__ (multiply: (a+bi)(c+di) = ac-bd + (ad+bc)i), __str__ prints 'a+bi' format, __abs__ returns the magnitude (sqrt of real²+imag²). Test with: c1 = Complex(3, 4), c2 = Complex(1, 2).", hint: 'Look up operator overloading in Python (__add__, __sub__, etc).' }
+              { type: 'exercise', title: 'Complex Number Class', description: "1. Create Complex class taking real and imag arguments in __init__.\n2. Implement __add__ and __sub__ dunder methods.\n3. Implement __mul__ using complex multiplication formula.\n4. Implement __abs__ for magnitude and __str__ for display.\n5. Test with c1 = Complex(3, 4) and c2 = Complex(1, 2).", hint: 'Look up operator overloading in Python (__add__, __sub__, etc).' }
             ]
           },
           starter_code: "import math\n\nclass Complex:\n    def __init__(self, real, imag):\n        self.real = real\n        self.imag = imag\n\n    def __add__(self, other):\n        pass\n\n    def __sub__(self, other):\n        pass\n\n    def __mul__(self, other):\n        pass\n\n    def __str__(self):\n        pass\n\n    def __abs__(self):\n        pass\n\nc1 = Complex(3, 4)\nc2 = Complex(1, 2)\nprint(c1 + c2)\nprint(c1 - c2)\nprint(c1 * c2)\nprint(abs(c1))\n",
@@ -721,7 +721,7 @@ async function main() {
           content_json: {
             sections: [
               { type: 'heading', text: 'Project Brief' },
-              { type: 'paragraph', text: 'Build a complete bank account management system using OOP. Create a base Account class and two child classes: SavingsAccount and CurrentAccount.' },
+              { type: 'list', items: ['Create a base Account class with deposit, withdraw, and __str__ methods.', 'Create a SavingsAccount class inheriting from Account, adding an add_interest(rate) method.', 'Create a CurrentAccount class inheriting from Account, overriding withdraw to allow an overdraft up to a limit.', 'Instantiate both child classes and test deposits, withdrawals, and interest additions.'] },
               { type: 'code_block', language: 'python', code: "# Expected Output:\n# Account created: Harsh (Savings)\n# Deposited ₹5000. Balance: ₹5000\n# Withdrew ₹2000. Balance: ₹3000\n# Interest added (4%): ₹120. Balance: ₹3120\n# \n# Account created: Priya (Current)\n# Deposited ₹10000. Balance: ₹10000\n# Overdraft used: ₹2000. Balance: ₹-2000" },
               { type: 'callout', variant: 'tip', text: 'SavingsAccount should have an add_interest(rate) method. CurrentAccount should allow overdraft up to a limit.' }
             ]
@@ -806,7 +806,7 @@ async function main() {
             sections: [
               { type: 'heading', text: 'Working with JSON' },
               { type: 'code_block', language: 'python', code: "import json\n\n# Python dict → JSON string\nstudent = {'name': 'Harsh', 'age': 21, 'marks': [85, 90, 78]}\njson_str = json.dumps(student, indent=2)\nprint(json_str)\n\n# JSON string → Python dict\ndata = json.loads(json_str)\nprint(data['name'])\n\n# Write JSON to file\nwith open('student.json', 'w') as f:\n    json.dump(student, f, indent=2)\n\n# Read JSON from file\nwith open('student.json', 'r') as f:\n    loaded = json.load(f)\nprint(loaded)" },
-              { type: 'exercise', title: 'JSON Contact Book', description: "Create a list of 3 contacts (each a dict with name, phone, email). Save to contacts.json. Read it back and print each contact's name and phone in format: 'Name: phone'.", hint: 'Use json.dumps() and json.loads().' }
+              { type: 'exercise', title: 'JSON Contact Book', description: "1. Define a list of 3 dictionaries containing name, phone, and email.\n2. Open 'contacts.json' in write mode and dump the list as JSON.\n3. Open 'contacts.json' in read mode and load the JSON data.\n4. Loop through the data and print 'Name: phone' for each contact.", hint: 'Use json.dumps() and json.loads().' }
             ]
           },
           starter_code: "import json\n\ncontacts = [\n    # Add 3 contacts\n]\n\n# Save to JSON file\n\n# Read and print\n",
@@ -823,7 +823,7 @@ async function main() {
           content_json: {
             sections: [
               { type: 'heading', text: 'Project Brief' },
-              { type: 'paragraph', text: 'Build a command-line weather app using the Open-Meteo API (free, no API key needed). The user enters a city name, your app fetches real weather data and displays it.' },
+              { type: 'list', items: ['Prompt the user for a city name.', 'Make an HTTP GET request to the Open-Meteo Geocoding API to get the city\'s latitude and longitude.', 'Make another HTTP GET request to the Open-Meteo Forecast API using the retrieved coordinates.', 'Parse the JSON response to extract temperature, wind speed, and humidity.', 'Print the weather details in a clean, formatted manner.'] },
               { type: 'code_block', language: 'python', code: "# Expected Output:\n# 🌤️ Weather for Mumbai\n# Temperature : 32°C\n# Feels like  : 36°C\n# Humidity    : 78%\n# Wind Speed  : 14 km/h\n# Condition   : Partly Cloudy" },
               { type: 'callout', variant: 'tip', text: 'Use Open-Meteo: https://api.open-meteo.com/v1/forecast. First use geopy or a geocoding API to convert city name to lat/lon. Install: pip install requests' }
             ]
@@ -884,7 +884,7 @@ async function main() {
               { type: 'code_block', language: 'python', code: "# Custom iterator\nclass Countdown:\n    def __init__(self, start):\n        self.current = start\n\n    def __iter__(self):\n        return self\n\n    def __next__(self):\n        if self.current <= 0:\n            raise StopIteration\n        val = self.current\n        self.current -= 1\n        return val\n\nfor num in Countdown(5):\n    print(num)" },
               { type: 'heading', text: 'Generators' },
               { type: 'code_block', language: 'python', code: "def countdown_gen(start):\n    while start > 0:\n        yield start\n        start -= 1\n\nfor num in countdown_gen(5):\n    print(num)" },
-              { type: 'exercise', title: 'Generator Challenge', description: 'Write a generator function fibonacci(n) that yields the first n Fibonacci numbers. Use it in a for loop to print the first 10 Fibonacci numbers.', hint: 'Use yield instead of return inside a loop.' }
+              { type: 'exercise', title: 'Generator Challenge', description: "1. Create a generator function fibonacci(n).\n2. Use a loop inside the function with 'yield' to produce Fibonacci numbers one by one.\n3. Write a for loop that calls fibonacci(10) to print the first 10 numbers.", hint: 'Use yield instead of return inside a loop.' }
             ]
           },
           starter_code: "def fibonacci(n):\n    pass\n\n# Loop and print first 10\n",
