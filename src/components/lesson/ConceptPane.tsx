@@ -48,6 +48,21 @@ export default function ConceptPane({
     if (exerciseSection) {
       prompt = exerciseSection.title || '';
       instructions = exerciseSection.description || '';
+    } else if (lessonType === 'PROJECT') {
+      prompt = 'Project Brief';
+      // The project instructions are typically in the section immediately following the "Project Brief" heading
+      const briefIndex = contentJson.sections.findIndex((s: any) => s.type === 'heading' && (s.text === 'Project Brief' || s.text?.toLowerCase().includes('project')));
+      const contentSection = briefIndex !== -1 && briefIndex + 1 < contentJson.sections.length 
+        ? contentJson.sections[briefIndex + 1] 
+        : contentJson.sections.find((s: any) => s.type === 'list' || s.type === 'paragraph');
+
+      if (contentSection) {
+        if (contentSection.type === 'list' && Array.isArray(contentSection.items)) {
+          instructions = contentSection.items.map((item: string, i: number) => `${i + 1}. ${item}`).join('\n');
+        } else if (contentSection.type === 'paragraph') {
+          instructions = contentSection.text || '';
+        }
+      }
     }
   }
 
