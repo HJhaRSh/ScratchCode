@@ -1,8 +1,8 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
-import { motion } from 'framer-motion';
-import { X, Play, Pause, SkipBack, SkipForward, FastForward, Rewind } from 'lucide-react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { X, Play, Pause, SkipBack, SkipForward, Sparkles, Copy, Check, AlertTriangle, ChevronRight } from 'lucide-react';
 import * as acorn from 'acorn';
 
 interface VariableState {
@@ -22,16 +22,22 @@ interface Step {
   frames: FrameData[];
   callStack: string[];
   output: string;
-  error?: string;
+  error?: string | null;
+}
+
+interface AiFixResult {
+  explanation: string;
+  fixedCode: string;
 }
 
 interface CodeVisualizerProps {
   code: string;
   language: string;
   onClose: () => void;
+  onApplyFix?: (fixedCode: string) => void;
 }
 
-export default function CodeVisualizer({ code, language, onClose }: CodeVisualizerProps) {
+export default function CodeVisualizer({ code, language, onClose, onApplyFix }: CodeVisualizerProps) {
   const [steps, setSteps] = useState<Step[]>([]);
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -39,28 +45,57 @@ export default function CodeVisualizer({ code, language, onClose }: CodeVisualiz
   const [loading, setLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
+  // AI fix state
+  const [aiFixResult, setAiFixResult] = useState<AiFixResult | null>(null);
+  const [loadingAiFix, setLoadingAiFix] = useState(false);
+  const [showAiPanel, setShowAiPanel] = useState(false);
+  const [copied, setCopied] = useState(false);
+
   const playIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
-    // Add keyboard listener for ctrl+shift+v to toggle 
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 'v') {
-        onClose();
-      }
+      if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 'v') onClose();
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [onClose]);
+
+  // Fetch AI fix when we have an error step
+  const fetchAiFix = useCallback(async (errorText: string) => {
+    setLoadingAiFix(true);
+    setShowAiPanel(true);
+    setAiFixResult(null);
+    try {
+      const res = await fetch('/api/visualizer/fix-suggestion', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code, language, error: errorText }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setAiFixResult({ explanation: data.explanation, fixedCode: data.fixedCode });
+      } else {
+        setAiFixResult({ explanation: 'Could not fetch AI suggestion. Please try again.', fixedCode: code });
+      }
+    } catch {
+      setAiFixResult({ explanation: 'Network error — could not reach AI service.', fixedCode: code });
+    } finally {
+      setLoadingAiFix(false);
+    }
+  }, [code, language]);
 
   useEffect(() => {
     setLoading(true);
     setErrorMsg(null);
     setSteps([]);
     setCurrentStepIndex(0);
+    setAiFixResult(null);
+    setShowAiPanel(false);
 
     const codeTrimmed = code.trim();
     if (!codeTrimmed) {
-      setErrorMsg("Write some code first, then click Visualize");
+      setErrorMsg('Write some code first, then click Visualize');
       setLoading(false);
       return;
     }
@@ -115,7 +150,6 @@ def _safe_val(v, depth=0):
         return {"type": "list", "repr": [_safe_val(i, depth+1)["repr"] for i in v[:20]]}
     if isinstance(v, dict):
         return {"type": "dict", "repr": {str(k): _safe_val(dv, depth+1)["repr"] for k,dv in list(v.items())[:20]}}
-    # class type
     if isinstance(v, type):
         methods = {}
         for mk, mv in v.__dict__.items():
@@ -126,7 +160,6 @@ def _safe_val(v, depth=0):
                 try: methods[mk] = "function __init__" + str(inspect.signature(mv))
                 except: methods[mk] = "function __init__(...)"
         return {"type": "class", "repr": methods, "class_name": v.__name__}
-    # instance
     if hasattr(v, "__dict__"):
         attrs = {}
         for ak, av in list(v.__dict__.items())[:20]:
@@ -140,13 +173,11 @@ def _tracer(frame, event, arg):
     if event != "line":
         return _tracer
     try:
-        # The current frame is always user code. Its filename is our boundary.
         user_filename = frame.f_code.co_filename
         frames_data = []
         f = frame
         depth = 0
         while f is not None and depth < 30:
-            # Only collect frames that are in user code (same filename)
             if f.f_code.co_filename == user_filename:
                 co_name = f.f_code.co_name
                 frame_vars = {}
@@ -177,7 +208,7 @@ try:
     sys.settrace(_tracer)
     exec(USER_CODE_STRING, {})
 except Exception as e:
-    _steps.append({"line": 0, "frames": [{"name": "Global frame", "variables": {}}], "output": _out.getvalue(), "error": str(e)})
+    _steps.append({"line": getattr(e, '__traceback__', None) and e.__traceback__.tb_lineno or 0, "frames": [{"name": "Global frame", "variables": {}}], "output": _out.getvalue(), "error": type(e).__name__ + ": " + str(e)})
 finally:
     sys.settrace(None)
     sys.stdout = old_stdout
@@ -194,83 +225,85 @@ json.dumps(_steps)
       };
     `;
 
-
     const blob = new Blob([workerScript], { type: 'application/javascript' });
     const pyWorker = new Worker(URL.createObjectURL(blob));
-
     pyWorker.postMessage({ code: userCode });
 
-     pyWorker.onmessage = (e) => {
+    pyWorker.onmessage = (e) => {
       const { type, steps, error } = e.data;
       if (type === 'success') {
-         let processedSteps = steps.map((s: any, i: number) => {
-            let processedFrames = (s.frames || []).map((fr: any) => {
-               let processedVars: any = {};
-               for (let [k, v] of Object.entries(fr.variables || {})) {
-                   let typedV = v as any;
-                   // Python _safe_val returns {type, repr} — normalise to {type, value}
-                   processedVars[k] = {
-                     type: typedV.type ?? 'unknown',
-                     value: typedV.repr ?? typedV.value ?? null,
-                     changed: false
-                   };
-               }
-               return { name: fr.name, variables: processedVars };
-            });
-            return {
-               step: i + 1,
-               line: s.line,
-               frames: processedFrames,
-               callStack: ['global'],
-               output: s.output ?? '',
-               error: s.error ?? null
-            };
-         });
-         
-         if (processedSteps.length === 0) {
-             processedSteps = [{ step: 1, line: 1, frames: [{ name: 'Global frame', variables: {} }], callStack: ['global'], output: '', error: null }];
-         }
-         
-         setSteps(processedSteps);
-         setLoading(false);
-         pyWorker.terminate();
+        let processedSteps = steps.map((s: any, i: number) => {
+          let processedFrames = (s.frames || []).map((fr: any) => {
+            let processedVars: any = {};
+            for (let [k, v] of Object.entries(fr.variables || {})) {
+              let typedV = v as any;
+              processedVars[k] = {
+                type: typedV.type ?? 'unknown',
+                value: typedV.repr ?? typedV.value ?? null,
+                changed: false,
+              };
+            }
+            return { name: fr.name, variables: processedVars };
+          });
+          return {
+            step: i + 1,
+            line: s.line,
+            frames: processedFrames,
+            callStack: ['global'],
+            output: s.output ?? '',
+            error: s.error ?? null,
+          };
+        });
+
+        if (processedSteps.length === 0) {
+          processedSteps = [{ step: 1, line: 1, frames: [{ name: 'Global frame', variables: {} }], callStack: ['global'], output: '', error: null }];
+        }
+
+        setSteps(processedSteps);
+        setLoading(false);
+        pyWorker.terminate();
+
+        // Auto-fetch AI fix if the last step has an error
+        const lastStep = processedSteps[processedSteps.length - 1];
+        if (lastStep?.error) {
+          setCurrentStepIndex(processedSteps.length - 1);
+          fetchAiFix(lastStep.error);
+        }
       } else if (type === 'error') {
-         setErrorMsg(error);
-         setLoading(false);
-         pyWorker.terminate();
+        // Hard error (syntax / pyodide init fail) — no steps
+        setErrorMsg(error);
+        setLoading(false);
+        pyWorker.terminate();
+        // Still try AI fix for syntax errors
+        fetchAiFix(error);
       }
     };
   };
 
   const runJavascriptStepper = (userCode: string) => {
     try {
-      const ast = acorn.parse(userCode, { ecmaVersion: 2020, locations: true });
-      // To properly instrument JS we'd need escodegen. 
-      // We'll use a sandboxed iframe that executes and captures console.
-      // For line-by-line, we'll do a simple mock step array as the prompt mentioned it's a "simplified stepper".
+      acorn.parse(userCode, { ecmaVersion: 2020, locations: true });
       let traceSteps: Step[] = [];
-      let outputBuffer = "";
-      
+      let outputBuffer = '';
       const lines = userCode.split('\n');
-      
-      // Simple pseudo-tracing (in reality, AST walking + instrumenting is required)
       for (let i = 0; i < lines.length; i++) {
         if (lines[i].trim() !== '') {
           traceSteps.push({
             step: traceSteps.length + 1,
             line: i + 1,
-            frames: [{ name: "Global frame", variables: {} }],
-            callStack: ["global"],
-            output: outputBuffer
+            frames: [{ name: 'Global frame', variables: {} }],
+            callStack: ['global'],
+            output: outputBuffer,
           });
         }
       }
-      
       setSteps(traceSteps);
       setLoading(false);
     } catch (e: any) {
-      setErrorMsg(`Parse Error: ${e.message}`);
+      const errMsg = `SyntaxError: ${e.message}`;
+      setErrorMsg(errMsg);
       setLoading(false);
+      fetchAiFix(errMsg);
     }
   };
 
@@ -279,35 +312,42 @@ json.dumps(_steps)
       const intervalMs = speed === 'Slow' ? 1000 : speed === 'Normal' ? 333 : 125;
       playIntervalRef.current = setInterval(() => {
         setCurrentStepIndex((prev) => {
-          if (prev >= steps.length - 1) {
-            setIsPlaying(false);
-            return prev;
-          }
+          if (prev >= steps.length - 1) { setIsPlaying(false); return prev; }
           const nextStep = steps[prev + 1];
-          if (nextStep && nextStep.error) {
-             setIsPlaying(false); // auto-pause on error
-          }
+          if (nextStep?.error) setIsPlaying(false);
           return prev + 1;
         });
       }, intervalMs);
     } else {
       if (playIntervalRef.current) clearInterval(playIntervalRef.current);
     }
-    
-    return () => {
-      if (playIntervalRef.current) clearInterval(playIntervalRef.current);
-    };
+    return () => { if (playIntervalRef.current) clearInterval(playIntervalRef.current); };
   }, [isPlaying, speed, steps]);
+
+  const handleCopyFixed = () => {
+    if (aiFixResult?.fixedCode) {
+      navigator.clipboard.writeText(aiFixResult.fixedCode);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
+  };
+
+  const handleApplyFix = () => {
+    if (aiFixResult?.fixedCode && onApplyFix) {
+      onApplyFix(aiFixResult.fixedCode);
+    }
+  };
 
   const currentStep = steps[currentStepIndex];
   const prevStep = currentStepIndex > 0 ? steps[currentStepIndex - 1] : null;
   const executedLine = prevStep?.line;
   const nextLine = currentStep?.line;
+  const hasErrorAtCurrentStep = !!(currentStep?.error);
   const codeLines = code.split('\n');
-  
-  const allObjects: { name: string, state: VariableState }[] = [];
-  if (currentStep && currentStep.frames) {
-    currentStep.frames.forEach(fr => {
+
+  const allObjects: { name: string; state: VariableState }[] = [];
+  if (currentStep?.frames) {
+    currentStep.frames.forEach((fr) => {
       Object.entries(fr.variables).forEach(([name, state]) => {
         if (state.type === 'list' || state.type === 'dict' || state.type === 'function' || state.type === 'class' || state.type.endsWith('instance')) {
           allObjects.push({ name, state });
@@ -316,8 +356,11 @@ json.dumps(_steps)
     });
   }
 
+  // Determine if there's any error in the whole trace
+  const traceHasError = steps.some((s) => s.error);
+
   return (
-    <motion.div 
+    <motion.div
       initial={{ y: '100%', opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       exit={{ y: '100%', opacity: 0 }}
@@ -325,11 +368,11 @@ json.dumps(_steps)
       className="absolute bottom-0 left-0 right-0 h-[72vh] border-t border-white/10 shadow-2xl flex flex-col z-50 overflow-hidden font-sans"
       style={{ background: 'linear-gradient(180deg, #0f0f1a 0%, #12121f 100%)' }}
     >
-      {/* Header */}
-      <div className="flex items-center justify-between px-5 py-2.5 border-b border-white/8 shrink-0" style={{background:'rgba(0,0,0,0.5)', backdropFilter:'blur(12px)'}}>
+      {/* ── Header ── */}
+      <div className="flex items-center justify-between px-5 py-2.5 border-b border-white/8 shrink-0" style={{ background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(12px)' }}>
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-2">
-            <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+            <div className={`w-2 h-2 rounded-full ${traceHasError ? 'bg-rose-400' : 'bg-emerald-400'} animate-pulse`} />
             <span className="font-semibold text-white text-sm tracking-wide">Code Visualizer</span>
           </div>
           {loading && (
@@ -343,12 +386,30 @@ json.dumps(_steps)
               <span className="text-slate-400 text-xs">{steps.length} steps traced</span>
             </div>
           )}
+          {traceHasError && !loading && (
+            <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-rose-500/10 border border-rose-500/20">
+              <AlertTriangle className="w-3 h-3 text-rose-400" />
+              <span className="text-rose-300 text-xs">Runtime error detected</span>
+            </div>
+          )}
         </div>
-        <button onClick={onClose} className="p-1.5 hover:bg-white/10 rounded-lg transition-colors text-slate-400 hover:text-white">
-          <X className="h-4 w-4" />
-        </button>
+        <div className="flex items-center gap-2">
+          {traceHasError && !loading && (
+            <button
+              onClick={() => setShowAiPanel((v) => !v)}
+              className="flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold bg-violet-500/20 text-violet-300 border border-violet-500/30 hover:bg-violet-500/30 transition-all"
+            >
+              <Sparkles className="w-3 h-3" />
+              AI Fix {showAiPanel ? '▾' : '▸'}
+            </button>
+          )}
+          <button onClick={onClose} className="p-1.5 hover:bg-white/10 rounded-lg transition-colors text-slate-400 hover:text-white">
+            <X className="h-4 w-4" />
+          </button>
+        </div>
       </div>
 
+      {/* ── Body ── */}
       {loading ? (
         <div className="flex-1 flex items-center justify-center">
           <div className="flex flex-col items-center gap-4">
@@ -360,60 +421,99 @@ json.dumps(_steps)
           </div>
         </div>
       ) : errorMsg && !steps.length ? (
-        <div className="flex-1 flex items-center justify-center p-8">
-          <div className="max-w-xl w-full">
-            <div className="flex items-center gap-2 mb-3 text-rose-400">
-              <span className="text-lg">⚠</span>
-              <span className="font-bold">Error in your code</span>
+        /* Hard error — no steps at all (e.g. pyodide init fail, severe syntax error) */
+        <div className="flex-1 flex min-h-0">
+          <div className="flex-1 flex items-center justify-center p-8">
+            <div className="max-w-xl w-full">
+              <div className="flex items-center gap-2 mb-3 text-rose-400">
+                <AlertTriangle className="w-5 h-5" />
+                <span className="font-bold">Error in your code</span>
+              </div>
+              <pre className="text-sm text-rose-300 text-left whitespace-pre-wrap font-mono bg-rose-950/30 p-4 rounded-xl border border-rose-500/20 leading-relaxed">{errorMsg}</pre>
+              {!loadingAiFix && !aiFixResult && (
+                <div className="mt-3 text-slate-500 text-xs">Fetching AI fix suggestion...</div>
+              )}
             </div>
-            <pre className="text-sm text-rose-300 text-left whitespace-pre-wrap font-mono bg-rose-950/30 p-4 rounded-xl border border-rose-500/20 leading-relaxed">{errorMsg}</pre>
           </div>
+          {/* AI Fix panel even for hard errors */}
+          <AnimatePresence>
+            {showAiPanel && (
+              <AiFixPanel
+                loading={loadingAiFix}
+                result={aiFixResult}
+                onCopy={handleCopyFixed}
+                onApply={onApplyFix ? handleApplyFix : undefined}
+                copied={copied}
+              />
+            )}
+          </AnimatePresence>
         </div>
       ) : currentStep ? (
         <div className="flex-1 flex min-h-0">
           {/* ── LEFT: Code Panel ── */}
-          <div className="w-[45%] flex flex-col border-r border-white/8" style={{background:'#0d0d18'}}>
+          <div className="w-[38%] flex flex-col border-r border-white/8" style={{ background: '#0d0d18' }}>
             <div className="flex-1 overflow-auto p-3 font-mono text-[13px] leading-6">
-              <div className="text-center text-slate-600 text-[11px] mb-3 pb-2 border-b border-white/5">Python 3.11 — line-by-line trace</div>
+              <div className="text-center text-slate-600 text-[11px] mb-3 pb-2 border-b border-white/5">
+                {language === 'python' ? 'Python 3.11' : 'JavaScript'} — line-by-line trace
+              </div>
               {codeLines.map((line, idx) => {
                 const lineNum = idx + 1;
-                const isNext = lineNum === nextLine;
-                const isExecuted = lineNum === executedLine && !isNext;
+                const isErrorLine = hasErrorAtCurrentStep && lineNum === nextLine;
+                const isNext = !isErrorLine && lineNum === nextLine;
+                const isExecuted = lineNum === executedLine && !isNext && !isErrorLine;
                 return (
-                  <div key={idx} className={`flex items-stretch rounded-md transition-all duration-150 ${isNext ? 'bg-rose-500/12 ring-1 ring-rose-500/20' : isExecuted ? 'bg-emerald-500/10' : ''}`}>
+                  <div
+                    key={idx}
+                    className={`flex items-stretch rounded-md transition-all duration-150 ${
+                      isErrorLine
+                        ? 'bg-rose-500/18 ring-1 ring-rose-500/40'
+                        : isNext
+                        ? 'bg-amber-500/10 ring-1 ring-amber-500/20'
+                        : isExecuted
+                        ? 'bg-emerald-500/10'
+                        : ''
+                    }`}
+                  >
                     <div className="w-5 flex items-center justify-center shrink-0 py-0.5">
-                      {isNext && <span className="text-rose-400 text-[11px] font-bold">▶</span>}
+                      {isErrorLine && <span className="text-rose-400 text-[11px] font-bold">⚠</span>}
+                      {isNext && <span className="text-amber-400 text-[11px] font-bold">▶</span>}
                       {isExecuted && <span className="text-emerald-400 text-[11px]">✓</span>}
                     </div>
                     <div className="w-7 text-right text-slate-600 text-[11px] select-none pr-2 py-0.5 shrink-0 self-center">{lineNum}</div>
-                    <div className={`py-0.5 pr-2 whitespace-pre flex-1 ${isNext ? 'text-rose-100' : isExecuted ? 'text-emerald-100/80' : 'text-slate-300'}`}>{line || ' '}</div>
+                    <div
+                      className={`py-0.5 pr-2 whitespace-pre flex-1 ${
+                        isErrorLine ? 'text-rose-200' : isNext ? 'text-amber-100' : isExecuted ? 'text-emerald-100/80' : 'text-slate-300'
+                      }`}
+                    >
+                      {line || ' '}
+                    </div>
                   </div>
                 );
               })}
               <div className="mt-6 pt-4 border-t border-white/5 flex gap-5 text-[11px] text-slate-600">
                 <div className="flex items-center gap-1.5"><span className="text-emerald-400">✓</span> just executed</div>
-                <div className="flex items-center gap-1.5"><span className="text-rose-400 text-[11px] font-bold">▶</span> next to run</div>
+                <div className="flex items-center gap-1.5"><span className="text-amber-400 text-[11px] font-bold">▶</span> next to run</div>
+                <div className="flex items-center gap-1.5"><span className="text-rose-400 text-[11px] font-bold">⚠</span> error line</div>
               </div>
             </div>
 
             {/* Playback Controls */}
-            <div className="border-t border-white/8 p-3 shrink-0" style={{background:'rgba(0,0,0,0.4)'}}>
-              {/* Step progress bar */}
+            <div className="border-t border-white/8 p-3 shrink-0" style={{ background: 'rgba(0,0,0,0.4)' }}>
               <div className="flex items-center gap-2 mb-3">
                 <span className="text-slate-600 text-[11px] w-6 text-right">{currentStep.step}</span>
                 <div className="flex-1 relative h-1.5 bg-white/5 rounded-full overflow-hidden">
-                  <motion.div 
-                    className="absolute left-0 top-0 h-full rounded-full bg-gradient-to-r from-green-500 to-emerald-500"
+                  <motion.div
+                    className={`absolute left-0 top-0 h-full rounded-full ${traceHasError ? 'bg-gradient-to-r from-rose-500 to-rose-400' : 'bg-gradient-to-r from-green-500 to-emerald-500'}`}
                     animate={{ width: `${((currentStepIndex) / Math.max(1, steps.length - 1)) * 100}%` }}
                     transition={{ type: 'spring', stiffness: 300, damping: 30 }}
                   />
                 </div>
                 <span className="text-slate-600 text-[11px] w-6">{steps.length}</span>
               </div>
-              <input 
+              <input
                 type="range" min={0} max={Math.max(0, steps.length - 1)} value={currentStepIndex}
                 onChange={(e) => setCurrentStepIndex(Number(e.target.value))}
-                className="w-full accent-green-500 mb-2 h-0.5"
+                className={`w-full mb-2 h-0.5 ${traceHasError ? 'accent-rose-500' : 'accent-green-500'}`}
               />
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-1">
@@ -430,7 +530,7 @@ json.dumps(_steps)
                 </div>
                 <div className="flex items-center gap-2">
                   <div className="flex rounded-lg border border-white/10 overflow-hidden">
-                    {(['Slow', 'Normal', 'Fast'] as const).map(s => (
+                    {(['Slow', 'Normal', 'Fast'] as const).map((s) => (
                       <button key={s} onClick={() => setSpeed(s)}
                         className={`px-2 py-1 text-[10px] font-bold transition-colors ${speed === s ? 'bg-green-500/30 text-green-300' : 'bg-white/3 text-slate-500 hover:text-slate-300'}`}
                       >{s[0]}</button>
@@ -446,158 +546,186 @@ json.dumps(_steps)
             </div>
           </div>
 
-          {/* ── RIGHT: Output + Memory ── */}
-          <div className="flex-1 flex flex-col" style={{background:'#0f0f1c'}}>
-            {/* Print Output */}
-            <div className="h-[30%] flex flex-col border-b border-white/8 p-3">
-              <div className="flex items-center gap-2 mb-2">
-                <div className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-                <span className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Print Output</span>
-              </div>
-              <div className="flex-1 rounded-lg border border-white/8 p-3 font-mono text-[12px] overflow-auto text-emerald-300 whitespace-pre-wrap leading-5" style={{background:'rgba(0,0,0,0.4)'}}>
-                {currentStep.output || <span className="text-slate-600 italic text-[11px]">No output yet...</span>}
-                {currentStep.error && (
-                  <div className="text-rose-400 mt-2 font-medium border-t border-rose-500/20 pt-2">⚠ {currentStep.error}</div>
-                )}
-              </div>
-            </div>
-            
-            {/* Frames + Objects */}
-            <div className="flex-1 flex flex-col overflow-hidden p-3 gap-2">
-              <div className="flex gap-1">
-                <div className="flex-1 text-[10px] font-bold uppercase tracking-widest text-slate-500 text-center">Frames</div>
-                <div className="flex-1 text-[10px] font-bold uppercase tracking-widest text-slate-500 text-center">Objects</div>
-              </div>
-              
-              <div className="flex-1 flex gap-3 overflow-auto">
-                {/* Frames column */}
-                <div className="flex-1 flex flex-col gap-2 min-w-0">
-                  {(currentStep.frames || []).length === 0 ? (
-                    <div className="text-slate-600 text-xs italic text-center mt-4">No frames</div>
-                  ) : (
-                    (currentStep.frames || []).map((frame, fIdx) => {
-                      const isTopFrame = fIdx === (currentStep.frames?.length ?? 0) - 1;
-                      return (
-                        <motion.div key={fIdx}
-                          initial={{ opacity: 0, x: -8 }}
-                          animate={{ opacity: 1, x: 0 }}
-                          transition={{ delay: fIdx * 0.05 }}
-                          className={`rounded-xl border shrink-0 overflow-hidden ${isTopFrame ? 'border-green-500/40' : 'border-white/10'}`}
-                          style={{ background: isTopFrame ? 'rgba(99,102,241,0.08)' : 'rgba(255,255,255,0.03)' }}
-                        >
-                          <div className={`flex items-center gap-2 px-3 py-1.5 border-b ${isTopFrame ? 'border-green-500/20 bg-green-500/10' : 'border-white/5 bg-white/3'}`}>
-                            <div className={`w-1.5 h-1.5 rounded-full ${isTopFrame ? 'bg-green-400' : 'bg-slate-600'}`} />
-                            <span className={`text-[11px] font-semibold ${isTopFrame ? 'text-green-200' : 'text-slate-400'}`}>{frame.name}</span>
-                            {isTopFrame && <span className="ml-auto text-[9px] bg-green-500/20 text-green-300 px-1.5 py-0.5 rounded-full">active</span>}
-                          </div>
-                          <div className="p-2 flex flex-col gap-1">
-                            {Object.keys(frame.variables || {}).length === 0 ? (
-                              <div className="text-slate-600 text-[11px] italic px-1 py-0.5">empty</div>
-                            ) : (
-                              Object.entries(frame.variables).map(([name, state]) => {
-                                const isObj = state.type === 'list' || state.type === 'dict' || state.type === 'function' || state.type === 'class' || (state.type ?? '').endsWith('instance');
-                                return (
-                                  <div key={name} className="flex items-center gap-1 text-[12px] rounded-md px-1 py-0.5 hover:bg-white/3 transition-colors">
-                                    <span className="text-slate-400 font-mono min-w-[60px] text-right pr-2 shrink-0 text-[11px]">{name}</span>
-                                    <div className="flex-1 px-2 py-0.5 rounded bg-black/30 border border-white/8 font-mono text-[11px]">
-                                      {isObj ? (
-                                        <span className="text-emerald-400 italic text-[10px]">→ {state.type}</span>
-                                      ) : state.type === 'str' ? (
-                                        <span className="text-emerald-400">"{state.value}"</span>
-                                      ) : state.type === 'int' || state.type === 'float' ? (
-                                        <span className="text-sky-400">{state.value}</span>
-                                      ) : state.type === 'bool' ? (
-                                        <span className="text-amber-400">{String(state.value)}</span>
-                                      ) : state.type === 'NoneType' ? (
-                                        <span className="text-slate-500 italic">None</span>
-                                      ) : (
-                                        <span className="text-slate-300">{String(state.value ?? '')}</span>
-                                      )}
-                                    </div>
-                                    <span className={`text-[9px] px-1 py-0.5 rounded font-mono shrink-0 ${
-                                      state.type === 'str' ? 'text-emerald-500/70 bg-emerald-500/8' :
-                                      state.type === 'int' || state.type === 'float' ? 'text-sky-500/70 bg-sky-500/8' :
-                                      state.type === 'bool' ? 'text-amber-500/70 bg-amber-500/8' :
-                                      'text-emerald-500/70 bg-emerald-500/8'
-                                    }`}>{state.type}</span>
-                                  </div>
-                                );
-                              })
-                            )}
-                          </div>
-                        </motion.div>
-                      );
-                    })
+          {/* ── RIGHT: Output + Memory + AI Panel ── */}
+          <div className="flex-1 flex min-h-0 relative overflow-hidden">
+            {/* Main right content */}
+            <div className="flex-1 flex flex-col min-h-0" style={{ background: '#0f0f1c' }}>
+              {/* Print Output */}
+              <div className="h-[30%] flex flex-col border-b border-white/8 p-3">
+                <div className="flex items-center gap-2 mb-2">
+                  <div className={`w-1.5 h-1.5 rounded-full ${hasErrorAtCurrentStep ? 'bg-rose-400' : 'bg-emerald-400'}`} />
+                  <span className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Print Output</span>
+                </div>
+                <div className="flex-1 rounded-lg border border-white/8 p-3 font-mono text-[12px] overflow-auto whitespace-pre-wrap leading-5" style={{ background: 'rgba(0,0,0,0.4)' }}>
+                  <span className="text-emerald-300">{currentStep.output || ''}</span>
+                  {!currentStep.output && !currentStep.error && (
+                    <span className="text-slate-600 italic text-[11px]">No output yet...</span>
+                  )}
+                  {currentStep.error && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 4 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="mt-2 p-3 rounded-lg border border-rose-500/30 bg-rose-950/40"
+                    >
+                      <div className="flex items-start gap-2">
+                        <AlertTriangle className="w-3.5 h-3.5 text-rose-400 mt-0.5 shrink-0" />
+                        <div>
+                          <div className="text-rose-300 font-semibold text-[11px] mb-1">Runtime Error</div>
+                          <div className="text-rose-200 text-[11px] font-mono leading-relaxed">{currentStep.error}</div>
+                        </div>
+                      </div>
+                    </motion.div>
                   )}
                 </div>
+              </div>
 
-                {/* Objects column */}
-                <div className="flex-1 flex flex-col gap-2 min-w-0">
-                  {allObjects.length === 0 ? (
-                    <div className="text-slate-600 text-xs italic text-center mt-4">No heap objects</div>
-                  ) : (
-                    allObjects.map(({ name, state }, idx) => {
-                      const isClass = state.type === 'class';
-                      const isInstance = (state.type ?? '').endsWith('instance');
-                      const isList = state.type === 'list';
-                      const isFunc = state.type === 'function';
-                      const accentColor = isClass ? 'emerald' : isInstance ? 'amber' : isList ? 'sky' : 'emerald';
-                      const colorMap: Record<string, string> = {
-                        emerald: 'border-emerald-500/30 bg-emerald-500/5',
-                        amber: 'border-amber-500/30 bg-amber-500/5',
-                        sky: 'border-sky-500/30 bg-sky-500/5',
-                      };
-                      const headerMap: Record<string, string> = {
-                        emerald: 'bg-emerald-500/10 border-emerald-500/20 text-emerald-200',
-                        amber: 'bg-amber-500/10 border-amber-500/20 text-amber-200',
-                        sky: 'bg-sky-500/10 border-sky-500/20 text-sky-200',
-                      };
-                      return (
-                        <motion.div key={idx}
-                          initial={{ opacity: 0, x: 8 }}
-                          animate={{ opacity: 1, x: 0 }}
-                          transition={{ delay: idx * 0.05 }}
-                          className={`rounded-xl border shrink-0 overflow-hidden ${colorMap[accentColor]}`}
-                        >
-                          <div className={`flex items-center gap-2 px-3 py-1.5 border-b ${headerMap[accentColor]}`}>
-                            <span className="text-[10px] font-bold uppercase tracking-wider">{isClass ? `${name} class` : state.type}</span>
-                          </div>
-                          <div className="overflow-hidden">
-                            {isList && Array.isArray(state.value) ? (
-                              <div className="flex overflow-x-auto">
-                                {state.value.map((v: any, i: number) => (
-                                  <div key={i} className="flex flex-col border-r border-white/8 last:border-r-0 min-w-[2.5rem]">
-                                    <div className="text-[9px] text-slate-600 text-center border-b border-white/8 bg-white/3 py-0.5">{i}</div>
-                                    <div className="text-center px-2 py-1.5 font-mono text-[12px] text-sky-300">{JSON.stringify(v)}</div>
-                                  </div>
-                                ))}
-                              </div>
-                            ) : isFunc ? (
-                              <div className="px-3 py-2 font-mono text-[12px] text-emerald-300">{String(state.value)}</div>
-                            ) : typeof state.value === 'object' && state.value !== null ? (
-                              Object.entries(state.value as Record<string, any>).map(([k, v], i) => (
-                                <div key={i} className="flex border-b border-white/5 last:border-b-0 text-[12px] font-mono">
-                                  <div className="px-3 py-1.5 text-slate-400 min-w-[80px] border-r border-white/8 bg-white/3 text-[11px]">{k}</div>
-                                  <div className="px-3 py-1.5 text-slate-200 flex-1">
-                                    {typeof v === 'string' && v.startsWith('function ') ? (
-                                      <span className="text-emerald-300 text-[11px]">{v}</span>
-                                    ) : (
-                                      String(v)
-                                    )}
-                                  </div>
+              {/* Frames + Objects */}
+              <div className="flex-1 flex flex-col overflow-hidden p-3 gap-2">
+                <div className="flex gap-1">
+                  <div className="flex-1 text-[10px] font-bold uppercase tracking-widest text-slate-500 text-center">Frames</div>
+                  <div className="flex-1 text-[10px] font-bold uppercase tracking-widest text-slate-500 text-center">Objects</div>
+                </div>
+                <div className="flex-1 flex gap-3 overflow-auto">
+                  {/* Frames column */}
+                  <div className="flex-1 flex flex-col gap-2 min-w-0">
+                    {(currentStep.frames || []).length === 0 ? (
+                      <div className="text-slate-600 text-xs italic text-center mt-4">No frames</div>
+                    ) : (
+                      (currentStep.frames || []).map((frame, fIdx) => {
+                        const isTopFrame = fIdx === (currentStep.frames?.length ?? 0) - 1;
+                        return (
+                          <motion.div key={fIdx}
+                            initial={{ opacity: 0, x: -8 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ delay: fIdx * 0.05 }}
+                            className={`rounded-xl border shrink-0 overflow-hidden ${isTopFrame ? 'border-green-500/40' : 'border-white/10'}`}
+                            style={{ background: isTopFrame ? 'rgba(99,102,241,0.08)' : 'rgba(255,255,255,0.03)' }}
+                          >
+                            <div className={`flex items-center gap-2 px-3 py-1.5 border-b ${isTopFrame ? 'border-green-500/20 bg-green-500/10' : 'border-white/5 bg-white/3'}`}>
+                              <div className={`w-1.5 h-1.5 rounded-full ${isTopFrame ? 'bg-green-400' : 'bg-slate-600'}`} />
+                              <span className={`text-[11px] font-semibold ${isTopFrame ? 'text-green-200' : 'text-slate-400'}`}>{frame.name}</span>
+                              {isTopFrame && <span className="ml-auto text-[9px] bg-green-500/20 text-green-300 px-1.5 py-0.5 rounded-full">active</span>}
+                            </div>
+                            <div className="p-2 flex flex-col gap-1">
+                              {Object.keys(frame.variables || {}).length === 0 ? (
+                                <div className="text-slate-600 text-[11px] italic px-1 py-0.5">empty</div>
+                              ) : (
+                                Object.entries(frame.variables).map(([name, state]) => {
+                                  const isObj = state.type === 'list' || state.type === 'dict' || state.type === 'function' || state.type === 'class' || (state.type ?? '').endsWith('instance');
+                                  return (
+                                    <div key={name} className="flex items-center gap-1 text-[12px] rounded-md px-1 py-0.5 hover:bg-white/3 transition-colors">
+                                      <span className="text-slate-400 font-mono min-w-[60px] text-right pr-2 shrink-0 text-[11px]">{name}</span>
+                                      <div className="flex-1 px-2 py-0.5 rounded bg-black/30 border border-white/8 font-mono text-[11px]">
+                                        {isObj ? (
+                                          <span className="text-emerald-400 italic text-[10px]">→ {state.type}</span>
+                                        ) : state.type === 'str' ? (
+                                          <span className="text-emerald-400">"{state.value}"</span>
+                                        ) : state.type === 'int' || state.type === 'float' ? (
+                                          <span className="text-sky-400">{state.value}</span>
+                                        ) : state.type === 'bool' ? (
+                                          <span className="text-amber-400">{String(state.value)}</span>
+                                        ) : state.type === 'NoneType' ? (
+                                          <span className="text-slate-500 italic">None</span>
+                                        ) : (
+                                          <span className="text-slate-300">{String(state.value ?? '')}</span>
+                                        )}
+                                      </div>
+                                      <span className={`text-[9px] px-1 py-0.5 rounded font-mono shrink-0 ${
+                                        state.type === 'str' ? 'text-emerald-500/70 bg-emerald-500/8' :
+                                        state.type === 'int' || state.type === 'float' ? 'text-sky-500/70 bg-sky-500/8' :
+                                        state.type === 'bool' ? 'text-amber-500/70 bg-amber-500/8' :
+                                        'text-emerald-500/70 bg-emerald-500/8'
+                                      }`}>{state.type}</span>
+                                    </div>
+                                  );
+                                })
+                              )}
+                            </div>
+                          </motion.div>
+                        );
+                      })
+                    )}
+                  </div>
+
+                  {/* Objects column */}
+                  <div className="flex-1 flex flex-col gap-2 min-w-0">
+                    {allObjects.length === 0 ? (
+                      <div className="text-slate-600 text-xs italic text-center mt-4">No heap objects</div>
+                    ) : (
+                      allObjects.map(({ name, state }, idx) => {
+                        const isClass = state.type === 'class';
+                        const isInstance = (state.type ?? '').endsWith('instance');
+                        const isList = state.type === 'list';
+                        const isFunc = state.type === 'function';
+                        const accentColor = isClass ? 'emerald' : isInstance ? 'amber' : isList ? 'sky' : 'emerald';
+                        const colorMap: Record<string, string> = {
+                          emerald: 'border-emerald-500/30 bg-emerald-500/5',
+                          amber: 'border-amber-500/30 bg-amber-500/5',
+                          sky: 'border-sky-500/30 bg-sky-500/5',
+                        };
+                        const headerMap: Record<string, string> = {
+                          emerald: 'bg-emerald-500/10 border-emerald-500/20 text-emerald-200',
+                          amber: 'bg-amber-500/10 border-amber-500/20 text-amber-200',
+                          sky: 'bg-sky-500/10 border-sky-500/20 text-sky-200',
+                        };
+                        return (
+                          <motion.div key={idx}
+                            initial={{ opacity: 0, x: 8 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ delay: idx * 0.05 }}
+                            className={`rounded-xl border shrink-0 overflow-hidden ${colorMap[accentColor]}`}
+                          >
+                            <div className={`flex items-center gap-2 px-3 py-1.5 border-b ${headerMap[accentColor]}`}>
+                              <span className="text-[10px] font-bold uppercase tracking-wider">{isClass ? `${name} class` : state.type}</span>
+                            </div>
+                            <div className="overflow-hidden">
+                              {isList && Array.isArray(state.value) ? (
+                                <div className="flex overflow-x-auto">
+                                  {state.value.map((v: any, i: number) => (
+                                    <div key={i} className="flex flex-col border-r border-white/8 last:border-r-0 min-w-[2.5rem]">
+                                      <div className="text-[9px] text-slate-600 text-center border-b border-white/8 bg-white/3 py-0.5">{i}</div>
+                                      <div className="text-center px-2 py-1.5 font-mono text-[12px] text-sky-300">{JSON.stringify(v)}</div>
+                                    </div>
+                                  ))}
                                 </div>
-                              ))
-                            ) : (
-                              <div className="px-3 py-2 font-mono text-[12px] text-slate-300">{JSON.stringify(state.value)}</div>
-                            )}
-                          </div>
-                        </motion.div>
-                      );
-                    })
-                  )}
+                              ) : isFunc ? (
+                                <div className="px-3 py-2 font-mono text-[12px] text-emerald-300">{String(state.value)}</div>
+                              ) : typeof state.value === 'object' && state.value !== null ? (
+                                Object.entries(state.value as Record<string, any>).map(([k, v], i) => (
+                                  <div key={i} className="flex border-b border-white/5 last:border-b-0 text-[12px] font-mono">
+                                    <div className="px-3 py-1.5 text-slate-400 min-w-[80px] border-r border-white/8 bg-white/3 text-[11px]">{k}</div>
+                                    <div className="px-3 py-1.5 text-slate-200 flex-1">
+                                      {typeof v === 'string' && v.startsWith('function ') ? (
+                                        <span className="text-emerald-300 text-[11px]">{v}</span>
+                                      ) : String(v)}
+                                    </div>
+                                  </div>
+                                ))
+                              ) : (
+                                <div className="px-3 py-2 font-mono text-[12px] text-slate-300">{JSON.stringify(state.value)}</div>
+                              )}
+                            </div>
+                          </motion.div>
+                        );
+                      })
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
+
+            {/* AI Fix Side Panel */}
+            <AnimatePresence>
+              {showAiPanel && (
+                <AiFixPanel
+                  loading={loadingAiFix}
+                  result={aiFixResult}
+                  onCopy={handleCopyFixed}
+                  onApply={onApplyFix ? handleApplyFix : undefined}
+                  copied={copied}
+                />
+              )}
+            </AnimatePresence>
           </div>
         </div>
       ) : (
@@ -606,6 +734,102 @@ json.dumps(_steps)
             <div className="w-8 h-8 border-2 border-green-500 border-t-transparent rounded-full animate-spin" />
             <span className="text-sm">Loading trace...</span>
           </div>
+        </div>
+      )}
+    </motion.div>
+  );
+}
+
+// ── AI Fix Side Panel Component ──────────────────────────────────────────────
+interface AiFixPanelProps {
+  loading: boolean;
+  result: AiFixResult | null;
+  onCopy: () => void;
+  onApply?: () => void;
+  copied: boolean;
+}
+
+function AiFixPanel({ loading, result, onCopy, onApply, copied }: AiFixPanelProps) {
+  return (
+    <motion.div
+      initial={{ x: '100%', opacity: 0 }}
+      animate={{ x: 0, opacity: 1 }}
+      exit={{ x: '100%', opacity: 0 }}
+      transition={{ type: 'spring', damping: 26, stiffness: 240 }}
+      className="w-[340px] shrink-0 flex flex-col border-l border-violet-500/20 overflow-hidden"
+      style={{ background: 'linear-gradient(180deg, #13102a 0%, #0f0d1f 100%)' }}
+    >
+      {/* Panel header */}
+      <div className="flex items-center gap-2 px-4 py-3 border-b border-violet-500/20" style={{ background: 'rgba(139,92,246,0.08)' }}>
+        <div className="w-6 h-6 rounded-lg bg-violet-500/20 border border-violet-500/30 flex items-center justify-center shrink-0">
+          <Sparkles className="w-3.5 h-3.5 text-violet-300" />
+        </div>
+        <div>
+          <div className="text-[12px] font-bold text-violet-200 leading-tight">AI Fix Suggestion</div>
+          <div className="text-[10px] text-violet-400/70">Powered by Groq · Llama 3.3 70B</div>
+        </div>
+      </div>
+
+      <div className="flex-1 overflow-auto p-4 flex flex-col gap-4">
+        {loading ? (
+          /* Loading skeleton */
+          <div className="flex flex-col gap-3">
+            <div className="flex items-center gap-2 mb-1">
+              <div className="w-3 h-3 border border-violet-400 border-t-transparent rounded-full animate-spin" />
+              <span className="text-violet-300 text-xs">Analysing error with AI...</span>
+            </div>
+            {[80, 100, 60, 90, 70].map((w, i) => (
+              <div key={i} className="h-2.5 rounded-full bg-violet-500/10 animate-pulse" style={{ width: `${w}%`, animationDelay: `${i * 0.1}s` }} />
+            ))}
+            <div className="mt-2 h-24 rounded-xl bg-violet-500/5 border border-violet-500/10 animate-pulse" />
+          </div>
+        ) : result ? (
+          <>
+            {/* Explanation */}
+            <div>
+              <div className="flex items-center gap-1.5 mb-2">
+                <div className="w-1 h-3 rounded-full bg-violet-400" />
+                <span className="text-[10px] font-bold uppercase tracking-widest text-violet-400">What went wrong</span>
+              </div>
+              <p className="text-slate-300 text-[12px] leading-relaxed bg-white/3 rounded-xl p-3 border border-white/8">
+                {result.explanation}
+              </p>
+            </div>
+
+            {/* Fixed code */}
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-1.5">
+                  <div className="w-1 h-3 rounded-full bg-emerald-400" />
+                  <span className="text-[10px] font-bold uppercase tracking-widest text-emerald-400">Fixed Code</span>
+                </div>
+                <button
+                  onClick={onCopy}
+                  className="flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-semibold bg-white/5 border border-white/10 text-slate-400 hover:text-white hover:bg-white/10 transition-all"
+                >
+                  {copied ? <><Check className="w-3 h-3 text-emerald-400" /> Copied</> : <><Copy className="w-3 h-3" /> Copy</>}
+                </button>
+              </div>
+              <pre className="text-[11px] font-mono text-emerald-200 leading-relaxed bg-black/40 rounded-xl p-3 border border-emerald-500/20 overflow-auto whitespace-pre-wrap max-h-[220px]">
+                {result.fixedCode}
+              </pre>
+            </div>
+          </>
+        ) : null}
+      </div>
+
+      {/* Apply fix button */}
+      {result && onApply && (
+        <div className="p-4 border-t border-violet-500/20 shrink-0" style={{ background: 'rgba(0,0,0,0.3)' }}>
+          <button
+            onClick={onApply}
+            className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl font-bold text-sm bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-500 hover:to-purple-500 text-white transition-all shadow-lg shadow-violet-900/30 active:scale-95"
+          >
+            <Check className="w-4 h-4" />
+            Apply Fix & Close Visualizer
+            <ChevronRight className="w-4 h-4" />
+          </button>
+          <p className="text-center text-[10px] text-slate-600 mt-1.5">Replaces your code with the AI-fixed version</p>
         </div>
       )}
     </motion.div>

@@ -8,9 +8,14 @@ import Navbar from '@/components/layout/Navbar';
 import Sidebar from '@/components/layout/Sidebar';
 
 export default function VisualizerPlayground() {
-  const [code, setCode] = useState<string>('def main():\\n    print("Hello, Visualizer!")\\n    \\n    # Write your code here to trace it\\n    x = 10\\n    y = 20\\n    print(x + y)\\n\\nmain()');
+  const [code, setCode] = useState<string>('def main():\\n    print(\"Hello, Visualizer!\")\\n    \\n    # Write your code here to trace it\\n    x = 10\\n    y = 20\\n    print(x + y)\\n\\nmain()');
   const [language, setLanguage] = useState('python');
   const [showVisualizer, setShowVisualizer] = useState(false);
+
+  const handleApplyFix = (fixedCode: string) => {
+    setCode(fixedCode);
+    setShowVisualizer(false);
+  };
 
   return (
     <div className="min-h-screen bg-black bg-noise flex flex-col text-slate-100">
@@ -57,6 +62,7 @@ export default function VisualizerPlayground() {
             code={code}
             language={language}
             onClose={() => setShowVisualizer(false)}
+            onApplyFix={handleApplyFix}
           />
         </div>
       )}
