@@ -1,6 +1,13 @@
-# 🚀 ScratchCode
+<div align="center">
+  <img src="https://via.placeholder.com/1200x300/0B1528/d9f95d?text=ScratchCode" alt="ScratchCode Banner" />
+  <br />
+  <h1>🚀 ScratchCode</h1>
+  <p><strong>Gamified Interactive Learning Platform for Coding</strong></p>
+  
+  [![Vercel Live](https://img.shields.io/badge/Vercel-Live_Demo-000000?style=for-the-badge&logo=vercel&logoColor=white)](https://scratchcode-two.vercel.app)
+</div>
 
-![ScratchCode Banner](https://via.placeholder.com/1200x400/000000/d9f95d?text=ScratchCode+-+Interactive+Learning+Platform)
+<br/>
 
 **ScratchCode** is a modern, gamified interactive learning platform for coding. Built with Next.js and tailored for an engaging user experience, it features dynamic lessons, an integrated code editor, an XP-based leveling system, streaks, badges, and a competitive leaderboard.
 
