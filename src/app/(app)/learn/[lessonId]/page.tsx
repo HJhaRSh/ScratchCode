@@ -425,8 +425,8 @@ export default function LearnLessonPage() {
   };
 
   // Fetch AI Mentor Hint from route
-  const handleUnlockHint = async (targetNum?: number) => {
-    const nextNum = targetNum !== undefined ? targetNum : hintNumber + 1;
+  const handleUnlockHint = async (targetNum?: number | any) => {
+    const nextNum = typeof targetNum === 'number' ? targetNum : hintNumber + 1;
     if (nextNum > 3) return;
 
     if (unlockedHints[nextNum]) {
@@ -673,8 +673,7 @@ export default function LearnLessonPage() {
         hintText={hintText}
         hintSnippet={hintSnippet}
         language={lesson?.language}
-        isLoading={isHintLoading}
-        onUnlockNext={handleUnlockHint}
+        onUnlockNext={() => handleUnlockHint()}
         userCode={code}
         onUserCodeChange={(val) => setCode(val || '')}
       />
