@@ -10,6 +10,12 @@ interface ExercisePaneProps {
 }
 
 export default function ExercisePane({ taskDescription, expectedOutput, starterCode }: ExercisePaneProps) {
+  // Check if the description contains a title and description separated by \n\n
+  const parts = taskDescription.split('\n\n');
+  const hasTitle = parts.length > 1;
+  const title = hasTitle ? parts[0] : null;
+  const description = hasTitle ? parts.slice(1).join('\n\n') : taskDescription;
+
   return (
     <div className="flex flex-col gap-6 text-slate-100 font-sans">
       <div className="border-b border-white/[0.05] pb-5 space-y-3">
@@ -17,7 +23,10 @@ export default function ExercisePane({ taskDescription, expectedOutput, starterC
           <Target className="h-5 w-5" />
           <h3 className="font-bold text-sm uppercase tracking-wider">Exercise Goal</h3>
         </div>
-        <p className="text-slate-300 text-sm leading-relaxed whitespace-pre-wrap">{taskDescription}</p>
+        <div className="space-y-2">
+          {title && <h4 className="font-bold text-slate-200 text-sm tracking-wide">{title}</h4>}
+          <p className="text-slate-400 text-sm leading-relaxed whitespace-pre-wrap">{description}</p>
+        </div>
       </div>
 
       {expectedOutput && (

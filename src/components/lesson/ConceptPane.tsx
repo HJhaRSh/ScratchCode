@@ -39,10 +39,20 @@ export default function ConceptPane({
   nextLessonId,
 }: ConceptPaneProps) {
   // Safe extraction of instructions/prompts
-  const prompt = contentJson?.prompt || '';
-  const instructions = contentJson?.instructions || '';
+  let prompt = contentJson?.prompt || '';
+  let instructions = contentJson?.instructions || '';
+  
+  // Extract from new sections array format if present
+  if (Array.isArray(contentJson?.sections)) {
+    const exerciseSection = contentJson.sections.find((s: any) => s.type === 'exercise' || s.type === 'project');
+    if (exerciseSection) {
+      prompt = exerciseSection.title || '';
+      instructions = exerciseSection.description || '';
+    }
+  }
+
   const taskDescription = instructions 
-    ? `${prompt}\n\n${instructions}`
+    ? (prompt ? `${prompt.toUpperCase()}\n\n${instructions}` : instructions)
     : prompt || 'No instructions provided for this lesson.';
 
   // Safe extraction of expected console output

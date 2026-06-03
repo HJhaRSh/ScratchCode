@@ -94,20 +94,20 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       if (Array.isArray(parsed)) {
         testCases = parsed.map((tc) => ({
           input: tc.input || '',
-          expected_output: String(tc.expected_output),
+          expected_output: String(tc.expected_output || tc.value || ''),
         }));
       } else if (parsed && typeof parsed === 'object') {
-        if (parsed.expected_output) {
+        if (parsed.expected_output || parsed.value) {
           testCases = [
             {
               input: parsed.input || '',
-              expected_output: String(parsed.expected_output),
+              expected_output: String(parsed.expected_output || parsed.value || ''),
             },
           ];
         } else if (parsed.test_cases && Array.isArray(parsed.test_cases)) {
           testCases = parsed.test_cases.map((tc: any) => ({
             input: tc.input || '',
-            expected_output: String(tc.expected_output),
+            expected_output: String(tc.expected_output || tc.value || ''),
           }));
         }
       }
