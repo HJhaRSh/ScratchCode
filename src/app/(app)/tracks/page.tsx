@@ -116,7 +116,7 @@ export default function TracksPage() {
       <Navbar />
       <div className="flex flex-1">
         <Sidebar />
-        <main className="flex-1 p-4 md:p-8 pb-24 md:pb-8 overflow-y-auto space-y-8 max-w-7xl mx-auto w-full">
+        <main className="flex-1 p-4 pt-20 md:p-8 md:pt-24 pb-24 md:pb-8 overflow-y-auto space-y-8 max-w-7xl mx-auto w-full">
           {/* Header */}
           <motion.div
             initial={{ opacity: 0, y: -10 }}
