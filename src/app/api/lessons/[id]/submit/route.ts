@@ -2,6 +2,7 @@ export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { createClient } from '@/lib/supabase/server';
+import Groq from 'groq-sdk';
 import { awardXP } from '@/lib/xp';
 import { updateStreak } from '@/lib/streaks';
 import { checkAndAwardBadges } from '@/lib/badges';
@@ -216,6 +217,61 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     }
 
     const totalPassed = results.filter((r) => r.passed).length;
+
+    // --- AI VALIDATION STEP ---
+    // Even if tests pass, check if the code logically addresses the lesson goal.
+    if (allPassed && process.env.GROQ_API_KEY) {
+      const contentJson = lesson.content_json as any;
+      const exerciseDescription = contentJson?.instructions || contentJson?.prompt || 'Solve the code exercise';
+      
+      const systemPrompt = `You are an expert code evaluator. 
+Your job is to determine if the user's code actually solves the specific lesson goal.
+Sometimes a user might hardcode the answer or write completely unrelated code that just happens to produce the expected output.
+You MUST respond in strict JSON format:
+{
+  "valid": true or false,
+  "feedback": "If false, briefly explain why their code is solving the wrong problem or using the wrong approach. If true, empty string."
+}`;
+
+      const userMessage = `Lesson goal: ${lesson.title}
+Instructions: ${exerciseDescription}
+User's code:
+\`\`\`${lesson.language}
+${code}
+\`\`\``;
+
+      try {
+        const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
+        const aiResponse = await groq.chat.completions.create({
+          model: 'llama-3.1-8b-instant',
+          max_tokens: 150,
+          response_format: { type: 'json_object' },
+          messages: [
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content: userMessage },
+          ],
+        });
+
+        const aiContent = aiResponse.choices[0]?.message?.content;
+        if (aiContent) {
+          const parsed = JSON.parse(aiContent);
+          if (parsed.valid === false) {
+            allPassed = false;
+            // Add a synthetic failed test case for the frontend to show
+            results.push({
+              passed: false,
+              input: "AI Code Review",
+              expected: "Code logically follows the instructions",
+              actual: "Code rejected by AI Review",
+              error: parsed.feedback || "Your code does not logically solve the exercise as requested.",
+            });
+          }
+        }
+      } catch (err) {
+        console.warn('AI validation failed, falling back to test cases only.', err);
+      }
+    }
+    // --- END AI VALIDATION STEP ---
 
     // Gamification Updates only if ALL test cases passed
     let xpResult = null;
