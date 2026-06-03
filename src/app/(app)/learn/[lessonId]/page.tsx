@@ -86,12 +86,10 @@ export default function LearnLessonPage() {
 
   // AI Mentor Drawer States
   const [isHintOpen, setIsHintOpen] = useState(false);
-  const [hintNumber, setHintNumber] = useState(0);
   const [hintText, setHintText] = useState<string | undefined>(undefined);
   const [hintSnippet, setHintSnippet] = useState<string | undefined>(undefined);
   const [isHintLoading, setIsHintLoading] = useState(false);
   const [attemptsCount, setAttemptsCount] = useState(0);
-  const [unlockedHints, setUnlockedHints] = useState<{ [key: number]: { text: string; snippet?: string } }>({});
 
   // Success Gamification Modal States
   const [isSuccessOpen, setIsSuccessOpen] = useState(false);
@@ -435,18 +433,10 @@ export default function LearnLessonPage() {
   };
 
   // Fetch AI Mentor Hint from route
-  const handleUnlockHint = async (targetNum?: number | any) => {
-    const nextNum = typeof targetNum === 'number' ? targetNum : hintNumber + 1;
-    if (nextNum > 3) return;
-
-    if (unlockedHints[nextNum]) {
-      setHintText(unlockedHints[nextNum].text);
-      setHintSnippet(unlockedHints[nextNum].snippet);
-      setHintNumber(nextNum);
-      return;
-    }
-
+  const fetchHint = async () => {
     setIsHintLoading(true);
+    setHintText(undefined);
+    setHintSnippet(undefined);
     try {
       const res = await fetch(`/api/lessons/${lessonId}/hint`, {
         method: 'POST',
@@ -454,34 +444,21 @@ export default function LearnLessonPage() {
         body: JSON.stringify({ 
           code, 
           error_output: error || output || '', 
-          hint_number: nextNum 
         }),
       });
 
       const data = await res.json();
       if (res.ok) {
-        setUnlockedHints((prev) => ({ ...prev, [nextNum]: { text: data.hint_text, snippet: data.snippet } }));
         setHintText(data.hint_text);
         setHintSnippet(data.snippet);
-        setHintNumber(nextNum);
       } else {
         const errMsg = data.error || "AI Mentor is currently busy compiling logic.";
-        if (hintNumber > 0 && unlockedHints[hintNumber]) {
-          setHintText(`⚠️ ERROR: ${errMsg}\n\n---\n\nPREVIOUS HINT (${hintNumber}):\n${unlockedHints[hintNumber].text}`);
-          setHintSnippet(unlockedHints[hintNumber].snippet);
-        } else {
-          setHintText(`⚠️ ${errMsg}`);
-          setHintSnippet(undefined);
-        }
-      }
-    } catch (err) {
-      if (hintNumber > 0 && unlockedHints[hintNumber]) {
-        setHintText(`⚠️ ERROR: Could not connect to AI Mentor.\n\n---\n\nPREVIOUS HINT (${hintNumber}):\n${unlockedHints[hintNumber].text}`);
-        setHintSnippet(unlockedHints[hintNumber].snippet);
-      } else {
-        setHintText("⚠️ Could not connect to AI Mentor. Check your connections.");
+        setHintText(`⚠️ ${errMsg}`);
         setHintSnippet(undefined);
       }
+    } catch (err) {
+      setHintText("⚠️ Could not connect to AI Mentor. Check your connections.");
+      setHintSnippet(undefined);
     } finally {
       setIsHintLoading(false);
     }
@@ -581,7 +558,7 @@ export default function LearnLessonPage() {
             <button
               onClick={() => {
                 setIsHintOpen(true);
-                if (hintNumber === 0) handleUnlockHint(1);
+                fetchHint();
               }}
               className="inline-flex h-8 items-center gap-1.5 bg-transparent border border-white/[0.05] text-white text-xs font-bold px-2 sm:px-3 hover:bg-white/[0.05] transition-all"
             >
@@ -747,17 +724,16 @@ export default function LearnLessonPage() {
         />
       )}
 
-      {/* AI Mentor Sliding Drawer */}
       <HintDrawer
         isOpen={isHintOpen}
         onClose={() => setIsHintOpen(false)}
-        hintNumber={hintNumber}
         hintText={hintText}
         hintSnippet={hintSnippet}
         language={lesson?.language}
-        onUnlockNext={() => handleUnlockHint()}
+        isLoading={isHintLoading}
         userCode={code}
         onUserCodeChange={(val) => setCode(val || '')}
+        onRefreshHint={() => fetchHint()}
       />
 
       {/* Immersive Celebrations success overlay modal */}

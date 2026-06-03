@@ -8,7 +8,7 @@ import { checkRateLimit } from '@/lib/ratelimit';
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const resolvedParams = await params;
-    const { code, error_output, hint_number } = await req.json();
+    const { code, error_output } = await req.json();
 
     // 1. Authenticate the request using Supabase JWT
     const supabase = await createClient();
@@ -82,13 +82,14 @@ Your job is to give a hint that nudges the learner in the right direction, spot 
 
 You MUST respond in strict JSON format with exactly two keys:
 {
-  "hint_text": "Your conversational response. Be concise (2-3 sentences max). Spot their mistake clearly. Be warm and encouraging.",
+  "hint_text": "Your conversational response. You MUST explicitly state: 1) What is wrong with their current code, and 2) What actually needs to be done according to the exercise goal. Be warm and encouraging.",
   "snippet": "A small code snippet showing the correction, the exact syntax needed, or a structural outline. Leave as an empty string if no code snippet is needed."
 }
 
 Rules:
 - Address the learner as 'you'.
-- Spot the specific syntax or logic error if present in their code.
+- Explicitly tell them what part of their code is incorrect or missing.
+- Explicitly tell them what they need to do to achieve the lesson goal.
 - Provide a useful structural snippet in the "snippet" field.`;
 
     const userMessage = `Lesson goal: ${lesson.title}
@@ -98,7 +99,7 @@ Their current code:
 ${code || ''}
 \`\`\`
 The error or wrong output they got: ${error_output || 'None'}
-This is hint number ${hint_number || 1} of 3. Give hint ${hint_number || 1} in JSON format.`;
+Give an instant hint in JSON format that helps them fix their code or understand what to do next.`;
 
     // 6. Groq API Call
     let hintText = "You are so close! Re-check if your parameters match the requested structures.";
@@ -142,14 +143,13 @@ This is hint number ${hint_number || 1} of 3. Give hint ${hint_number || 1} in J
       data: {
         user_id: dbUser.id,
         lesson_id: lesson.id,
-        hint_number: Number(hint_number || 1),
+        hint_number: 1, // Store as 1 since we don't track levels anymore
         response_text: JSON.stringify({ hint_text: hintText, snippet: hintSnippet }),
       },
     });
 
     // 8. Return hint details to client
     return NextResponse.json({
-      hint_number: Number(hint_number || 1),
       hint_text: hintText,
       snippet: hintSnippet,
     });
