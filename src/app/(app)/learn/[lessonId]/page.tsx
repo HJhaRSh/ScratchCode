@@ -74,6 +74,12 @@ export default function LearnLessonPage() {
   const [isRunning, setIsRunning] = useState<boolean>(false);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
 
+  // Editor Settings State
+  const [editorFontSize, setEditorFontSize] = useState<number>(14);
+  const [editorTheme, setEditorTheme] = useState<string>('vs-dark');
+  const [editorMinimap, setEditorMinimap] = useState<boolean>(false);
+  const [isSettingsOpen, setIsSettingsOpen] = useState<boolean>(false);
+
   // AI Mentor Drawer States
   const [isHintOpen, setIsHintOpen] = useState(false);
   const [hintNumber, setHintNumber] = useState(0);
@@ -581,17 +587,65 @@ export default function LearnLessonPage() {
             </button>
           )}
 
-          {/* Settings Trigger Icon */}
-          <button className="text-slate-500 hover:text-slate-300 transition-colors p-1 rounded hover:bg-[#111111] shrink-0">
-            <Settings className="h-4 w-4" />
-          </button>
+          {/* Settings Trigger Icon & Popover */}
+          <div className="relative">
+            <button 
+              onClick={() => setIsSettingsOpen(!isSettingsOpen)}
+              className={`transition-colors p-1 rounded shrink-0 ${isSettingsOpen ? 'text-white bg-[#111111]' : 'text-slate-500 hover:text-slate-300 hover:bg-[#111111]'}`}
+            >
+              <Settings className="h-4 w-4" />
+            </button>
+
+            {isSettingsOpen && (
+              <>
+                <div className="fixed inset-0 z-40" onClick={() => setIsSettingsOpen(false)} />
+                <div className="absolute right-0 top-full mt-2 w-64 bg-[#0a0a0a] border border-white/[0.1] rounded-lg shadow-2xl z-50 p-4 space-y-4 font-sans flex flex-col">
+                  <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400 border-b border-white/[0.05] pb-2 mb-2">Editor Settings</h3>
+                  
+                  {/* Font Size */}
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-slate-300">Font Size</span>
+                    <div className="flex items-center gap-2 bg-[#111] rounded border border-white/[0.05]">
+                      <button onClick={() => setEditorFontSize(Math.max(10, editorFontSize - 2))} className="px-2 py-0.5 text-slate-400 hover:text-white">-</button>
+                      <span className="text-xs text-slate-200 w-4 text-center">{editorFontSize}</span>
+                      <button onClick={() => setEditorFontSize(Math.min(24, editorFontSize + 2))} className="px-2 py-0.5 text-slate-400 hover:text-white">+</button>
+                    </div>
+                  </div>
+
+                  {/* Theme */}
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-slate-300">Theme</span>
+                    <select 
+                      value={editorTheme} 
+                      onChange={(e) => setEditorTheme(e.target.value)}
+                      className="bg-[#111] border border-white/[0.05] text-xs text-slate-200 rounded px-2 py-1 outline-none"
+                    >
+                      <option value="vs-dark">Dark</option>
+                      <option value="light">Light</option>
+                      <option value="hc-black">High Contrast</option>
+                    </select>
+                  </div>
+
+                  {/* Minimap */}
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-slate-300">Minimap</span>
+                    <button 
+                      onClick={() => setEditorMinimap(!editorMinimap)}
+                      className={`w-8 h-4 rounded-full transition-colors relative ${editorMinimap ? 'bg-emerald-500' : 'bg-slate-700'}`}
+                    >
+                      <span className={`absolute top-0.5 w-3 h-3 bg-white rounded-full transition-transform ${editorMinimap ? 'left-4' : 'left-0.5'}`} />
+                    </button>
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
         </div>
       </header>
 
       {/* Mobile-Only Main Workspace Tab Switcher */}
       <div className="md:hidden flex border-b border-slate-900 bg-black bg-noise shrink-0">
         <button
-          onClick={() => setMobileView('instructions')}
           className={`flex-1 py-3 text-center text-xs font-bold uppercase tracking-wider border-b-2 transition-all ${
             mobileView === 'instructions'
               ? 'border-emerald-500 text-[#d9f95d]'
@@ -647,6 +701,9 @@ export default function LearnLessonPage() {
               onChange={(val) => setCode(val || '')}
               lessonId={lessonId}
               readOnly={isSubmitting || isRunning}
+              fontSize={editorFontSize}
+              theme={editorTheme}
+              minimap={editorMinimap}
             />
           </div>
 

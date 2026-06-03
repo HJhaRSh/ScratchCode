@@ -10,6 +10,9 @@ interface CodeEditorProps {
   onChange: (value: string | undefined) => void;
   readOnly?: boolean;
   lessonId?: string;
+  fontSize?: number;
+  theme?: string;
+  minimap?: boolean;
 }
 
 export default function CodeEditor({
@@ -18,6 +21,9 @@ export default function CodeEditor({
   onChange,
   readOnly = false,
   lessonId,
+  fontSize = 14,
+  theme = 'vs-dark',
+  minimap = false,
 }: CodeEditorProps) {
   const [saveStatus, setSaveStatus] = useState<'saved' | 'saving' | 'idle'>('idle');
 
@@ -87,13 +93,13 @@ export default function CodeEditor({
         <Editor
           height="100%"
           language={mapLanguage(language)}
-          theme="vs-dark"
+          theme={theme}
           value={value}
           onChange={onChange}
           options={{
             readOnly,
-            fontSize: 14,
-            minimap: { enabled: false },
+            fontSize,
+            minimap: { enabled: minimap },
             lineNumbers: 'on',
             bracketPairColorization: { enabled: true },
             automaticLayout: true,
