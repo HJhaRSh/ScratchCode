@@ -310,23 +310,23 @@ export default function DashboardPage() {
       <Navbar />
       <div className="flex flex-1">
         <Sidebar />
-        <main className="flex-1 p-4 md:p-8 overflow-y-auto space-y-8 max-w-7xl mx-auto w-full">
+        <main className="flex-1 p-4 md:p-8 pb-24 md:pb-8 overflow-y-auto space-y-6 md:space-y-8 max-w-7xl mx-auto w-full">
           {/* Header HUD greeting */}
-          <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-white/[0.05] pb-10 relative">
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 md:gap-6 border-b border-white/[0.05] pb-6 md:pb-10 relative">
             <div className="absolute -top-20 left-0 w-[500px] h-[250px] bg-[#d9f95d]/5 rounded-[100%] blur-[120px] pointer-events-none" />
             
-            <div className="space-y-4 relative z-10">
-              <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-1.5 text-[10px] font-mono font-bold tracking-[0.2em] text-[#d9f95d] uppercase">
+            <div className="space-y-3 relative z-10">
+              <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[9px] md:px-4 md:py-1.5 md:text-[10px] font-mono font-bold tracking-[0.2em] text-[#d9f95d] uppercase">
                 [01] Command Center
               </div>
-              <h1 className="text-5xl md:text-7xl font-black text-white tracking-tighter leading-[1.05]">
-                Welcome back, <br className="hidden md:block" />
+              <h1 className="text-3xl sm:text-4xl md:text-7xl font-black text-white tracking-tighter leading-[1.05]">
+                Welcome back,{' '}
                 <span className="text-[#d9f95d] font-script font-normal italic pr-2">{user?.username || 'Coder'}</span>
               </h1>
-              <p className="text-slate-400 text-lg max-w-md">Ready to execute some code today? Keep your daily streak blazing.</p>
+              <p className="text-slate-400 text-sm md:text-lg max-w-md">Ready to execute some code today? Keep your daily streak blazing.</p>
             </div>
             
-            <div className="flex flex-wrap gap-3 relative z-10 md:pb-2">
+            <div className="hidden md:flex flex-wrap gap-3 relative z-10 md:pb-2">
               <span className="inline-flex h-10 items-center gap-2 rounded-full bg-white/5 backdrop-blur-xl border border-white/10 px-5 text-xs font-mono font-bold tracking-widest uppercase text-slate-300 shadow-xl">
                 <Compass className="h-4 w-4 text-cyan-400" /> Dashboard
               </span>
@@ -336,57 +336,53 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          {/* TOP ROW — Unified Stats Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-white/[0.05] border-b border-white/[0.05] mb-12">
+          {/* TOP ROW — Unified Stats Grid (3-col on all sizes) */}
+          <div className="grid grid-cols-3 divide-x divide-white/[0.05] border border-white/[0.05] rounded-2xl mb-6 md:mb-12 overflow-hidden">
             {/* Streak Stat */}
-            <div className="py-8 px-4 md:px-8 relative group hover:bg-white/[0.02] transition-colors flex flex-col justify-center">
-              <div className="flex items-center justify-between mb-4">
-                <div className="text-[10px] font-mono font-bold uppercase tracking-[0.2em] text-slate-500 group-hover:text-orange-400 transition-colors">Current Streak</div>
-                <Flame className="h-5 w-5 text-orange-500/50 group-hover:text-orange-400 transition-colors" />
+            <div className="py-5 px-3 md:py-8 md:px-8 relative group hover:bg-white/[0.02] transition-colors flex flex-col justify-center">
+              <div className="flex items-center justify-between mb-2 md:mb-4">
+                <div className="text-[9px] md:text-[10px] font-mono font-bold uppercase tracking-[0.15em] text-slate-500 group-hover:text-orange-400 transition-colors leading-tight">Streak</div>
+                <Flame className="h-4 w-4 md:h-5 md:w-5 text-orange-500/50 group-hover:text-orange-400 transition-colors shrink-0" />
               </div>
-              <div className="flex items-baseline gap-2">
-                <div className="text-5xl font-black text-white tracking-tighter">{user?.streak_count || 0}</div>
-                <div className="text-sm font-bold text-slate-500 uppercase tracking-widest">Days</div>
+              <div className="flex items-baseline gap-1.5">
+                <div className="text-3xl md:text-5xl font-black text-white tracking-tighter">{user?.streak_count || 0}</div>
+                <div className="text-xs md:text-sm font-bold text-slate-500 uppercase tracking-widest">Days</div>
               </div>
-              <div className="mt-4 text-xs text-slate-400 font-medium">
-                {user?.streak_count && user.streak_count > 0 ? "You're on fire! Keep it up." : "Complete a lesson to start."}
+              <div className="mt-1.5 md:mt-4 text-[10px] md:text-xs text-slate-400 font-medium hidden sm:block">
+                {user?.streak_count && user.streak_count > 0 ? "You're on fire!" : "Complete a lesson."}
               </div>
             </div>
 
             {/* XP Stat */}
-            <div className="py-8 px-4 md:px-8 relative group hover:bg-white/[0.02] transition-colors flex flex-col justify-center">
-              <div className="flex items-center justify-between mb-4">
-                <div className="text-[10px] font-mono font-bold uppercase tracking-[0.2em] text-slate-500 group-hover:text-emerald-400 transition-colors">Total Experience</div>
-                <Star className="h-5 w-5 text-emerald-500/50 group-hover:text-emerald-400 transition-colors" />
+            <div className="py-5 px-3 md:py-8 md:px-8 relative group hover:bg-white/[0.02] transition-colors flex flex-col justify-center">
+              <div className="flex items-center justify-between mb-2 md:mb-4">
+                <div className="text-[9px] md:text-[10px] font-mono font-bold uppercase tracking-[0.15em] text-slate-500 group-hover:text-emerald-400 transition-colors leading-tight">XP</div>
+                <Star className="h-4 w-4 md:h-5 md:w-5 text-emerald-500/50 group-hover:text-emerald-400 transition-colors shrink-0" />
               </div>
-              <div className="flex items-baseline gap-2">
-                <div className="text-5xl font-black text-white tracking-tighter">{user?.xp || 0}</div>
-                <div className="text-sm font-bold text-slate-500 uppercase tracking-widest">XP</div>
+              <div className="flex items-baseline gap-1.5">
+                <div className="text-3xl md:text-5xl font-black text-white tracking-tighter">{user?.xp || 0}</div>
+                <div className="text-xs md:text-sm font-bold text-slate-500 uppercase tracking-widest hidden sm:block">XP</div>
               </div>
-              <div className="mt-4 text-xs text-slate-400 font-medium">
-                Accumulated across all tracks.
+              <div className="mt-1.5 md:mt-4 text-[10px] md:text-xs text-slate-400 font-medium hidden sm:block">
+                All tracks.
               </div>
             </div>
 
             {/* Level Stat */}
-            <div className="py-8 px-4 md:px-8 relative group hover:bg-white/[0.02] transition-colors flex flex-col justify-center">
-              <div className="flex items-center justify-between mb-4">
-                <div className="text-[10px] font-mono font-bold uppercase tracking-[0.2em] text-slate-500 group-hover:text-purple-400 transition-colors">Rank Standing</div>
-                <Award className="h-5 w-5 text-purple-500/50 group-hover:text-purple-400 transition-colors" />
+            <div className="py-5 px-3 md:py-8 md:px-8 relative group hover:bg-white/[0.02] transition-colors flex flex-col justify-center">
+              <div className="flex items-center justify-between mb-2 md:mb-4">
+                <div className="text-[9px] md:text-[10px] font-mono font-bold uppercase tracking-[0.15em] text-slate-500 group-hover:text-purple-400 transition-colors leading-tight">Level</div>
+                <Award className="h-4 w-4 md:h-5 md:w-5 text-purple-500/50 group-hover:text-purple-400 transition-colors shrink-0" />
               </div>
-              <div className="flex items-baseline gap-3 mb-4">
-                <div className="text-5xl font-black text-white tracking-tighter">{user?.level || 1}</div>
-                <div className="text-[10px] font-bold text-purple-400 bg-purple-500/10 px-2 py-1 rounded border border-purple-500/20 uppercase tracking-widest">{levelName}</div>
+              <div className="flex items-baseline gap-2 mb-2 md:mb-4">
+                <div className="text-3xl md:text-5xl font-black text-white tracking-tighter">{user?.level || 1}</div>
+                <div className="hidden sm:block text-[9px] md:text-[10px] font-bold text-purple-400 bg-purple-500/10 px-1.5 py-0.5 rounded border border-purple-500/20 uppercase tracking-widest leading-tight">{levelName}</div>
               </div>
-              {/* Ultra minimal progress bar */}
-              <div className="space-y-2 w-full">
+              <div className="space-y-1 w-full">
                 <div className="w-full h-1 bg-white/5 rounded-full overflow-hidden">
-                  <div 
-                    className="h-full bg-[#d9f95d] rounded-full transition-all duration-500" 
-                    style={{ width: `${levelProgress.percent}%` }}
-                  />
+                  <div className="h-full bg-[#d9f95d] rounded-full transition-all duration-500" style={{ width: `${levelProgress.percent}%` }} />
                 </div>
-                <div className="flex justify-between text-[10px] font-mono text-slate-500">
+                <div className="hidden sm:flex justify-between text-[10px] font-mono text-slate-500">
                   <span>{levelProgress.current} / {levelProgress.next}</span>
                   <span>{levelProgress.percent.toFixed(0)}%</span>
                 </div>
@@ -412,7 +408,7 @@ export default function DashboardPage() {
                       <motion.div
                         key={track.track_slug}
                         whileHover={{ y: -1 }}
-                        className="bg-transparent border-b border-white/[0.05] last:border-0 hover:bg-white/[0.01] p-4 flex flex-col md:flex-row md:items-center justify-between gap-6 transition-all relative overflow-hidden"
+                        className="bg-transparent border-b border-white/[0.05] last:border-0 hover:bg-white/[0.01] p-3 md:p-4 flex flex-col gap-4 transition-all relative overflow-hidden"
                       >
                         {/* Custom visual color strip */}
                         <div 
@@ -451,29 +447,29 @@ export default function DashboardPage() {
                         </div>
 
                         {/* Next Lesson Redirect Widget */}
-                        <div className="flex flex-col md:items-end gap-3 min-w-[200px]">
+                        <div className="flex flex-row items-center justify-between gap-3">
                           {track.next_lesson ? (
                             <>
-                              <div className="space-y-0.5 md:text-right">
+                              <div className="space-y-0.5 min-w-0 flex-1">
                                 <div className="text-[10px] text-slate-500 uppercase tracking-widest font-black font-mono">
                                   {track.next_lesson.in_progress ? '⚡ In Progress' : 'Next Objective'}
                                 </div>
-                                <div className="text-xs font-bold text-slate-300 truncate max-w-[200px]" title={track.next_lesson.title}>
+                                <div className="text-xs font-bold text-slate-300 truncate" title={track.next_lesson.title}>
                                   {track.next_lesson.title}
                                 </div>
-                                <div className="text-[10px] text-slate-400 italic">
+                                <div className="text-[10px] text-slate-400 italic truncate">
                                   {track.next_lesson.unit_title}
                                 </div>
                               </div>
                               <Link
                                 href={`/learn/${track.next_lesson.id}`}
-                                className={`inline-flex h-10 items-center justify-center gap-1.5 rounded-xl font-extrabold text-xs tracking-wide px-5 hover:scale-[1.02] active:scale-[0.98] transition-all shadow-md cursor-pointer ${
+                                className={`shrink-0 inline-flex h-9 items-center justify-center gap-1 rounded-xl font-extrabold text-xs tracking-wide px-4 active:scale-[0.97] transition-all shadow-md cursor-pointer ${
                                   track.next_lesson.in_progress
                                     ? 'bg-emerald-500 hover:bg-emerald-400 text-white shadow-emerald-500/20'
                                     : 'bg-[#d9f95d] hover:bg-[#d9f95d] text-slate-950 shadow-[#d9f95d]/10'
                                 }`}
                               >
-                                {track.next_lesson.in_progress ? 'Resume Lesson' : 'Resume Mission'} <ChevronRight className="h-4 w-4 stroke-[3px]" />
+                                {track.next_lesson.in_progress ? 'Resume' : 'Start'} <ChevronRight className="h-3.5 w-3.5 stroke-[3px]" />
                               </Link>
                             </>
                           ) : (
@@ -709,59 +705,54 @@ export default function DashboardPage() {
                                   initial={{ opacity: 0, x: -8 }}
                                   animate={{ opacity: 1, x: 0 }}
                                   transition={{ delay: idx * 0.03 }}
-                                  className="flex items-start gap-4 py-4 border-b border-white/[0.04] last:border-0 hover:bg-white/[0.01] px-2 -mx-2 rounded-lg transition-colors group"
+                                  className="flex items-start gap-3 py-3.5 border-b border-white/[0.04] last:border-0 hover:bg-white/[0.01] px-1 -mx-1 rounded-lg transition-colors group"
                                 >
-                                  {/* Track color strip + icon */}
-                                  <div className="flex flex-col items-center gap-1 shrink-0">
-                                    <div
-                                      className="h-9 w-9 rounded-lg flex items-center justify-center text-lg border border-white/[0.06]"
-                                      style={{ backgroundColor: `${entry.track_color}15` || '#ffffff08' }}
-                                    >
-                                      {entry.track_icon || '📚'}
-                                    </div>
+                                  {/* Track icon */}
+                                  <div
+                                    className="shrink-0 h-8 w-8 rounded-lg flex items-center justify-center text-base border border-white/[0.06]"
+                                    style={{ backgroundColor: `${entry.track_color}15` || '#ffffff08' }}
+                                  >
+                                    {entry.track_icon || '📚'}
                                   </div>
 
                                   {/* Main content */}
                                   <div className="flex-1 min-w-0">
-                                    <div className="flex items-center gap-2 flex-wrap mb-1">
+                                    <div className="flex items-start justify-between gap-2 mb-0.5">
                                       <Link
                                         href={`/learn/${entry.lesson_id}`}
-                                        className="text-sm font-bold text-slate-200 hover:text-white transition-colors truncate"
+                                        className="text-xs font-bold text-slate-200 hover:text-white transition-colors leading-snug line-clamp-1"
                                       >
                                         {entry.lesson_title}
                                       </Link>
-                                      <span className={`text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded border ${typeColors[entry.lesson_type]}`}>
-                                        {typeIcons[entry.lesson_type]} {entry.lesson_type}
-                                      </span>
+                                      {/* Date on right — visible all sizes */}
+                                      <div className="shrink-0 text-right ml-2">
+                                        <div className="text-[9px] font-bold text-slate-500 whitespace-nowrap">{dateStr}</div>
+                                        <div className="text-[8px] text-slate-700 mt-0.5 hidden sm:block">{timeStr}</div>
+                                        <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500 ml-auto mt-0.5" />
+                                      </div>
                                     </div>
 
-                                    <div className="text-[10px] text-slate-500 mb-2">
+                                    <div className="text-[9px] text-slate-600 mb-1.5 truncate">
                                       {entry.track_title} · {entry.unit_title}
                                     </div>
 
-                                    {/* Stats row */}
-                                    <div className="flex items-center gap-3 flex-wrap">
-                                      <span className="flex items-center gap-1 text-[10px] font-mono font-bold text-amber-400">
-                                        ⭐ +{entry.xp_earned} XP
+                                    {/* Stats row — wraps on mobile */}
+                                    <div className="flex items-center gap-2 flex-wrap">
+                                      <span className="flex items-center gap-0.5 text-[9px] font-mono font-bold text-amber-400">
+                                        ⭐ +{entry.xp_earned}
                                       </span>
-                                      <span className="flex items-center gap-1 text-[10px] text-slate-500">
-                                        <Clock className="h-3 w-3" /> {entry.duration_minutes}m lesson
+                                      <span className={`text-[8px] font-bold uppercase tracking-wider px-1 py-0.5 rounded border ${typeColors[entry.lesson_type]}`}>
+                                        {entry.lesson_type}
                                       </span>
-                                      <span className="flex items-center gap-1 text-[10px] text-slate-500">
-                                        <Target className="h-3 w-3" /> {entry.attempts} {entry.attempts === 1 ? 'attempt' : 'attempts'}
+                                      <span className="flex items-center gap-0.5 text-[9px] text-slate-500">
+                                        <Clock className="h-2.5 w-2.5" /> {entry.duration_minutes}m
                                       </span>
-                                      <span className="flex items-center gap-1 text-[10px] text-slate-500">
-                                        <Code2 className="h-3 w-3" /> {entry.language}
+                                      <span className="flex items-center gap-0.5 text-[9px] text-slate-500">
+                                        <Target className="h-2.5 w-2.5" /> {entry.attempts}×
                                       </span>
-                                    </div>
-                                  </div>
-
-                                  {/* Date / time */}
-                                  <div className="shrink-0 text-right">
-                                    <div className="text-[10px] font-bold text-slate-400">{dateStr}</div>
-                                    <div className="text-[9px] text-slate-600 mt-0.5">{timeStr}</div>
-                                    <div className="mt-1">
-                                      <CheckCircle2 className="h-4 w-4 text-emerald-500 ml-auto" />
+                                      <span className="flex items-center gap-0.5 text-[9px] text-slate-500 hidden sm:flex">
+                                        <Code2 className="h-2.5 w-2.5" /> {entry.language}
+                                      </span>
                                     </div>
                                   </div>
                                 </motion.div>
@@ -931,6 +922,24 @@ export default function DashboardPage() {
           </div>
         </main>
       </div>
+
+      {/* Mobile Bottom Navigation Bar */}
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-black/90 backdrop-blur-xl border-t border-white/[0.07] flex items-center">
+        {[
+          { href: '/dashboard', icon: Compass, label: 'Dashboard', color: 'text-cyan-400' },
+          { href: '/tracks', icon: BookOpen, label: 'Tracks', color: 'text-orange-400' },
+          { href: '/badges', icon: Award, label: 'Badges', color: 'text-purple-400' },
+        ].map(({ href, icon: Icon, label, color }) => (
+          <Link
+            key={href}
+            href={href}
+            className={`flex-1 flex flex-col items-center justify-center py-3 gap-1 transition-colors ${color}`}
+          >
+            <Icon className="h-5 w-5" />
+            <span className="text-[10px] font-bold uppercase tracking-wider">{label}</span>
+          </Link>
+        ))}
+      </nav>
     </div>
   );
 }
