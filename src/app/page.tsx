@@ -422,7 +422,7 @@ export default function LandingPage() {
               <span className="font-script text-green-400 font-normal italic pr-2">come alive.</span>
             </h2>
             <p className="text-slate-400 text-lg max-w-2xl mx-auto leading-relaxed">
-              Our built-in Code Visualizer lets you step through every line of your Python code, watch variables change in real time, and understand memory — all inside the browser.
+              Our built-in Code Visualizer lets you step through every line of your Python code, watch variables change in real time, and instantly apply AI-suggested fixes for runtime errors — all inside the browser.
             </p>
           </div>
 
