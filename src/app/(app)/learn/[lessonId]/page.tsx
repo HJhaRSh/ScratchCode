@@ -721,6 +721,10 @@ export default function LearnLessonPage() {
           code={code}
           language={lesson.language}
           onClose={() => setIsVisualizing(false)}
+          onApplyFix={(fixedCode) => {
+            setCode(fixedCode);
+            setIsVisualizing(false);
+          }}
         />
       )}
 
