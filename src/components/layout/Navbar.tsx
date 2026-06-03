@@ -14,11 +14,27 @@ export default function Navbar() {
   const pathname = usePathname();
   const { user, loading, signOut } = useUser();
 
-  const navLinks = [
+  // Detect if we're inside the app (logged-in pages)
+  const isAppPage = pathname.startsWith('/dashboard') ||
+    pathname.startsWith('/tracks') ||
+    pathname.startsWith('/badges') ||
+    pathname.startsWith('/profile') ||
+    pathname.startsWith('/account') ||
+    pathname.startsWith('/learn');
+
+  const landingNavLinks = [
     { name: 'Tracks', href: '#tracks' },
     { name: 'How it works', href: '#how-it-works' },
     { name: 'Features', href: '#features' },
   ];
+
+  const appNavLinks = [
+    { name: 'Dashboard', href: '/dashboard' },
+    { name: 'Tracks', href: '/tracks' },
+    { name: 'Badges', href: '/badges' },
+  ];
+
+  const navLinks = isAppPage ? appNavLinks : landingNavLinks;
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-black/50 backdrop-blur-lg py-4 transition-all duration-300">
@@ -32,7 +48,9 @@ export default function Navbar() {
         {/* Desktop Nav Links */}
         <nav className="hidden md:flex items-center gap-8">
           {navLinks.map((link) => {
-            const isActive = pathname === link.href;
+            const isActive = link.href.startsWith('/')
+              ? pathname === link.href || (link.href !== '/' && pathname.startsWith(link.href))
+              : pathname === link.href;
             return (
               <Link
                 key={link.name}
