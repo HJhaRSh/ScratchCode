@@ -10,7 +10,7 @@ const codeLines = [
   { n: 4, code: '    self.age = age' },
   { n: 5, code: '' },
   { n: 6, code: '  def greet(self):' },
-  { n: 7, code: '    print(self.name)' },
+  { n: 7, code: '    print(self.nam) # Typo!' },
   { n: 8, code: '' },
   { n: 9, code: 's = Student("Harsh", 21)' },
   { n: 10, code: 's.greet()' },
@@ -53,12 +53,18 @@ const animationSteps = [
   {
     active: 7, executed: [1, 9, 2, 3, 4, 10, 6],
     frame: { name: 'greet', vars: [['self', '→ Student inst', 'emerald']] },
-    object: { name: 'Student instance', props: [['name', '"Harsh"'], ['age', '21']] }, output: 'No output yet...'
+    object: { name: 'Student instance', props: [['name', '"Harsh"'], ['age', '21']] }, 
+    output: 'No output yet...',
+    error: 'AttributeError: "Student" has no attribute "nam"',
+    aiFix: false
   },
   {
     active: null, executed: [1, 9, 2, 3, 4, 10, 6, 7],
     frame: null,
-    object: { name: 'Student instance', props: [['name', '"Harsh"'], ['age', '21']] }, output: 'Harsh'
+    object: { name: 'Student instance', props: [['name', '"Harsh"'], ['age', '21']] }, 
+    output: 'No output yet...',
+    error: 'AttributeError: "Student" has no attribute "nam"',
+    aiFix: true
   }
 ];
 
@@ -70,7 +76,7 @@ export default function CodeVisualizerMock() {
     if (!isPlaying) return;
     const interval = setInterval(() => {
       setStepIdx((prev) => (prev + 1) % animationSteps.length);
-    }, 1500);
+    }, currentStep.aiFix ? 3000 : 1500);
     return () => clearInterval(interval);
   }, [isPlaying]);
 
@@ -113,11 +119,11 @@ export default function CodeVisualizerMock() {
                     isExecuted ? 'bg-emerald-500/8' : ''
                   }`}>
                   <div className="w-4 text-center text-[10px] shrink-0">
-                    {isActive && <span className="text-rose-400">▶</span>}
+                    {isActive && <span className={currentStep.error ? "text-rose-400 font-bold" : "text-amber-400"}>{currentStep.error ? '⚠' : '▶'}</span>}
                     {(!isActive && isExecuted) && <span className="text-emerald-400">✓</span>}
                   </div>
                   <div className="w-6 text-right text-slate-600 text-[10px] pr-2 shrink-0">{row.n}</div>
-                  <div className={`flex-1 ${isActive ? 'text-rose-100' : isExecuted ? 'text-emerald-100/80' : 'text-slate-400'
+                  <div className={`flex-1 ${isActive ? (currentStep.error ? 'text-rose-200' : 'text-amber-100') : isExecuted ? 'text-emerald-100/80' : 'text-slate-400'
                     }`}>{row.code || ' '}</div>
                 </div>
               );
@@ -144,73 +150,120 @@ export default function CodeVisualizerMock() {
           </div>
         </div>
 
-        {/* Right: Frames + Objects */}
-        <div className="flex-1 flex flex-col">
-          {/* Output */}
-          <div className="h-16 border-b border-white/8 p-3 flex flex-col" style={{ background: 'rgba(0,0,0,0.3)' }}>
-            <div className="text-[9px] font-bold uppercase tracking-widest text-slate-600 mb-1">Print Output</div>
-            <div className="text-[11px] font-mono text-emerald-400">
-              {currentStep.output}
-            </div>
-          </div>
-          {/* Frames + Objects */}
-          <div className="flex-1 flex flex-col sm:flex-row gap-0">
-            <div className="flex-1 border-b sm:border-b-0 sm:border-r border-white/8 p-3 relative">
-              <div className="text-[9px] font-bold uppercase tracking-widest text-slate-600 mb-2">Frames</div>
-              <AnimatePresence mode="popLayout">
-                {currentStep.frame && (
-                  <motion.div 
-                    initial={{ opacity: 0, scale: 0.95 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: 0.95 }}
-                    className="rounded-xl border border-green-500/30 overflow-hidden" 
-                    style={{ background: 'rgba(99,102,241,0.06)' }}
-                  >
-                    <div className="flex items-center gap-2 px-3 py-1.5 border-b border-green-500/20 bg-green-500/10">
-                      <div className="w-1.5 h-1.5 rounded-full bg-green-400" />
-                      <span className="text-[10px] font-semibold text-green-200">{currentStep.frame.name}</span>
-                      <span className="ml-auto text-[8px] bg-green-500/20 text-green-300 px-1.5 py-0.5 rounded-full">active</span>
-                    </div>
-                    <div className="p-2 space-y-1">
-                      {currentStep.frame.vars.map(([k, v, c]) => (
-                        <motion.div layout key={k} className="flex items-center gap-1 text-[11px] rounded-md px-1 py-0.5">
-                          <span className="text-slate-500 font-mono w-12 text-right pr-1 text-[10px]">{k}</span>
-                          <div className="flex-1 px-2 py-0.5 rounded bg-black/30 border border-white/8 font-mono text-[10px]">
-                            <span className={`text-${c}-400`}>{v}</span>
-                          </div>
-                        </motion.div>
-                      ))}
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
+        {/* Right: Frames + Objects + AI */}
+        <div className="flex-1 flex min-h-0 relative overflow-hidden">
+          <div className="flex-1 flex flex-col min-h-0 transition-all duration-500">
+            {/* Output */}
+            <div className={`border-b border-white/8 p-3 flex flex-col transition-all duration-300 ${currentStep.error ? 'h-20' : 'h-16'}`} style={{ background: 'rgba(0,0,0,0.3)' }}>
+              <div className="text-[9px] font-bold uppercase tracking-widest text-slate-600 mb-1">Print Output</div>
+              {currentStep.error ? (
+                <div className="mt-1 p-2 rounded bg-rose-950/40 border border-rose-500/30 text-[10px] font-mono text-rose-300">
+                  <span className="font-bold text-rose-400">Runtime Error: </span>
+                  {currentStep.error}
+                </div>
+              ) : (
+                <div className="text-[11px] font-mono text-emerald-400">
+                  {currentStep.output}
+                </div>
+              )}
             </div>
             
-            <div className="flex-1 p-3 relative">
-              <div className="text-[9px] font-bold uppercase tracking-widest text-slate-600 mb-2">Objects</div>
-              <AnimatePresence mode="popLayout">
-                {currentStep.object && (
-                  <motion.div 
-                    initial={{ opacity: 0, scale: 0.95 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: 0.95 }}
-                    className="rounded-xl border border-amber-500/30 overflow-hidden mb-2" 
-                    style={{ background: 'rgba(245,158,11,0.04)' }}
-                  >
-                    <div className="flex items-center px-3 py-1.5 border-b border-amber-500/20 bg-amber-500/8">
-                      <span className="text-[9px] font-bold uppercase tracking-wider text-amber-200">{currentStep.object.name}</span>
-                    </div>
-                    {currentStep.object.props.map(([k, v]) => (
-                      <motion.div layout key={k} className="flex border-b border-white/5 last:border-0 text-[11px] font-mono">
-                        <div className="px-3 py-1.5 text-slate-500 w-16 border-r border-white/8 bg-white/3 text-[10px]">{k}</div>
-                        <div className="px-3 py-1.5 text-slate-300 flex-1">{v}</div>
-                      </motion.div>
-                    ))}
-                  </motion.div>
-                )}
-              </AnimatePresence>
+            {/* Frames + Objects */}
+            <div className="flex-1 flex flex-col sm:flex-row gap-0 overflow-hidden">
+              <div className="flex-1 border-b sm:border-b-0 sm:border-r border-white/8 p-3 relative">
+                <div className="text-[9px] font-bold uppercase tracking-widest text-slate-600 mb-2">Frames</div>
+                <AnimatePresence mode="popLayout">
+                  {currentStep.frame && (
+                    <motion.div 
+                      initial={{ opacity: 0, scale: 0.95 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0, scale: 0.95 }}
+                      className="rounded-xl border border-green-500/30 overflow-hidden" 
+                      style={{ background: 'rgba(99,102,241,0.06)' }}
+                    >
+                      <div className="flex items-center gap-2 px-3 py-1.5 border-b border-green-500/20 bg-green-500/10">
+                        <div className="w-1.5 h-1.5 rounded-full bg-green-400" />
+                        <span className="text-[10px] font-semibold text-green-200">{currentStep.frame.name}</span>
+                        <span className="ml-auto text-[8px] bg-green-500/20 text-green-300 px-1.5 py-0.5 rounded-full">active</span>
+                      </div>
+                      <div className="p-2 space-y-1">
+                        {currentStep.frame.vars.map(([k, v, c]) => (
+                          <motion.div layout key={k} className="flex items-center gap-1 text-[11px] rounded-md px-1 py-0.5">
+                            <span className="text-slate-500 font-mono w-12 text-right pr-1 text-[10px]">{k}</span>
+                            <div className="flex-1 px-2 py-0.5 rounded bg-black/30 border border-white/8 font-mono text-[10px]">
+                              <span className={`text-${c}-400`}>{v}</span>
+                            </div>
+                          </motion.div>
+                        ))}
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+              
+              <div className="flex-1 p-3 relative">
+                <div className="text-[9px] font-bold uppercase tracking-widest text-slate-600 mb-2">Objects</div>
+                <AnimatePresence mode="popLayout">
+                  {currentStep.object && (
+                    <motion.div 
+                      initial={{ opacity: 0, scale: 0.95 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0, scale: 0.95 }}
+                      className="rounded-xl border border-amber-500/30 overflow-hidden mb-2" 
+                      style={{ background: 'rgba(245,158,11,0.04)' }}
+                    >
+                      <div className="flex items-center px-3 py-1.5 border-b border-amber-500/20 bg-amber-500/8">
+                        <span className="text-[9px] font-bold uppercase tracking-wider text-amber-200">{currentStep.object.name}</span>
+                      </div>
+                      {currentStep.object.props.map(([k, v]) => (
+                        <motion.div layout key={k} className="flex border-b border-white/5 last:border-0 text-[11px] font-mono">
+                          <div className="px-3 py-1.5 text-slate-500 w-16 border-r border-white/8 bg-white/3 text-[10px]">{k}</div>
+                          <div className="px-3 py-1.5 text-slate-300 flex-1">{v}</div>
+                        </motion.div>
+                      ))}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
             </div>
           </div>
+
+          {/* AI Fix Panel Slide-in */}
+          <AnimatePresence>
+            {currentStep.aiFix && (
+              <motion.div
+                initial={{ x: '100%', opacity: 0 }}
+                animate={{ x: 0, opacity: 1 }}
+                exit={{ x: '100%', opacity: 0 }}
+                transition={{ type: 'spring', damping: 26, stiffness: 240 }}
+                className="absolute right-0 top-0 bottom-0 w-[240px] bg-[#0a0a0a] bg-noise border-l border-white/[0.05] flex flex-col shadow-2xl z-10"
+              >
+                <div className="flex items-center gap-2 px-3 py-2 border-b border-white/[0.05]">
+                  <div className="w-5 h-5 rounded-lg bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center shrink-0">
+                    <span className="text-cyan-400 text-[10px]">✨</span>
+                  </div>
+                  <div>
+                    <div className="text-[10px] font-bold text-cyan-400 leading-tight uppercase tracking-wider">AI Fix Suggestion</div>
+                  </div>
+                </div>
+                <div className="p-3 flex flex-col gap-3 text-[10px] overflow-y-auto">
+                  <div>
+                    <div className="text-rose-400 font-bold uppercase mb-1 tracking-widest text-[9px]">What went wrong</div>
+                    <p className="text-slate-300 bg-black/20 p-2 rounded-lg border border-white/[0.05] leading-relaxed">
+                      You misspelled 'name' as 'nam'. The Student class doesn't have a 'nam' attribute.
+                    </p>
+                  </div>
+                  <div>
+                    <div className="text-emerald-400 font-bold uppercase mb-1 tracking-widest text-[9px]">Fixed Code</div>
+                    <pre className="text-emerald-200 bg-black/40 p-2 rounded-lg border border-emerald-500/20 font-mono">print(self.name)</pre>
+                  </div>
+                  <button className="w-full mt-2 py-1.5 rounded-lg font-bold bg-[#d9f95d] text-slate-950 active:scale-95 transition-transform">
+                    Apply Fix
+                  </button>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       </div>
     </motion.div>
