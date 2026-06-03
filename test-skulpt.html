@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <script src="https://skulpt.org/js/skulpt.min.js"></script>
+  <script src="https://skulpt.org/js/skulpt-stdlib.js"></script>
+</head>
+<body>
+  <script>
+    setTimeout(() => {
+      console.log(Object.keys(Sk));
+      console.log(Object.keys(Sk).filter(k => k.toLowerCase().includes('debug')));
+    }, 1000);
+  </script>
+</body>
+</html>

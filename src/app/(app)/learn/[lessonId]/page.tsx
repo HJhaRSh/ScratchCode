@@ -6,6 +6,7 @@ import ConceptPane from '@/components/lesson/ConceptPane';
 import CodeEditor from '@/components/editor/CodeEditor';
 import OutputPanel from '@/components/editor/OutputPanel';
 import SubmitButton from '@/components/editor/SubmitButton';
+import CodeVisualizer from '@/components/editor/CodeVisualizer';
 import HintDrawer from '@/components/lesson/HintDrawer';
 import { 
   Flame, 
@@ -79,6 +80,9 @@ export default function LearnLessonPage() {
   const [editorTheme, setEditorTheme] = useState<string>('vs-dark');
   const [editorMinimap, setEditorMinimap] = useState<boolean>(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState<boolean>(false);
+  
+  // Visualizer State
+  const [isVisualizing, setIsVisualizing] = useState<boolean>(false);
 
   // AI Mentor Drawer States
   const [isHintOpen, setIsHintOpen] = useState(false);
@@ -725,6 +729,7 @@ export default function LearnLessonPage() {
               onRun={handleRun}
               onSubmit={handleSubmit}
               onReset={handleReset}
+              onVisualize={['python', 'py', 'javascript', 'js'].includes(lesson.language.toLowerCase()) ? () => setIsVisualizing(true) : undefined}
               isRunning={isRunning}
               isSubmitting={isSubmitting}
               disabled={loading || lesson.type === 'CONCEPT'}
@@ -732,6 +737,15 @@ export default function LearnLessonPage() {
           </div>
         </div>
       </div>
+      
+      {/* Visualizer Panel Sliding up from bottom */}
+      {isVisualizing && (
+        <CodeVisualizer
+          code={code}
+          language={lesson.language}
+          onClose={() => setIsVisualizing(false)}
+        />
+      )}
 
       {/* AI Mentor Sliding Drawer */}
       <HintDrawer

@@ -16,10 +16,11 @@ export default function SubmitButton({
   onRun,
   onSubmit,
   onReset,
+  onVisualize,
   isRunning = false,
   isSubmitting = false,
   disabled = false,
-}: SubmitButtonProps) {
+}: SubmitButtonProps & { onVisualize?: () => void }) {
   const isExecuting = isRunning || isSubmitting;
 
   return (
@@ -57,10 +58,22 @@ export default function SubmitButton({
         onClick={onReset}
         disabled={disabled || isExecuting}
         title="Reset Code template"
-        className="inline-flex h-12 w-12 items-center justify-center bg-transparent border border-white/[0.05] text-slate-400 hover:text-white hover:bg-white/[0.05] transition-all disabled:opacity-50 disabled:cursor-not-allowed select-none"
+        className="inline-flex h-12 w-12 items-center justify-center bg-transparent border border-white/[0.05] text-slate-400 hover:text-white hover:bg-white/[0.05] transition-all disabled:opacity-50 disabled:cursor-not-allowed select-none shrink-0"
       >
         <RotateCcw className="h-4 w-4" />
       </button>
+      
+      {onVisualize && (
+        <button
+          onClick={onVisualize}
+          disabled={disabled || isExecuting}
+          title="Visualize Execution"
+          className="inline-flex h-12 items-center justify-center gap-2 bg-transparent border border-indigo-500/30 text-indigo-400 hover:bg-indigo-500/10 hover:border-indigo-500/50 hover:text-indigo-300 font-bold text-sm px-4 transition-all disabled:opacity-50 disabled:cursor-not-allowed select-none shrink-0"
+        >
+          <Play className="h-4 w-4 fill-current opacity-70" />
+          <span className="hidden sm:inline">Visualize</span>
+        </button>
+      )}
     </div>
   );
 }

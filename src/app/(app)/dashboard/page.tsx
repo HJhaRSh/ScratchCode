@@ -394,6 +394,33 @@ export default function DashboardPage() {
             
             {/* Left / Center Column (2/3 width on desktop) */}
             <div className="lg:col-span-2 space-y-8">
+
+              {/* CODE VISUALIZER BANNER */}
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.1 }}
+                className="relative overflow-hidden rounded-2xl border border-violet-500/25 p-5 flex flex-col sm:flex-row items-start sm:items-center gap-4"
+                style={{ background: 'linear-gradient(135deg, rgba(139,92,246,0.08) 0%, rgba(99,102,241,0.05) 100%)' }}
+              >
+                <div className="absolute inset-0 bg-[radial-gradient(ellipse_60%_80%_at_100%_50%,rgba(139,92,246,0.1),transparent)] pointer-events-none" />
+                <div className="h-12 w-12 rounded-xl bg-violet-500/15 border border-violet-500/25 flex items-center justify-center shrink-0 text-2xl">
+                  🔍
+                </div>
+                <div className="flex-1 min-w-0 relative">
+                  <div className="flex items-center gap-2 mb-1">
+                    <h3 className="text-white font-bold text-sm">Try the Code Visualizer</h3>
+                    <span className="text-[9px] font-bold uppercase tracking-widest bg-violet-500/20 text-violet-300 px-2 py-0.5 rounded-full border border-violet-500/25">New</span>
+                  </div>
+                  <p className="text-slate-400 text-xs leading-relaxed max-w-lg">Step through your Python code line-by-line. Watch variables update, track object memory, and understand exactly how your program runs.</p>
+                </div>
+                <Link
+                  href="/learn"
+                  className="shrink-0 inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-violet-500/20 hover:bg-violet-500/30 border border-violet-500/30 text-violet-200 font-bold text-xs transition-all"
+                >
+                  Open in Editor <ArrowRight className="h-3.5 w-3.5" />
+                </Link>
+              </motion.div>
               
               {/* CONTINUE LEARNING SECTION */}
               <div className="space-y-4">

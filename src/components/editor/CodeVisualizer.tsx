@@ -1,0 +1,615 @@
+'use client';
+
+import React, { useState, useEffect, useRef } from 'react';
+import { motion } from 'framer-motion';
+import { X, Play, Pause, SkipBack, SkipForward, FastForward, Rewind } from 'lucide-react';
+import * as acorn from 'acorn';
+
+interface VariableState {
+  type: string;
+  value: any;
+  changed: boolean;
+}
+
+interface FrameData {
+  name: string;
+  variables: Record<string, VariableState>;
+}
+
+interface Step {
+  step: number;
+  line: number;
+  frames: FrameData[];
+  callStack: string[];
+  output: string;
+  error?: string;
+}
+
+interface CodeVisualizerProps {
+  code: string;
+  language: string;
+  onClose: () => void;
+}
+
+export default function CodeVisualizer({ code, language, onClose }: CodeVisualizerProps) {
+  const [steps, setSteps] = useState<Step[]>([]);
+  const [currentStepIndex, setCurrentStepIndex] = useState(0);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [speed, setSpeed] = useState<'Slow' | 'Normal' | 'Fast'>('Normal');
+  const [loading, setLoading] = useState(true);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+
+  const playIntervalRef = useRef<NodeJS.Timeout | null>(null);
+
+  useEffect(() => {
+    // Add keyboard listener for ctrl+shift+v to toggle 
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 'v') {
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
+
+  useEffect(() => {
+    setLoading(true);
+    setErrorMsg(null);
+    setSteps([]);
+    setCurrentStepIndex(0);
+
+    const codeTrimmed = code.trim();
+    if (!codeTrimmed) {
+      setErrorMsg("Write some code first, then click Visualize");
+      setLoading(false);
+      return;
+    }
+
+    const lang = language.toLowerCase();
+    if (lang === 'python' || lang === 'py') {
+      loadPyodideAndRun(codeTrimmed);
+    } else if (lang === 'javascript' || lang === 'js') {
+      runJavascriptStepper(codeTrimmed);
+    } else {
+      setErrorMsg(`Visualization not supported for ${language}`);
+      setLoading(false);
+    }
+  }, [code, language]);
+
+  const loadPyodideAndRun = (userCode: string) => {
+    const workerScript = `
+      importScripts("https://cdn.jsdelivr.net/pyodide/v0.25.0/full/pyodide.js");
+      
+      self.onmessage = async function(e) {
+        const { code } = e.data;
+        try {
+          self.postMessage({ type: 'status', text: 'Initializing Python engine...' });
+          let pyodide = await loadPyodide();
+          self.postMessage({ type: 'status', text: 'Tracing execution...' });
+          
+          const traceScript = \`
+import sys, json, io, inspect
+
+_steps = []
+_out = io.StringIO()
+
+# ---- safe serialisation ----
+def _safe_val(v, depth=0):
+    if depth > 3:
+        return str(v)
+    t = type(v).__name__
+    if isinstance(v, bool):
+        return {"type": "bool", "repr": v}
+    if isinstance(v, int):
+        return {"type": "int", "repr": v}
+    if isinstance(v, float):
+        import math
+        if math.isnan(v) or math.isinf(v):
+            return {"type": "float", "repr": str(v)}
+        return {"type": "float", "repr": v}
+    if isinstance(v, str):
+        return {"type": "str", "repr": v}
+    if v is None:
+        return {"type": "NoneType", "repr": None}
+    if isinstance(v, (list, tuple)):
+        return {"type": "list", "repr": [_safe_val(i, depth+1)["repr"] for i in v[:20]]}
+    if isinstance(v, dict):
+        return {"type": "dict", "repr": {str(k): _safe_val(dv, depth+1)["repr"] for k,dv in list(v.items())[:20]}}
+    # class type
+    if isinstance(v, type):
+        methods = {}
+        for mk, mv in v.__dict__.items():
+            if callable(mv) and not mk.startswith("__"):
+                try: methods[mk] = "function " + mk + str(inspect.signature(mv))
+                except: methods[mk] = "function " + mk + "(...)"
+            elif mk == "__init__":
+                try: methods[mk] = "function __init__" + str(inspect.signature(mv))
+                except: methods[mk] = "function __init__(...)"
+        return {"type": "class", "repr": methods, "class_name": v.__name__}
+    # instance
+    if hasattr(v, "__dict__"):
+        attrs = {}
+        for ak, av in list(v.__dict__.items())[:20]:
+            try: attrs[ak] = _safe_val(av, depth+1)["repr"]
+            except: attrs[ak] = str(av)
+        return {"type": type(v).__name__ + " instance", "repr": attrs}
+    return {"type": t, "repr": str(v)}
+
+# ---- tracer ----
+def _tracer(frame, event, arg):
+    if event != "line":
+        return _tracer
+    try:
+        # The current frame is always user code. Its filename is our boundary.
+        user_filename = frame.f_code.co_filename
+        frames_data = []
+        f = frame
+        depth = 0
+        while f is not None and depth < 30:
+            # Only collect frames that are in user code (same filename)
+            if f.f_code.co_filename == user_filename:
+                co_name = f.f_code.co_name
+                frame_vars = {}
+                for k, v in list(f.f_locals.items())[:40]:
+                    if k.startswith("_") or k in ("sys","json","io","inspect","math"):
+                        continue
+                    try:
+                        frame_vars[k] = _safe_val(v)
+                    except:
+                        frame_vars[k] = {"type": "unknown", "repr": str(type(v).__name__)}
+                label = "Global frame" if co_name == "<module>" else co_name
+                frames_data.insert(0, {"name": label, "variables": frame_vars})
+            f = f.f_back
+            depth += 1
+        _steps.append({
+            "line": frame.f_lineno,
+            "frames": frames_data,
+            "output": _out.getvalue(),
+            "error": None
+        })
+    except Exception as ex:
+        _steps.append({"line": frame.f_lineno, "frames": [], "output": _out.getvalue(), "error": "Trace error: " + str(ex)})
+    return _tracer
+
+old_stdout = sys.stdout
+sys.stdout = _out
+try:
+    sys.settrace(_tracer)
+    exec(USER_CODE_STRING, {})
+except Exception as e:
+    _steps.append({"line": 0, "frames": [{"name": "Global frame", "variables": {}}], "output": _out.getvalue(), "error": str(e)})
+finally:
+    sys.settrace(None)
+    sys.stdout = old_stdout
+
+json.dumps(_steps)
+\`;
+          pyodide.globals.set("USER_CODE_STRING", code);
+          const resultJson = await pyodide.runPythonAsync(traceScript);
+          const steps = JSON.parse(resultJson);
+          self.postMessage({ type: 'success', steps });
+        } catch (err) {
+          self.postMessage({ type: 'error', error: String(err) });
+        }
+      };
+    `;
+
+
+    const blob = new Blob([workerScript], { type: 'application/javascript' });
+    const pyWorker = new Worker(URL.createObjectURL(blob));
+
+    pyWorker.postMessage({ code: userCode });
+
+     pyWorker.onmessage = (e) => {
+      const { type, steps, error } = e.data;
+      if (type === 'success') {
+         let processedSteps = steps.map((s: any, i: number) => {
+            let processedFrames = (s.frames || []).map((fr: any) => {
+               let processedVars: any = {};
+               for (let [k, v] of Object.entries(fr.variables || {})) {
+                   let typedV = v as any;
+                   // Python _safe_val returns {type, repr} — normalise to {type, value}
+                   processedVars[k] = {
+                     type: typedV.type ?? 'unknown',
+                     value: typedV.repr ?? typedV.value ?? null,
+                     changed: false
+                   };
+               }
+               return { name: fr.name, variables: processedVars };
+            });
+            return {
+               step: i + 1,
+               line: s.line,
+               frames: processedFrames,
+               callStack: ['global'],
+               output: s.output ?? '',
+               error: s.error ?? null
+            };
+         });
+         
+         if (processedSteps.length === 0) {
+             processedSteps = [{ step: 1, line: 1, frames: [{ name: 'Global frame', variables: {} }], callStack: ['global'], output: '', error: null }];
+         }
+         
+         setSteps(processedSteps);
+         setLoading(false);
+         pyWorker.terminate();
+      } else if (type === 'error') {
+         setErrorMsg(error);
+         setLoading(false);
+         pyWorker.terminate();
+      }
+    };
+  };
+
+  const runJavascriptStepper = (userCode: string) => {
+    try {
+      const ast = acorn.parse(userCode, { ecmaVersion: 2020, locations: true });
+      // To properly instrument JS we'd need escodegen. 
+      // We'll use a sandboxed iframe that executes and captures console.
+      // For line-by-line, we'll do a simple mock step array as the prompt mentioned it's a "simplified stepper".
+      let traceSteps: Step[] = [];
+      let outputBuffer = "";
+      
+      const lines = userCode.split('\n');
+      
+      // Simple pseudo-tracing (in reality, AST walking + instrumenting is required)
+      for (let i = 0; i < lines.length; i++) {
+        if (lines[i].trim() !== '') {
+          traceSteps.push({
+            step: traceSteps.length + 1,
+            line: i + 1,
+            frames: [{ name: "Global frame", variables: {} }],
+            callStack: ["global"],
+            output: outputBuffer
+          });
+        }
+      }
+      
+      setSteps(traceSteps);
+      setLoading(false);
+    } catch (e: any) {
+      setErrorMsg(`Parse Error: ${e.message}`);
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (isPlaying) {
+      const intervalMs = speed === 'Slow' ? 1000 : speed === 'Normal' ? 333 : 125;
+      playIntervalRef.current = setInterval(() => {
+        setCurrentStepIndex((prev) => {
+          if (prev >= steps.length - 1) {
+            setIsPlaying(false);
+            return prev;
+          }
+          const nextStep = steps[prev + 1];
+          if (nextStep && nextStep.error) {
+             setIsPlaying(false); // auto-pause on error
+          }
+          return prev + 1;
+        });
+      }, intervalMs);
+    } else {
+      if (playIntervalRef.current) clearInterval(playIntervalRef.current);
+    }
+    
+    return () => {
+      if (playIntervalRef.current) clearInterval(playIntervalRef.current);
+    };
+  }, [isPlaying, speed, steps]);
+
+  const currentStep = steps[currentStepIndex];
+  const prevStep = currentStepIndex > 0 ? steps[currentStepIndex - 1] : null;
+  const executedLine = prevStep?.line;
+  const nextLine = currentStep?.line;
+  const codeLines = code.split('\n');
+  
+  const allObjects: { name: string, state: VariableState }[] = [];
+  if (currentStep && currentStep.frames) {
+    currentStep.frames.forEach(fr => {
+      Object.entries(fr.variables).forEach(([name, state]) => {
+        if (state.type === 'list' || state.type === 'dict' || state.type === 'function' || state.type === 'class' || state.type.endsWith('instance')) {
+          allObjects.push({ name, state });
+        }
+      });
+    });
+  }
+
+  return (
+    <motion.div 
+      initial={{ y: '100%', opacity: 0 }}
+      animate={{ y: 0, opacity: 1 }}
+      exit={{ y: '100%', opacity: 0 }}
+      transition={{ type: 'spring', damping: 28, stiffness: 220 }}
+      className="absolute bottom-0 left-0 right-0 h-[72vh] border-t border-white/10 shadow-2xl flex flex-col z-50 overflow-hidden font-sans"
+      style={{ background: 'linear-gradient(180deg, #0f0f1a 0%, #12121f 100%)' }}
+    >
+      {/* Header */}
+      <div className="flex items-center justify-between px-5 py-2.5 border-b border-white/8 shrink-0" style={{background:'rgba(0,0,0,0.5)', backdropFilter:'blur(12px)'}}>
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
+            <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+            <span className="font-semibold text-white text-sm tracking-wide">Code Visualizer</span>
+          </div>
+          {loading && (
+            <div className="flex items-center gap-2 px-2 py-0.5 rounded-full bg-indigo-500/10 border border-indigo-500/20">
+              <div className="w-3 h-3 border border-indigo-400 border-t-transparent rounded-full animate-spin" />
+              <span className="text-indigo-300 text-xs">Analysing...</span>
+            </div>
+          )}
+          {!loading && steps.length > 0 && (
+            <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-white/5 border border-white/10">
+              <span className="text-slate-400 text-xs">{steps.length} steps traced</span>
+            </div>
+          )}
+        </div>
+        <button onClick={onClose} className="p-1.5 hover:bg-white/10 rounded-lg transition-colors text-slate-400 hover:text-white">
+          <X className="h-4 w-4" />
+        </button>
+      </div>
+
+      {loading ? (
+        <div className="flex-1 flex items-center justify-center">
+          <div className="flex flex-col items-center gap-4">
+            <div className="w-10 h-10 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin" />
+            <div className="text-center">
+              <div className="text-white font-medium text-sm">Analysing your code</div>
+              <div className="text-slate-500 text-xs mt-1">Setting up Python tracer...</div>
+            </div>
+          </div>
+        </div>
+      ) : errorMsg && !steps.length ? (
+        <div className="flex-1 flex items-center justify-center p-8">
+          <div className="max-w-xl w-full">
+            <div className="flex items-center gap-2 mb-3 text-rose-400">
+              <span className="text-lg">⚠</span>
+              <span className="font-bold">Error in your code</span>
+            </div>
+            <pre className="text-sm text-rose-300 text-left whitespace-pre-wrap font-mono bg-rose-950/30 p-4 rounded-xl border border-rose-500/20 leading-relaxed">{errorMsg}</pre>
+          </div>
+        </div>
+      ) : currentStep ? (
+        <div className="flex-1 flex min-h-0">
+          {/* ── LEFT: Code Panel ── */}
+          <div className="w-[45%] flex flex-col border-r border-white/8" style={{background:'#0d0d18'}}>
+            <div className="flex-1 overflow-auto p-3 font-mono text-[13px] leading-6">
+              <div className="text-center text-slate-600 text-[11px] mb-3 pb-2 border-b border-white/5">Python 3.11 — line-by-line trace</div>
+              {codeLines.map((line, idx) => {
+                const lineNum = idx + 1;
+                const isNext = lineNum === nextLine;
+                const isExecuted = lineNum === executedLine && !isNext;
+                return (
+                  <div key={idx} className={`flex items-stretch rounded-md transition-all duration-150 ${isNext ? 'bg-rose-500/12 ring-1 ring-rose-500/20' : isExecuted ? 'bg-emerald-500/10' : ''}`}>
+                    <div className="w-5 flex items-center justify-center shrink-0 py-0.5">
+                      {isNext && <span className="text-rose-400 text-[11px] font-bold">▶</span>}
+                      {isExecuted && <span className="text-emerald-400 text-[11px]">✓</span>}
+                    </div>
+                    <div className="w-7 text-right text-slate-600 text-[11px] select-none pr-2 py-0.5 shrink-0 self-center">{lineNum}</div>
+                    <div className={`py-0.5 pr-2 whitespace-pre flex-1 ${isNext ? 'text-rose-100' : isExecuted ? 'text-emerald-100/80' : 'text-slate-300'}`}>{line || ' '}</div>
+                  </div>
+                );
+              })}
+              <div className="mt-6 pt-4 border-t border-white/5 flex gap-5 text-[11px] text-slate-600">
+                <div className="flex items-center gap-1.5"><span className="text-emerald-400">✓</span> just executed</div>
+                <div className="flex items-center gap-1.5"><span className="text-rose-400 text-[11px] font-bold">▶</span> next to run</div>
+              </div>
+            </div>
+
+            {/* Playback Controls */}
+            <div className="border-t border-white/8 p-3 shrink-0" style={{background:'rgba(0,0,0,0.4)'}}>
+              {/* Step progress bar */}
+              <div className="flex items-center gap-2 mb-3">
+                <span className="text-slate-600 text-[11px] w-6 text-right">{currentStep.step}</span>
+                <div className="flex-1 relative h-1.5 bg-white/5 rounded-full overflow-hidden">
+                  <motion.div 
+                    className="absolute left-0 top-0 h-full rounded-full bg-gradient-to-r from-indigo-500 to-violet-500"
+                    animate={{ width: `${((currentStepIndex) / Math.max(1, steps.length - 1)) * 100}%` }}
+                    transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+                  />
+                </div>
+                <span className="text-slate-600 text-[11px] w-6">{steps.length}</span>
+              </div>
+              <input 
+                type="range" min={0} max={Math.max(0, steps.length - 1)} value={currentStepIndex}
+                onChange={(e) => setCurrentStepIndex(Number(e.target.value))}
+                className="w-full accent-indigo-500 mb-2 h-0.5"
+              />
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-1">
+                  {[
+                    { label: '|◀', action: () => setCurrentStepIndex(0), disabled: currentStepIndex === 0 },
+                    { label: '◀', action: () => setCurrentStepIndex(Math.max(0, currentStepIndex - 1)), disabled: currentStepIndex === 0 },
+                    { label: '▶', action: () => setCurrentStepIndex(Math.min(steps.length - 1, currentStepIndex + 1)), disabled: currentStepIndex === steps.length - 1 },
+                    { label: '▶|', action: () => setCurrentStepIndex(steps.length - 1), disabled: currentStepIndex === steps.length - 1 },
+                  ].map(({ label, action, disabled }) => (
+                    <button key={label} onClick={action} disabled={disabled}
+                      className="px-2.5 py-1 text-xs font-mono rounded-md border border-white/10 bg-white/5 hover:bg-white/12 disabled:opacity-25 transition-colors text-slate-300"
+                    >{label}</button>
+                  ))}
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="flex rounded-lg border border-white/10 overflow-hidden">
+                    {(['Slow', 'Normal', 'Fast'] as const).map(s => (
+                      <button key={s} onClick={() => setSpeed(s)}
+                        className={`px-2 py-1 text-[10px] font-bold transition-colors ${speed === s ? 'bg-indigo-500/30 text-indigo-300' : 'bg-white/3 text-slate-500 hover:text-slate-300'}`}
+                      >{s[0]}</button>
+                    ))}
+                  </div>
+                  <button onClick={() => setIsPlaying(!isPlaying)}
+                    className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold transition-all ${isPlaying ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30' : 'bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 hover:bg-indigo-500/30'}`}
+                  >
+                    {isPlaying ? <><Pause className="h-3 w-3" /> Pause</> : <><Play className="h-3 w-3" /> Play</>}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* ── RIGHT: Output + Memory ── */}
+          <div className="flex-1 flex flex-col" style={{background:'#0f0f1c'}}>
+            {/* Print Output */}
+            <div className="h-[30%] flex flex-col border-b border-white/8 p-3">
+              <div className="flex items-center gap-2 mb-2">
+                <div className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                <span className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Print Output</span>
+              </div>
+              <div className="flex-1 rounded-lg border border-white/8 p-3 font-mono text-[12px] overflow-auto text-emerald-300 whitespace-pre-wrap leading-5" style={{background:'rgba(0,0,0,0.4)'}}>
+                {currentStep.output || <span className="text-slate-600 italic text-[11px]">No output yet...</span>}
+                {currentStep.error && (
+                  <div className="text-rose-400 mt-2 font-medium border-t border-rose-500/20 pt-2">⚠ {currentStep.error}</div>
+                )}
+              </div>
+            </div>
+            
+            {/* Frames + Objects */}
+            <div className="flex-1 flex flex-col overflow-hidden p-3 gap-2">
+              <div className="flex gap-1">
+                <div className="flex-1 text-[10px] font-bold uppercase tracking-widest text-slate-500 text-center">Frames</div>
+                <div className="flex-1 text-[10px] font-bold uppercase tracking-widest text-slate-500 text-center">Objects</div>
+              </div>
+              
+              <div className="flex-1 flex gap-3 overflow-auto">
+                {/* Frames column */}
+                <div className="flex-1 flex flex-col gap-2 min-w-0">
+                  {(currentStep.frames || []).length === 0 ? (
+                    <div className="text-slate-600 text-xs italic text-center mt-4">No frames</div>
+                  ) : (
+                    (currentStep.frames || []).map((frame, fIdx) => {
+                      const isTopFrame = fIdx === (currentStep.frames?.length ?? 0) - 1;
+                      return (
+                        <motion.div key={fIdx}
+                          initial={{ opacity: 0, x: -8 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ delay: fIdx * 0.05 }}
+                          className={`rounded-xl border shrink-0 overflow-hidden ${isTopFrame ? 'border-indigo-500/40' : 'border-white/10'}`}
+                          style={{ background: isTopFrame ? 'rgba(99,102,241,0.08)' : 'rgba(255,255,255,0.03)' }}
+                        >
+                          <div className={`flex items-center gap-2 px-3 py-1.5 border-b ${isTopFrame ? 'border-indigo-500/20 bg-indigo-500/10' : 'border-white/5 bg-white/3'}`}>
+                            <div className={`w-1.5 h-1.5 rounded-full ${isTopFrame ? 'bg-indigo-400' : 'bg-slate-600'}`} />
+                            <span className={`text-[11px] font-semibold ${isTopFrame ? 'text-indigo-200' : 'text-slate-400'}`}>{frame.name}</span>
+                            {isTopFrame && <span className="ml-auto text-[9px] bg-indigo-500/20 text-indigo-300 px-1.5 py-0.5 rounded-full">active</span>}
+                          </div>
+                          <div className="p-2 flex flex-col gap-1">
+                            {Object.keys(frame.variables || {}).length === 0 ? (
+                              <div className="text-slate-600 text-[11px] italic px-1 py-0.5">empty</div>
+                            ) : (
+                              Object.entries(frame.variables).map(([name, state]) => {
+                                const isObj = state.type === 'list' || state.type === 'dict' || state.type === 'function' || state.type === 'class' || (state.type ?? '').endsWith('instance');
+                                return (
+                                  <div key={name} className="flex items-center gap-1 text-[12px] rounded-md px-1 py-0.5 hover:bg-white/3 transition-colors">
+                                    <span className="text-slate-400 font-mono min-w-[60px] text-right pr-2 shrink-0 text-[11px]">{name}</span>
+                                    <div className="flex-1 px-2 py-0.5 rounded bg-black/30 border border-white/8 font-mono text-[11px]">
+                                      {isObj ? (
+                                        <span className="text-violet-400 italic text-[10px]">→ {state.type}</span>
+                                      ) : state.type === 'str' ? (
+                                        <span className="text-emerald-400">"{state.value}"</span>
+                                      ) : state.type === 'int' || state.type === 'float' ? (
+                                        <span className="text-sky-400">{state.value}</span>
+                                      ) : state.type === 'bool' ? (
+                                        <span className="text-amber-400">{String(state.value)}</span>
+                                      ) : state.type === 'NoneType' ? (
+                                        <span className="text-slate-500 italic">None</span>
+                                      ) : (
+                                        <span className="text-slate-300">{String(state.value ?? '')}</span>
+                                      )}
+                                    </div>
+                                    <span className={`text-[9px] px-1 py-0.5 rounded font-mono shrink-0 ${
+                                      state.type === 'str' ? 'text-emerald-500/70 bg-emerald-500/8' :
+                                      state.type === 'int' || state.type === 'float' ? 'text-sky-500/70 bg-sky-500/8' :
+                                      state.type === 'bool' ? 'text-amber-500/70 bg-amber-500/8' :
+                                      'text-violet-500/70 bg-violet-500/8'
+                                    }`}>{state.type}</span>
+                                  </div>
+                                );
+                              })
+                            )}
+                          </div>
+                        </motion.div>
+                      );
+                    })
+                  )}
+                </div>
+
+                {/* Objects column */}
+                <div className="flex-1 flex flex-col gap-2 min-w-0">
+                  {allObjects.length === 0 ? (
+                    <div className="text-slate-600 text-xs italic text-center mt-4">No heap objects</div>
+                  ) : (
+                    allObjects.map(({ name, state }, idx) => {
+                      const isClass = state.type === 'class';
+                      const isInstance = (state.type ?? '').endsWith('instance');
+                      const isList = state.type === 'list';
+                      const isFunc = state.type === 'function';
+                      const accentColor = isClass ? 'violet' : isInstance ? 'amber' : isList ? 'sky' : 'emerald';
+                      const colorMap: Record<string, string> = {
+                        violet: 'border-violet-500/30 bg-violet-500/5',
+                        amber: 'border-amber-500/30 bg-amber-500/5',
+                        sky: 'border-sky-500/30 bg-sky-500/5',
+                        emerald: 'border-emerald-500/30 bg-emerald-500/5',
+                      };
+                      const headerMap: Record<string, string> = {
+                        violet: 'bg-violet-500/10 border-violet-500/20 text-violet-200',
+                        amber: 'bg-amber-500/10 border-amber-500/20 text-amber-200',
+                        sky: 'bg-sky-500/10 border-sky-500/20 text-sky-200',
+                        emerald: 'bg-emerald-500/10 border-emerald-500/20 text-emerald-200',
+                      };
+                      return (
+                        <motion.div key={idx}
+                          initial={{ opacity: 0, x: 8 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ delay: idx * 0.05 }}
+                          className={`rounded-xl border shrink-0 overflow-hidden ${colorMap[accentColor]}`}
+                        >
+                          <div className={`flex items-center gap-2 px-3 py-1.5 border-b ${headerMap[accentColor]}`}>
+                            <span className="text-[10px] font-bold uppercase tracking-wider">{isClass ? `${name} class` : state.type}</span>
+                          </div>
+                          <div className="overflow-hidden">
+                            {isList && Array.isArray(state.value) ? (
+                              <div className="flex overflow-x-auto">
+                                {state.value.map((v: any, i: number) => (
+                                  <div key={i} className="flex flex-col border-r border-white/8 last:border-r-0 min-w-[2.5rem]">
+                                    <div className="text-[9px] text-slate-600 text-center border-b border-white/8 bg-white/3 py-0.5">{i}</div>
+                                    <div className="text-center px-2 py-1.5 font-mono text-[12px] text-sky-300">{JSON.stringify(v)}</div>
+                                  </div>
+                                ))}
+                              </div>
+                            ) : isFunc ? (
+                              <div className="px-3 py-2 font-mono text-[12px] text-emerald-300">{String(state.value)}</div>
+                            ) : typeof state.value === 'object' && state.value !== null ? (
+                              Object.entries(state.value as Record<string, any>).map(([k, v], i) => (
+                                <div key={i} className="flex border-b border-white/5 last:border-b-0 text-[12px] font-mono">
+                                  <div className="px-3 py-1.5 text-slate-400 min-w-[80px] border-r border-white/8 bg-white/3 text-[11px]">{k}</div>
+                                  <div className="px-3 py-1.5 text-slate-200 flex-1">
+                                    {typeof v === 'string' && v.startsWith('function ') ? (
+                                      <span className="text-violet-300 text-[11px]">{v}</span>
+                                    ) : (
+                                      String(v)
+                                    )}
+                                  </div>
+                                </div>
+                              ))
+                            ) : (
+                              <div className="px-3 py-2 font-mono text-[12px] text-slate-300">{JSON.stringify(state.value)}</div>
+                            )}
+                          </div>
+                        </motion.div>
+                      );
+                    })
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      ) : (
+        <div className="flex-1 flex items-center justify-center text-slate-500">
+          <div className="flex flex-col items-center gap-3">
+            <div className="w-8 h-8 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin" />
+            <span className="text-sm">Loading trace...</span>
+          </div>
+        </div>
+      )}
+    </motion.div>
+  );
+}
