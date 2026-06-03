@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import ConceptPane from '@/components/lesson/ConceptPane';
 import CodeEditor from '@/components/editor/CodeEditor';
@@ -17,7 +17,8 @@ import {
   ArrowRight, 
   Trophy, 
   Award,
-  Sparkle
+  Sparkle,
+  LayoutDashboard,
 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -87,6 +88,36 @@ export default function LearnLessonPage() {
   const [earnedXp, setEarnedXp] = useState(0);
   const [newStreak, setNewStreak] = useState(0);
   const [newBadges, setNewBadges] = useState<any[]>([]);
+
+  // Save IN_PROGRESS to DB when user navigates away mid-lesson
+  // This ensures "Resume Mission" on the dashboard points back to this lesson
+  const saveProgressRef = useRef<{ code: string; lessonId: string } | null>(null);
+
+  useEffect(() => {
+    if (lesson && code && !isSuccessOpen) {
+      saveProgressRef.current = { code, lessonId };
+    }
+  }, [code, lesson, lessonId, isSuccessOpen]);
+
+  useEffect(() => {
+    const saveInProgress = () => {
+      const current = saveProgressRef.current;
+      if (!current) return;
+      // Use sendBeacon for reliable fire-and-forget on page unload
+      const payload = JSON.stringify({ code: current.code });
+      navigator.sendBeacon(
+        `/api/lessons/${current.lessonId}/save-progress`,
+        new Blob([payload], { type: 'application/json' })
+      );
+    };
+
+    window.addEventListener('beforeunload', saveInProgress);
+    return () => {
+      window.removeEventListener('beforeunload', saveInProgress);
+      // Also save on React route change (unmount)
+      saveInProgress();
+    };
+  }, []);
 
   // Fetch initial lesson metadata
   useEffect(() => {
@@ -471,8 +502,18 @@ export default function LearnLessonPage() {
     <div className="h-screen bg-black bg-noise flex flex-col overflow-hidden text-slate-100 font-sans antialiased">
       {/* Lesson Header Navbar */}
       <header className="h-14 border-b border-slate-900 bg-black bg-noise px-4 md:px-6 flex items-center justify-between shrink-0 select-none">
-        {/* Left Side: Navigation Breadcrumb */}
+        {/* Left Side: Dashboard button + Navigation Breadcrumb */}
         <div className="flex items-center gap-1.5 md:gap-3 text-xs md:text-sm font-semibold overflow-hidden whitespace-nowrap">
+          {/* Dashboard quick-exit button */}
+          <Link
+            href="/dashboard"
+            title="Back to Dashboard"
+            className="shrink-0 flex items-center gap-1.5 text-slate-400 hover:text-[#d9f95d] transition-colors px-2 py-1 rounded hover:bg-white/[0.05] border border-transparent hover:border-white/[0.05]"
+          >
+            <LayoutDashboard className="h-4 w-4" />
+            <span className="hidden sm:inline text-xs font-bold">Dashboard</span>
+          </Link>
+          <ChevronRight className="h-3 w-3 text-slate-700 shrink-0" />
           <Link 
             href={`/tracks/${lesson.unit.track.slug}`} 
             className="text-slate-400 hover:text-white transition-colors"

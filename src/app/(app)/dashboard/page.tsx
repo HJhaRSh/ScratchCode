@@ -33,6 +33,7 @@ interface ExtendedTrackProgress {
     id: string;
     title: string;
     unit_title: string;
+    in_progress?: boolean;
   };
 }
 
@@ -421,7 +422,9 @@ export default function DashboardPage() {
                           {track.next_lesson ? (
                             <>
                               <div className="space-y-0.5 md:text-right">
-                                <div className="text-[10px] text-slate-500 uppercase tracking-widest font-black font-mono">Next Objective</div>
+                                <div className="text-[10px] text-slate-500 uppercase tracking-widest font-black font-mono">
+                                  {track.next_lesson.in_progress ? '⚡ In Progress' : 'Next Objective'}
+                                </div>
                                 <div className="text-xs font-bold text-slate-300 truncate max-w-[200px]" title={track.next_lesson.title}>
                                   {track.next_lesson.title}
                                 </div>
@@ -431,9 +434,13 @@ export default function DashboardPage() {
                               </div>
                               <Link
                                 href={`/learn/${track.next_lesson.id}`}
-                                className="inline-flex h-10 items-center justify-center gap-1.5 rounded-xl bg-[#d9f95d] hover:bg-[#d9f95d] text-slate-950 font-extrabold text-xs tracking-wide px-5 hover:scale-[1.02] active:scale-[0.98] transition-all shadow-md shadow-[#d9f95d]/10 cursor-pointer"
+                                className={`inline-flex h-10 items-center justify-center gap-1.5 rounded-xl font-extrabold text-xs tracking-wide px-5 hover:scale-[1.02] active:scale-[0.98] transition-all shadow-md cursor-pointer ${
+                                  track.next_lesson.in_progress
+                                    ? 'bg-emerald-500 hover:bg-emerald-400 text-white shadow-emerald-500/20'
+                                    : 'bg-[#d9f95d] hover:bg-[#d9f95d] text-slate-950 shadow-[#d9f95d]/10'
+                                }`}
                               >
-                                Resume Mission <ChevronRight className="h-4 w-4 stroke-[3px]" />
+                                {track.next_lesson.in_progress ? 'Resume Lesson' : 'Resume Mission'} <ChevronRight className="h-4 w-4 stroke-[3px]" />
                               </Link>
                             </>
                           ) : (

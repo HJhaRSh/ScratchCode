@@ -77,10 +77,12 @@ export async function GET() {
         ? Math.min(100, Math.round((completedLessons / totalLessons) * 100))
         : 0;
 
-      // Find first uncompleted lesson as next_lesson
-      const nextLesson = trackLessons.find(
-        (lesson) => progressMap.get(lesson.id) !== 'COMPLETED'
+      // Prefer IN_PROGRESS lessons first (exact resume point), then first NOT_STARTED
+      const inProgressLesson = trackLessons.find(
+        (lesson) => progressMap.get(lesson.id) === 'IN_PROGRESS'
       );
+      const nextLesson = inProgressLesson ||
+        trackLessons.find((lesson) => progressMap.get(lesson.id) !== 'COMPLETED');
 
       return {
         track_slug: track.slug,
@@ -96,6 +98,7 @@ export async function GET() {
               id: nextLesson.id,
               title: nextLesson.title,
               unit_title: nextLesson.unit_title,
+              in_progress: progressMap.get(nextLesson.id) === 'IN_PROGRESS',
             }
           : undefined,
       };
@@ -240,4 +243,3 @@ export async function GET() {
     );
   }
 }
-
