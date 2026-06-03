@@ -6,30 +6,19 @@ interface StaticCodeBoxProps {
 }
 
 export function highlightSyntax(text: string) {
-  let highlighted = text;
   // Basic escaping
-  highlighted = highlighted.replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  let escaped = text.replace(/</g, '&lt;').replace(/>/g, '&gt;');
   
-  // Keywords
-  const keywords = ['function', 'return', 'def ', 'package ', 'import ', 'func ', 'const ', 'let ', 'var ', 'if ', 'else ', 'for ', 'while ', 'class ', 'struct '];
-  keywords.forEach(kw => {
-    highlighted = highlighted.replace(new RegExp(kw, 'g'), `<span class="text-pink-500">${kw}</span>`);
+  // Match strings, comments, built-ins, and keywords in one go
+  const regex = /("[^"]*"|'[^']*')|(\/\/.*|#.*)|\b(console\.log|print|fmt\.Println)\b|\b(function|return|def|package|import|func|const|let|var|if|else|for|while|class|struct)\b/g;
+  
+  return escaped.replace(regex, (match, p1, p2, p3, p4) => {
+    if (p1) return `<span class="text-yellow-200">${p1}</span>`;
+    if (p2) return `<span class="text-slate-500">${p2}</span>`;
+    if (p3) return `<span class="text-cyan-400">${p3}</span>`;
+    if (p4) return `<span class="text-pink-500">${p4}</span>`;
+    return match;
   });
-  
-  // Built-ins
-  highlighted = highlighted.replace(/console\.log/g, '<span class="text-cyan-400">console.log</span>');
-  highlighted = highlighted.replace(/print/g, '<span class="text-cyan-400">print</span>');
-  highlighted = highlighted.replace(/fmt\.Println/g, '<span class="text-cyan-400">fmt.Println</span>');
-  
-  // Strings (naive)
-  highlighted = highlighted.replace(/("[^"]*")/g, '<span class="text-yellow-200">$1</span>');
-  highlighted = highlighted.replace(/('[^']*')/g, '<span class="text-yellow-200">$1</span>');
-  
-  // Comments
-  highlighted = highlighted.replace(/(\/\/.*)/g, '<span class="text-slate-500">$1</span>');
-  highlighted = highlighted.replace(/(#.*)/g, '<span class="text-slate-500">$1</span>');
-
-  return highlighted;
 }
 
 export default function StaticCodeBox({ code, language = 'code' }: StaticCodeBoxProps) {

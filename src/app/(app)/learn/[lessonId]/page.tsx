@@ -567,7 +567,7 @@ export default function LearnLessonPage() {
           )}
 
           {/* AI Mentor Drawer Trigger */}
-          {lesson.type !== 'CONCEPT' && attemptsCount >= 2 && (
+          {lesson.type !== 'CONCEPT' && (
             <button
               onClick={() => {
                 setIsHintOpen(true);
