@@ -159,7 +159,7 @@ export default function HintDrawer({
                   </div>
                 ) : (
                   <div className="text-center py-12 text-slate-500">
-                    <p className="text-sm italic">Unlock a hint to get a gentle conceptual nudge.</p>
+                    <p className="text-sm italic">Click "Get Hint" to receive an instant AI-generated suggestion based on your code.</p>
                   </div>
                 )}
               </div>
