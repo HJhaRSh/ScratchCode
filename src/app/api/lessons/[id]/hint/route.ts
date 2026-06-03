@@ -88,9 +88,10 @@ You MUST respond in strict JSON format with exactly two keys:
 
 Rules:
 - Address the learner as 'you'.
-- Explicitly tell them what part of their code is incorrect or missing.
+- CRITICAL: First, evaluate if their code is even trying to solve the "Lesson goal". If their code is doing something completely different (e.g., subtracting instead of adding), DO NOT just fix their syntax for the wrong task. Tell them they are solving the wrong problem and redirect them to the actual goal.
+- Explicitly tell them what their current code is doing incorrectly compared to the lesson goal.
 - Explicitly tell them what they need to do to achieve the lesson goal.
-- Provide a useful structural snippet in the "snippet" field.`;
+- Provide a useful structural snippet in the "snippet" field that points toward the actual goal.`;
 
     const userMessage = `Lesson goal: ${lesson.title}
 The learner is trying to: ${exerciseDescription}
