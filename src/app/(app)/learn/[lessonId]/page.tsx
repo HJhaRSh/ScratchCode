@@ -7,6 +7,7 @@ import CodeEditor from '@/components/editor/CodeEditor';
 import OutputPanel from '@/components/editor/OutputPanel';
 import SubmitButton from '@/components/editor/SubmitButton';
 import CodeVisualizer from '@/components/editor/CodeVisualizer';
+import JSCodeVisualizer from '@/components/editor/JSCodeVisualizer';
 import HintDrawer from '@/components/lesson/HintDrawer';
 import { 
   Flame, 
@@ -717,15 +718,27 @@ export default function LearnLessonPage() {
       
       {/* Visualizer Panel Sliding up from bottom */}
       {isVisualizing && (
-        <CodeVisualizer
-          code={code}
-          language={lesson.language}
-          onClose={() => setIsVisualizing(false)}
-          onApplyFix={(fixedCode) => {
-            setCode(fixedCode);
-            setIsVisualizing(false);
-          }}
-        />
+        lesson.language.toLowerCase() === 'python' || lesson.language.toLowerCase() === 'py' ? (
+          <CodeVisualizer
+            code={code}
+            language={lesson.language}
+            onClose={() => setIsVisualizing(false)}
+            onApplyFix={(fixedCode) => {
+              setCode(fixedCode);
+              setIsVisualizing(false);
+            }}
+          />
+        ) : (
+          <JSCodeVisualizer
+            code={code}
+            language={lesson.language}
+            onClose={() => setIsVisualizing(false)}
+            onApplyFix={(fixedCode) => {
+              setCode(fixedCode);
+              setIsVisualizing(false);
+            }}
+          />
+        )
       )}
 
       <HintDrawer

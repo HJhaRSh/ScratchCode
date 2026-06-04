@@ -1,4 +1,5 @@
 import { PrismaClient, LessonType } from '@prisma/client';
+import { javascriptTrackData, javascriptUnits } from './javascript_track';
 
 const prisma = new PrismaClient();
 
@@ -913,6 +914,63 @@ async function main() {
       });
     }
   }
+
+  
+  // ----------------------------------------------------
+  // Seed JavaScript Track
+  // ----------------------------------------------------
+  console.log('Seeding JavaScript track...');
+  
+  await prisma.track.deleteMany({
+    where: { slug: javascriptTrackData.slug }
+  });
+
+  const jsTrack = await prisma.track.create({
+    data: javascriptTrackData,
+  });
+
+  for (const unitData of javascriptUnits) {
+    const { lessons, ...unitInfo } = unitData;
+
+    const unit = await prisma.unit.create({
+      data: {
+        ...unitInfo,
+        track_id: jsTrack.id,
+      }
+    });
+
+    for (const lessonData of lessons) {
+      await prisma.lesson.create({
+        data: {
+          ...lessonData,
+          unit_id: unit.id,
+        }
+      });
+    }
+  }
+
+  // ----------------------------------------------------
+  // Seed Badges
+  // ----------------------------------------------------
+  console.log('Seeding Badges...');
+  const badges = [
+    { slug: 'js-first-code', title: 'JS First Code', description: 'complete first JS lesson', icon_emoji: '🏅' },
+    { slug: 'js-fundamentals', title: 'JS Fundamentals', description: 'complete Unit 1', icon_emoji: '🔰' },
+    { slug: 'array-ninja', title: 'Array Ninja', description: 'complete Unit 4', icon_emoji: '🥷' },
+    { slug: 'closure-king', title: 'Closure King', description: 'complete Unit 3 Lesson 4', icon_emoji: '👑' },
+    { slug: 'async-master', title: 'Async Master', description: 'complete Unit 8', icon_emoji: '⏳' },
+    { slug: 'oop-expert', title: 'OOP Expert', description: 'complete Unit 7', icon_emoji: '🏗️' },
+    { slug: 'js-graduate', title: 'JS Graduate', description: 'complete all 9 JS units', icon_emoji: '🎓' }
+  ];
+
+  for (const badge of badges) {
+    await prisma.badge.upsert({
+      where: { slug: badge.slug },
+      update: badge,
+      create: badge,
+    });
+  }
+
 
   console.log('Seeding completed successfully!');
 }

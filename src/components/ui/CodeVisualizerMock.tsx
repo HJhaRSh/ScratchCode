@@ -4,16 +4,19 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const codeLines = [
-  { n: 1, code: 'class Student:' },
-  { n: 2, code: '  def __init__(self, name, age):' },
-  { n: 3, code: '    self.name = name' },
-  { n: 4, code: '    self.age = age' },
-  { n: 5, code: '' },
-  { n: 6, code: '  def greet(self):' },
-  { n: 7, code: '    print(self.nam) # Typo!' },
-  { n: 8, code: '' },
-  { n: 9, code: 's = Student("Harsh", 21)' },
-  { n: 10, code: 's.greet()' },
+  { n: 1, code: 'class Student {' },
+  { n: 2, code: '  constructor(name, age) {' },
+  { n: 3, code: '    this.name = name;' },
+  { n: 4, code: '    this.age = age;' },
+  { n: 5, code: '  }' },
+  { n: 6, code: '' },
+  { n: 7, code: '  greet() {' },
+  { n: 8, code: '    console.log(this.nam); // Typo!' },
+  { n: 9, code: '  }' },
+  { n: 10, code: '}' },
+  { n: 11, code: '' },
+  { n: 12, code: 'const s = new Student("Harsh", 21);' },
+  { n: 13, code: 's.greet();' },
 ];
 
 const animationSteps = [
@@ -22,48 +25,48 @@ const animationSteps = [
     frame: null, object: null, output: 'No output yet...'
   },
   {
-    active: 9, executed: [1],
+    active: 12, executed: [1],
     frame: null, object: null, output: 'No output yet...'
   },
   {
-    active: 2, executed: [1, 9],
-    frame: { name: '__init__', vars: [['self', '→ Student inst', 'emerald'], ['name', '"Harsh"', 'emerald'], ['age', '21', 'sky']] },
+    active: 2, executed: [1, 12],
+    frame: { name: 'constructor', vars: [['this', '→ Student inst', 'emerald'], ['name', '"Harsh"', 'emerald'], ['age', '21', 'sky']] },
     object: null, output: 'No output yet...'
   },
   {
-    active: 3, executed: [1, 9, 2],
-    frame: { name: '__init__', vars: [['self', '→ Student inst', 'emerald'], ['name', '"Harsh"', 'emerald'], ['age', '21', 'sky']] },
+    active: 3, executed: [1, 12, 2],
+    frame: { name: 'constructor', vars: [['this', '→ Student inst', 'emerald'], ['name', '"Harsh"', 'emerald'], ['age', '21', 'sky']] },
     object: { name: 'Student instance', props: [] }, output: 'No output yet...'
   },
   {
-    active: 4, executed: [1, 9, 2, 3],
-    frame: { name: '__init__', vars: [['self', '→ Student inst', 'emerald'], ['name', '"Harsh"', 'emerald'], ['age', '21', 'sky']] },
+    active: 4, executed: [1, 12, 2, 3],
+    frame: { name: 'constructor', vars: [['this', '→ Student inst', 'emerald'], ['name', '"Harsh"', 'emerald'], ['age', '21', 'sky']] },
     object: { name: 'Student instance', props: [['name', '"Harsh"']] }, output: 'No output yet...'
   },
   {
-    active: 10, executed: [1, 9, 2, 3, 4],
+    active: 13, executed: [1, 12, 2, 3, 4],
     frame: null,
     object: { name: 'Student instance', props: [['name', '"Harsh"'], ['age', '21']] }, output: 'No output yet...'
   },
   {
-    active: 6, executed: [1, 9, 2, 3, 4, 10],
-    frame: { name: 'greet', vars: [['self', '→ Student inst', 'emerald']] },
+    active: 7, executed: [1, 12, 2, 3, 4, 13],
+    frame: { name: 'greet', vars: [['this', '→ Student inst', 'emerald']] },
     object: { name: 'Student instance', props: [['name', '"Harsh"'], ['age', '21']] }, output: 'No output yet...'
   },
   {
-    active: 7, executed: [1, 9, 2, 3, 4, 10, 6],
-    frame: { name: 'greet', vars: [['self', '→ Student inst', 'emerald']] },
+    active: 8, executed: [1, 12, 2, 3, 4, 13, 7],
+    frame: { name: 'greet', vars: [['this', '→ Student inst', 'emerald']] },
     object: { name: 'Student instance', props: [['name', '"Harsh"'], ['age', '21']] }, 
     output: 'No output yet...',
-    error: 'AttributeError: "Student" has no attribute "nam"',
+    error: 'TypeError: Cannot read properties of undefined (reading "nam")',
     aiFix: false
   },
   {
-    active: null, executed: [1, 9, 2, 3, 4, 10, 6, 7],
+    active: null, executed: [1, 12, 2, 3, 4, 13, 7, 8],
     frame: null,
     object: { name: 'Student instance', props: [['name', '"Harsh"'], ['age', '21']] }, 
     output: 'No output yet...',
-    error: 'AttributeError: "Student" has no attribute "nam"',
+    error: 'TypeError: Cannot read properties of undefined (reading "nam")',
     aiFix: true
   }
 ];
@@ -250,12 +253,12 @@ export default function CodeVisualizerMock() {
                   <div>
                     <div className="text-rose-400 font-bold uppercase mb-1 tracking-widest text-[9px]">What went wrong</div>
                     <p className="text-slate-300 bg-black/20 p-2 rounded-lg border border-white/[0.05] leading-relaxed">
-                      You misspelled 'name' as 'nam'. The Student class doesn't have a 'nam' attribute.
+                      You misspelled 'name' as 'nam'. The Student class doesn't have a 'nam' property.
                     </p>
                   </div>
                   <div>
                     <div className="text-emerald-400 font-bold uppercase mb-1 tracking-widest text-[9px]">Fixed Code</div>
-                    <pre className="text-emerald-200 bg-black/40 p-2 rounded-lg border border-emerald-500/20 font-mono">print(self.name)</pre>
+                    <pre className="text-emerald-200 bg-black/40 p-2 rounded-lg border border-emerald-500/20 font-mono">console.log(this.name);</pre>
                   </div>
                   <button className="w-full mt-2 py-1.5 rounded-lg font-bold bg-[#d9f95d] text-slate-950 active:scale-95 transition-transform">
                     Apply Fix

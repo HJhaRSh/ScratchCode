@@ -424,9 +424,16 @@ export default function DashboardPage() {
               
               {/* CONTINUE LEARNING SECTION */}
               <div className="space-y-4">
-                <div className="flex items-center gap-2">
-                  <Zap className="h-5 w-5 text-cyan-400 fill-cyan-400/10" />
-                  <h2 className="text-xl font-bold text-white tracking-tight">Continue Learning</h2>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Zap className="h-5 w-5 text-cyan-400 fill-cyan-400/10" />
+                    <h2 className="text-xl font-bold text-white tracking-tight">Continue Learning</h2>
+                  </div>
+                  {hasStartedTracks && (
+                    <Link href="/tracks" className="text-xs font-bold text-[#d9f95d] hover:text-white transition-colors flex items-center gap-1">
+                      Explore Tracks <ArrowRight className="h-3 w-3" />
+                    </Link>
+                  )}
                 </div>
 
                 {hasStartedTracks ? (
