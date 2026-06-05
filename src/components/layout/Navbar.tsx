@@ -146,12 +146,28 @@ export default function Navbar() {
             ))}
             <div className="pt-4 mt-2 border-t border-white/[0.05]">
               {!loading && user ? (
-                <button
-                  onClick={() => { signOut(); setIsMobileMenuOpen(false); }}
-                  className="flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-red-500/10 border border-red-500/20 px-4 text-xs font-mono font-bold uppercase tracking-[0.2em] text-red-400"
-                >
-                  <LogOut className="h-4 w-4" /> Sign Out
-                </button>
+                <>
+                  <Link
+                    href="/dashboard"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="block px-4 py-3 rounded-lg text-slate-300 hover:text-white hover:bg-white/5 transition-colors font-display tracking-wide font-medium"
+                  >
+                    Dashboard
+                  </Link>
+                  <Link
+                    href="/account"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="block px-4 py-3 rounded-lg text-slate-300 hover:text-white hover:bg-white/5 transition-colors font-display tracking-wide font-medium"
+                  >
+                    Account
+                  </Link>
+                  <button
+                    onClick={() => { signOut(); setIsMobileMenuOpen(false); }}
+                    className="flex mt-2 h-12 w-full items-center justify-center gap-2 rounded-xl bg-red-500/10 border border-red-500/20 px-4 text-xs font-mono font-bold uppercase tracking-[0.2em] text-red-400"
+                  >
+                    <LogOut className="h-4 w-4" /> Sign Out
+                  </button>
+                </>
               ) : (
                 <Link
                   href="/login"

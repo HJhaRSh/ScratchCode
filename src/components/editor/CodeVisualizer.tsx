@@ -365,7 +365,7 @@ json.dumps(_steps)
       animate={{ y: 0, opacity: 1 }}
       exit={{ y: '100%', opacity: 0 }}
       transition={{ type: 'spring', damping: 28, stiffness: 220 }}
-      className="absolute bottom-0 left-0 right-0 h-[72vh] border-t border-white/[0.1] shadow-2xl flex flex-col z-50 overflow-hidden font-sans bg-[#0a0a0a] bg-noise"
+      className="absolute bottom-0 left-0 right-0 h-[85vh] lg:h-[72vh] border-t border-white/[0.1] shadow-2xl flex flex-col z-50 overflow-hidden font-sans bg-[#0a0a0a] bg-noise"
     >
       {/* ── Header ── */}
       <div className="flex items-center justify-between px-5 py-2.5 border-b border-white/8 shrink-0" style={{ background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(12px)' }}>

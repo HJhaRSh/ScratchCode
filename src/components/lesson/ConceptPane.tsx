@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { BookOpen, HelpCircle, Code, ArrowLeft, ArrowRight } from 'lucide-react';
+import { BookOpen, Code, ArrowLeft, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
 import ExercisePane from './ExercisePane';
 import StaticCodeBox from '@/components/ui/StaticCodeBox';
@@ -38,48 +38,7 @@ export default function ConceptPane({
   previousLessonId,
   nextLessonId,
 }: ConceptPaneProps) {
-  // Safe extraction of instructions/prompts
-  let prompt = contentJson?.prompt || '';
-  let instructions = contentJson?.instructions || '';
-  
-  // Extract from new sections array format if present
-  if (Array.isArray(contentJson?.sections)) {
-    const exerciseSection = contentJson.sections.find((s: any) => s.type === 'exercise' || s.type === 'project');
-    if (exerciseSection) {
-      prompt = exerciseSection.title || '';
-      instructions = exerciseSection.description || '';
-    } else if (lessonType === 'PROJECT') {
-      prompt = 'Project Brief';
-      // The project instructions are typically in the section immediately following the "Project Brief" heading
-      const briefIndex = contentJson.sections.findIndex((s: any) => s.type === 'heading' && (s.text === 'Project Brief' || s.text?.toLowerCase().includes('project')));
-      const contentSection = briefIndex !== -1 && briefIndex + 1 < contentJson.sections.length 
-        ? contentJson.sections[briefIndex + 1] 
-        : contentJson.sections.find((s: any) => s.type === 'list' || s.type === 'paragraph');
-
-      if (contentSection) {
-        if (contentSection.type === 'list' && Array.isArray(contentSection.items)) {
-          instructions = contentSection.items.map((item: string, i: number) => `${i + 1}. ${item}`).join('\n');
-        } else if (contentSection.type === 'paragraph') {
-          instructions = contentSection.text || '';
-        }
-      }
-    }
-  }
-
-  const taskDescription = instructions 
-    ? (prompt ? `${prompt.toUpperCase()}\n\n${instructions}` : instructions)
-    : prompt || 'No instructions provided for this lesson.';
-
-  // Safe extraction of expected console output
-  let expectedOutput = '';
-  if (testCasesJson) {
-    try {
-      const tc = typeof testCasesJson === 'string' ? JSON.parse(testCasesJson) : testCasesJson;
-      expectedOutput = tc.expected_output || tc.expected || (tc.test_cases?.[0]?.expected_output) || '';
-    } catch {
-      expectedOutput = '';
-    }
-  }
+  // ExercisePane now handles its own content extraction from contentJson
 
   // Determine which tabs are relevant
   const showExerciseTab = lessonType === 'EXERCISE';
@@ -168,23 +127,20 @@ export default function ConceptPane({
                 return (
                   <StaticCodeBox key={idx} code={section.code || ''} language={section.language || 'code'} />
                 );
-              case 'callout':
-                const variantStyles = {
-                  info: 'border-cyan-500/20 text-cyan-200',
-                  warning: 'border-amber-500/20 text-amber-200',
-                  tip: 'border-emerald-500/20 text-emerald-200',
+              case 'callout': {
+                const variantMap: Record<string, { box: string; label: string; icon: string }> = {
+                  info:    { box: 'bg-cyan-500/[0.08] border border-cyan-500/20 text-cyan-200',       label: 'ℹ️ Info',    icon: 'text-cyan-400' },
+                  warning: { box: 'bg-amber-500/[0.08] border border-amber-500/20 text-amber-200',    label: '⚠️ Warning', icon: 'text-amber-400' },
+                  tip:     { box: 'bg-emerald-500/[0.08] border border-emerald-500/20 text-emerald-200', label: '💡 Tip',   icon: 'text-emerald-400' },
                 };
+                const vs = variantMap[section.variant || 'info'];
                 return (
-                  <div
-                    key={idx}
-                    className={`py-4 border-y border-white/[0.05] text-sm flex gap-3 ${
-                      variantStyles[section.variant || 'info']
-                    }`}
-                  >
-                    <HelpCircle className="h-5 w-5 shrink-0 text-cyan-400" />
+                  <div key={idx} className={`rounded-lg px-4 py-3 text-sm ${vs.box}`}>
+                    <p className={`text-[10px] font-bold uppercase tracking-wider mb-1.5 ${vs.icon}`}>{vs.label}</p>
                     <div>{renderParagraphText(section.text || '')}</div>
                   </div>
                 );
+              }
               case 'list':
                 return (
                   <ul key={idx} className="list-disc pl-6 space-y-2">
@@ -263,8 +219,9 @@ export default function ConceptPane({
           </div>
         ) : (
           <ExercisePane
-            taskDescription={taskDescription}
-            expectedOutput={expectedOutput}
+            contentJson={contentJson}
+            lessonType={lessonType}
+            testCasesJson={testCasesJson}
           />
         )}
       </div>

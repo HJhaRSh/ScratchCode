@@ -1,6 +1,7 @@
 import { PrismaClient, LessonType } from '@prisma/client';
 import { javascriptTrackData, javascriptUnits } from './javascript_track';
-
+import { pythonTrackData, pythonUnits } from './python_track';
+import { htmlCssTrackData, htmlCssUnits } from './html_css_track';
 const prisma = new PrismaClient();
 
 async function main() {
@@ -950,6 +951,39 @@ async function main() {
   }
 
   // ----------------------------------------------------
+  // Seed HTML & CSS Track
+  // ----------------------------------------------------
+  console.log('Seeding HTML & CSS track...');
+  
+  await prisma.track.deleteMany({
+    where: { slug: htmlCssTrackData.slug }
+  });
+
+  const htmlCssTrack = await prisma.track.create({
+    data: htmlCssTrackData,
+  });
+
+  for (const unitData of htmlCssUnits) {
+    const { lessons, ...unitInfo } = unitData;
+
+    const unit = await prisma.unit.create({
+      data: {
+        ...unitInfo,
+        track_id: htmlCssTrack.id,
+      }
+    });
+
+    for (const lessonData of lessons) {
+      await prisma.lesson.create({
+        data: {
+          ...lessonData,
+          unit_id: unit.id,
+        }
+      });
+    }
+  }
+
+  // ----------------------------------------------------
   // Seed Badges
   // ----------------------------------------------------
   console.log('Seeding Badges...');
@@ -960,7 +994,12 @@ async function main() {
     { slug: 'closure-king', title: 'Closure King', description: 'complete Unit 3 Lesson 4', icon_emoji: '👑' },
     { slug: 'async-master', title: 'Async Master', description: 'complete Unit 8', icon_emoji: '⏳' },
     { slug: 'oop-expert', title: 'OOP Expert', description: 'complete Unit 7', icon_emoji: '🏗️' },
-    { slug: 'js-graduate', title: 'JS Graduate', description: 'complete all 9 JS units', icon_emoji: '🎓' }
+    { slug: 'js-graduate', title: 'JS Graduate', description: 'complete all 9 JS units', icon_emoji: '🎓' },
+    { slug: 'html-first-code', title: 'HTML First Tag', description: 'complete first HTML lesson', icon_emoji: '🌐' },
+    { slug: 'css-artist', title: 'CSS Artist', description: 'complete CSS Basics', icon_emoji: '🎨' },
+    { slug: 'flexbox-master', title: 'Flexbox Master', description: 'complete Flexbox Layouts', icon_emoji: '📦' },
+    { slug: 'responsive-guru', title: 'Responsive Guru', description: 'complete Responsive Design', icon_emoji: '📱' },
+    { slug: 'html-css-graduate', title: 'HTML/CSS Graduate', description: 'complete HTML/CSS Portfolio Project', icon_emoji: '🏆' }
   ];
 
   for (const badge of badges) {

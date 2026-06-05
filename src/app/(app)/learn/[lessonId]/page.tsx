@@ -8,6 +8,7 @@ import OutputPanel from '@/components/editor/OutputPanel';
 import SubmitButton from '@/components/editor/SubmitButton';
 import CodeVisualizer from '@/components/editor/CodeVisualizer';
 import JSCodeVisualizer from '@/components/editor/JSCodeVisualizer';
+import HTMLCodeVisualizer from '@/components/editor/HTMLCodeVisualizer';
 import HintDrawer from '@/components/lesson/HintDrawer';
 import { 
   Flame, 
@@ -512,19 +513,19 @@ export default function LearnLessonPage() {
             <LayoutDashboard className="h-4 w-4" />
             <span className="hidden sm:inline text-xs font-bold">Dashboard</span>
           </Link>
-          <ChevronRight className="h-3 w-3 text-slate-700 shrink-0" />
+          <ChevronRight className="hidden sm:block h-3 w-3 text-slate-700 shrink-0" />
           <Link 
             href={`/tracks/${lesson.unit.track.slug}`} 
-            className="text-slate-400 hover:text-white transition-colors"
+            className="hidden sm:block text-slate-400 hover:text-white transition-colors"
           >
             {lesson.unit.track.title}
           </Link>
-          <ChevronRight className="h-3 w-3 text-slate-600 shrink-0" />
-          <span className="text-slate-400 overflow-hidden text-ellipsis max-w-[100px] md:max-w-none">
+          <ChevronRight className="hidden sm:block h-3 w-3 text-slate-600 shrink-0" />
+          <span className="hidden sm:block text-slate-400 overflow-hidden text-ellipsis max-w-[100px] md:max-w-none">
             Unit {lesson.unit.unit_number}
           </span>
-          <ChevronRight className="h-3 w-3 text-slate-600 shrink-0" />
-          <span className="text-slate-200 overflow-hidden text-ellipsis max-w-[120px] md:max-w-none font-bold">
+          <ChevronRight className="hidden sm:block h-3 w-3 text-slate-600 shrink-0" />
+          <span className="text-slate-200 overflow-hidden text-ellipsis max-w-[150px] md:max-w-none font-bold">
             {lesson.title}
           </span>
         </div>
@@ -707,7 +708,7 @@ export default function LearnLessonPage() {
               onRun={handleRun}
               onSubmit={handleSubmit}
               onReset={handleReset}
-              onVisualize={['python', 'py', 'javascript', 'js'].includes(lesson.language.toLowerCase()) ? () => setIsVisualizing(true) : undefined}
+              onVisualize={['python', 'py', 'javascript', 'js', 'html', 'css', 'html-css'].includes(lesson.language.toLowerCase()) ? () => setIsVisualizing(true) : undefined}
               isRunning={isRunning}
               isSubmitting={isSubmitting}
               disabled={loading || lesson.type === 'CONCEPT'}
@@ -716,7 +717,6 @@ export default function LearnLessonPage() {
         </div>
       </div>
       
-      {/* Visualizer Panel Sliding up from bottom */}
       {isVisualizing && (
         lesson.language.toLowerCase() === 'python' || lesson.language.toLowerCase() === 'py' ? (
           <CodeVisualizer
@@ -728,8 +728,18 @@ export default function LearnLessonPage() {
               setIsVisualizing(false);
             }}
           />
-        ) : (
+        ) : lesson.language.toLowerCase() === 'javascript' || lesson.language.toLowerCase() === 'js' ? (
           <JSCodeVisualizer
+            code={code}
+            language={lesson.language}
+            onClose={() => setIsVisualizing(false)}
+            onApplyFix={(fixedCode) => {
+              setCode(fixedCode);
+              setIsVisualizing(false);
+            }}
+          />
+        ) : (
+          <HTMLCodeVisualizer
             code={code}
             language={lesson.language}
             onClose={() => setIsVisualizing(false)}
@@ -757,7 +767,7 @@ export default function LearnLessonPage() {
       {isSuccessOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-noise/90 p-4 animate-fade-in font-sans">
           {/* Outer Card */}
-          <div className="bg-black bg-noise border-y border-[#d9f95d]/20 max-w-md w-full p-6 md:p-8 text-center space-y-6 shadow-2xl relative overflow-hidden animate-scale-up">
+          <div className="bg-[#0a0a0a] bg-noise border border-[#d9f95d]/20 max-w-md w-full p-6 md:p-8 text-center space-y-6 shadow-2xl relative animate-scale-up max-h-[95vh] overflow-y-auto custom-scrollbar rounded-xl">
             {/* Glowing decorative lights */}
             <div className="absolute -top-12 -left-12 w-24 h-24 bg-[#d9f95d]/10 rounded-full blur-2xl" />
             <div className="absolute -bottom-12 -right-12 w-24 h-24 bg-white/10 rounded-full blur-2xl" />

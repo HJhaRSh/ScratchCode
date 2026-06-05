@@ -212,17 +212,17 @@ export default function LandingPage() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.3 }}
-              className="flex flex-col sm:flex-row gap-4 pt-4"
+              className="flex flex-col sm:flex-row gap-4 pt-4 w-full sm:w-auto"
             >
               <Link
                 href={ctaLink}
-                className="inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-[#d9f95d] px-8 font-display font-bold text-slate-950 hover:bg-[#b8d945] hover:scale-[1.02] active:scale-[0.98] transition-all duration-300"
+                className="w-full sm:w-auto inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-[#d9f95d] px-8 font-display font-bold text-slate-950 hover:bg-[#b8d945] hover:scale-[1.02] active:scale-[0.98] transition-all duration-300"
               >
                 {heroCtaText} <ArrowRight className="h-4 w-4" />
               </Link>
               <a
                 href="#how-it-works"
-                className="inline-flex h-12 items-center justify-center rounded-xl glass-panel px-8 font-display font-medium text-slate-300 hover:text-white hover:bg-white/5 transition-all duration-300"
+                className="w-full sm:w-auto inline-flex h-12 items-center justify-center rounded-xl glass-panel px-8 font-display font-medium text-slate-300 hover:text-white hover:bg-white/5 transition-all duration-300"
               >
                 <div className="w-2 h-2 rounded-full bg-[#d9f95d] mr-2" />
                 How it works
@@ -432,7 +432,7 @@ export default function LandingPage() {
           <div className="flex justify-center mt-12">
             <Link
               href="/visualizer"
-              className="inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-green-400 px-8 font-display font-bold text-slate-950 hover:bg-green-500 hover:scale-[1.02] active:scale-[0.98] transition-all duration-300"
+              className="w-full sm:w-auto inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-green-400 px-8 font-display font-bold text-slate-950 hover:bg-green-500 hover:scale-[1.02] active:scale-[0.98] transition-all duration-300"
             >
               Try it live <Play className="w-4 h-4 fill-current" />
             </Link>
@@ -521,7 +521,7 @@ export default function LandingPage() {
           <div className="pt-8">
             <Link
               href={ctaLink}
-              className="inline-flex h-14 items-center justify-center gap-2 rounded-xl bg-white px-10 text-base font-display tracking-wide font-bold text-black hover:bg-[#d9f95d] hover:scale-105 active:scale-95 transition-all shadow-[0_0_40px_-10px_rgba(255,255,255,0.2)]"
+              className="w-full sm:w-auto inline-flex h-14 items-center justify-center gap-2 rounded-xl bg-white px-10 text-base font-display tracking-wide font-bold text-black hover:bg-[#d9f95d] hover:scale-105 active:scale-95 transition-all shadow-[0_0_40px_-10px_rgba(255,255,255,0.2)]"
             >
               {finalCtaText} <ArrowRight className="h-5 w-5" />
             </Link>

@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import CodeEditor from '@/components/editor/CodeEditor';
 import CodeVisualizer from '@/components/editor/CodeVisualizer';
 import JSCodeVisualizer from '@/components/editor/JSCodeVisualizer';
+import HTMLCodeVisualizer from '@/components/editor/HTMLCodeVisualizer';
 import { Play, AlertTriangle, X } from 'lucide-react';
 import Navbar from '@/components/layout/Navbar';
 import Sidebar from '@/components/layout/Sidebar';
@@ -17,6 +18,8 @@ export default function VisualizerPlayground() {
   React.useEffect(() => {
     if (language === 'javascript') {
       setCode('function main() {\n  console.log("Hello, Visualizer!");\n  \n  // Write your code here to trace it\n  const x = 10;\n  const y = 20;\n  console.log(x + y);\n}\n\nmain();');
+    } else if (language === 'html-css') {
+      setCode('<!-- Welcome to the HTML/CSS Visualizer -->\n<div class="card">\n  <h2>Hello, Visualizer!</h2>\n  <p>Modify this code to see the live preview.</p>\n</div>\n\n<style>\n  .card {\n    border: 1px solid #ccc;\n    padding: 20px;\n    border-radius: 8px;\n  }\n  h2 {\n    color: #06b6d4;\n  }\n</style>');
     } else {
       setCode('def main():\n    print("Hello, Visualizer!")\n    \n    # Write your code here to trace it\n    x = 10\n    y = 20\n    print(x + y)\n\nmain()');
     }
@@ -30,6 +33,7 @@ export default function VisualizerPlayground() {
     // Basic heuristic to catch obvious mismatches
     const isJS = code.includes('console.log') || code.includes('const ') || code.includes('let ') || text.includes('function ') || code.includes('document.');
     const isPy = code.includes('print(') || code.includes('def ') || text.includes('import ') || (code.includes('class ') && code.includes(':')) || code.includes('elif');
+    const isHTML = code.includes('<html') || code.includes('<div') || code.includes('</style>') || code.includes('<body');
 
     if (language === 'javascript' && isPy && !isJS) {
       setError("It looks like you've written Python code, but the language is set to JavaScript. Please change the language above before visualizing.");
@@ -38,6 +42,11 @@ export default function VisualizerPlayground() {
     
     if (language === 'python' && isJS && !isPy) {
       setError("It looks like you've written JavaScript code, but the language is set to Python. Please change the language above before visualizing.");
+      return;
+    }
+
+    if (language === 'html-css' && (isPy || isJS) && !isHTML) {
+      setError("It looks like you've written Python or JS code, but the language is set to HTML/CSS. Please change the language above before visualizing.");
       return;
     }
     
@@ -69,6 +78,7 @@ export default function VisualizerPlayground() {
           >
             <option value="python">Python</option>
             <option value="javascript">JavaScript</option>
+            <option value="html-css">HTML</option>
           </select>
           <button
             onClick={handleVisualizeClick}
@@ -115,6 +125,12 @@ export default function VisualizerPlayground() {
                   language={language}
                   onClose={() => setShowVisualizer(false)}
                   onApplyFix={handleApplyFix}
+                />
+              ) : language === 'html-css' || language === 'html' ? (
+                <HTMLCodeVisualizer
+                  code={code}
+                  language={language}
+                  onClose={() => setShowVisualizer(false)}
                 />
               ) : (
                 <CodeVisualizer

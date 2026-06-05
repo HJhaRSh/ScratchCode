@@ -312,8 +312,8 @@ export default function DashboardPage() {
         <Sidebar />
         <main className="flex-1 p-4 pt-20 md:p-8 md:pt-24 pb-24 md:pb-8 overflow-y-auto space-y-6 md:space-y-8 max-w-7xl mx-auto w-full">
           {/* Header HUD greeting */}
-          <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 md:gap-6 border-b border-white/[0.05] pb-6 md:pb-10 relative">
-            <div className="absolute -top-20 left-0 w-[500px] h-[250px] bg-[#d9f95d]/5 rounded-[100%] blur-[120px] pointer-events-none" />
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 md:gap-6 border-b border-white/[0.05] pb-6 md:pb-10 relative overflow-hidden sm:overflow-visible">
+            <div className="absolute -top-20 left-0 w-full sm:w-[500px] h-[250px] bg-[#d9f95d]/5 rounded-[100%] blur-[120px] pointer-events-none" />
             
             <div className="space-y-3 relative z-10">
               <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[9px] md:px-4 md:py-1.5 md:text-[10px] font-mono font-bold tracking-[0.2em] text-[#d9f95d] uppercase">
@@ -337,7 +337,7 @@ export default function DashboardPage() {
           </div>
 
           {/* TOP ROW — Unified Stats Grid (3-col on all sizes) */}
-          <div className="grid grid-cols-3 divide-x divide-white/[0.05] border border-white/[0.05] rounded-2xl mb-6 md:mb-12 overflow-hidden">
+          <div className="grid grid-cols-1 sm:grid-cols-3 divide-y sm:divide-y-0 sm:divide-x divide-white/[0.05] border border-white/[0.05] rounded-2xl mb-6 md:mb-12 overflow-hidden">
             {/* Streak Stat */}
             <div className="py-5 px-3 md:py-8 md:px-8 relative group hover:bg-white/[0.02] transition-colors flex flex-col justify-center">
               <div className="flex items-center justify-between mb-2 md:mb-4">

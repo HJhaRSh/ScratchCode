@@ -40,6 +40,63 @@ const decode = (b64Str: string | null | undefined): string => {
   return Buffer.from(b64Str, 'base64').toString('utf-8');
 };
 
+// ─── HTML/CSS test case evaluator ────────────────────────────────────────────
+// Handles our seeded test case format: { type, selector, value, hint, min }
+function evaluateHtmlCssTestCase(tc: any, code: string): { passed: boolean; actual: string } {
+  const type = tc.type || 'output_contains';
+  const lowerCode = code.toLowerCase();
+
+  switch (type) {
+    case 'dom_exists': {
+      // Check that the HTML tag exists in the submitted code
+      const selector = String(tc.selector || '').toLowerCase().trim();
+      // Match opening tags like <h1, <div, <form, <img etc.
+      const passed = lowerCode.includes(`<${selector}`) || lowerCode.includes(`<${selector} `);
+      return {
+        passed,
+        actual: passed
+          ? `<${selector}> element found`
+          : `Missing <${selector}> element — ${tc.hint || 'add the required tag'}`,
+      };
+    }
+    case 'dom_count': {
+      const selector = String(tc.selector || '').toLowerCase().trim();
+      const min = tc.min ?? 1;
+      // Count occurrences of the opening tag
+      const matches = (lowerCode.match(new RegExp(`<${selector}[\\s>]`, 'g')) || []).length;
+      const passed = matches >= min;
+      return {
+        passed,
+        actual: passed
+          ? `Found ${matches} <${selector}> element(s)`
+          : `Need at least ${min} <${selector}> element(s), found ${matches}`,
+      };
+    }
+    case 'css_contains': {
+      // Check CSS code contains a specific rule/property
+      const snippet = String(tc.value || '').toLowerCase().replace(/\s+/g, '');
+      const normalizedCode = lowerCode.replace(/\s+/g, '');
+      const passed = normalizedCode.includes(snippet);
+      return {
+        passed,
+        actual: passed ? `CSS rule found: ${tc.value}` : `Missing CSS: ${tc.value}`,
+      };
+    }
+    case 'output_contains':
+    default: {
+      // Legacy: check if code text contains the expected string
+      const expected = String(tc.value ?? tc.expected_output ?? '').toLowerCase().trim();
+      if (!expected) return { passed: true, actual: 'No assertion' };
+      const normalizedCode = lowerCode.replace(/\s+/g, ' ').trim();
+      const passed = normalizedCode.includes(expected.replace(/\s+/g, ' ').trim());
+      return {
+        passed,
+        actual: passed ? expected : `Expected "${tc.value ?? tc.expected_output}" not found in code`,
+      };
+    }
+  }
+}
+
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const resolvedParams = await params;
@@ -86,30 +143,19 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     }
 
     // Parse test cases
-    let testCases: TestCase[] = [];
+    let testCases: any[] = [];
     if (lesson.test_cases_json) {
       const parsed = typeof lesson.test_cases_json === 'string'
         ? JSON.parse(lesson.test_cases_json)
         : lesson.test_cases_json;
 
       if (Array.isArray(parsed)) {
-        testCases = parsed.map((tc) => ({
-          input: tc.input || '',
-          expected_output: String(tc.expected_output || tc.value || ''),
-        }));
+        testCases = parsed;
       } else if (parsed && typeof parsed === 'object') {
         if (parsed.expected_output || parsed.value) {
-          testCases = [
-            {
-              input: parsed.input || '',
-              expected_output: String(parsed.expected_output || parsed.value || ''),
-            },
-          ];
+          testCases = [parsed];
         } else if (parsed.test_cases && Array.isArray(parsed.test_cases)) {
-          testCases = parsed.test_cases.map((tc: any) => ({
-            input: tc.input || '',
-            expected_output: String(tc.expected_output || tc.value || ''),
-          }));
+          testCases = parsed.test_cases;
         }
       }
     }
@@ -132,23 +178,22 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
 
     for (let i = 0; i < testCases.length; i++) {
       const tc = testCases[i];
-      const trimmedExpected = tc.expected_output.trim();
 
       if (isHTMLCSS) {
-        // String contains checking for HTML/CSS visual layouts
-        const normalizedCode = code.replace(/\s+/g, ' ').trim();
-        const normalizedExpected = tc.expected_output.replace(/\s+/g, ' ').trim();
-        const passed = normalizedCode.toLowerCase().includes(normalizedExpected.toLowerCase());
+        // ── HTML/CSS: evaluate structurally using test case type ──────────
+        const { passed, actual } = evaluateHtmlCssTestCase(tc, code);
 
         if (!passed) allPassed = false;
         results.push({
           passed,
-          input: 'Code tags scan',
-          expected: tc.expected_output,
-          actual: passed ? tc.expected_output : 'Missing requested tag structures or styling elements.',
+          input: tc.selector ?? tc.type ?? 'Code scan',
+          expected: tc.value ?? tc.selector ?? tc.expected_output ?? '',
+          actual,
+          error: passed ? undefined : actual,
         });
       } else {
-        // Use remote execution via Judge0
+        // ── Non-HTML: original Judge0 logic (unchanged) ───────────────────
+        const trimmedExpected = String(tc.expected_output || tc.value || '').trim();
         const langId = getJudge0LanguageId(lesson.language);
         let passed = false;
         let actual = '';
@@ -201,7 +246,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
           passed = userCodeNormalized.includes(expectedNormalized) || 
                    (lesson.solution_code && userCodeNormalized.includes(lesson.solution_code.replace(/\s+/g, '').toLowerCase())) ||
                    false;
-          actual = passed ? tc.expected_output : 'Simulation output mismatch';
+          actual = passed ? trimmedExpected : 'Simulation output mismatch';
           errDetails = passed ? '' : 'Could not compile code remotely. Ensure correct syntax and variables.';
         }
 
@@ -209,7 +254,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
         results.push({
           passed,
           input: tc.input || 'None',
-          expected: tc.expected_output,
+          expected: trimmedExpected,
           actual: actual || 'Empty stdout',
           error: errDetails || undefined,
         });
