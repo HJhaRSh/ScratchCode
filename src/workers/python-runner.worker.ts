@@ -19,7 +19,7 @@ self.onmessage = async (e: MessageEvent) => {
         self.postMessage({ type: 'stdout', data: '\x1b[38;5;240m> Initializing Pyodide...\x1b[0m\r\n' });
         
         // Import pyodide using importScripts
-        self.importScripts('https://cdn.jsdelivr.net/pyodide/v0.25.0/full/pyodide.js');
+        (self as any).importScripts('https://cdn.jsdelivr.net/pyodide/v0.25.0/full/pyodide.js');
         
         pyodideInstance = await loadPyodide({
           indexURL: 'https://cdn.jsdelivr.net/pyodide/v0.25.0/full/',
