@@ -75,6 +75,16 @@ export default function Sidebar() {
               );
             })}
           </nav>
+          <div className="px-8 space-y-4">
+            <div className="flex gap-4 text-xs font-medium text-slate-600">
+              <Link href="/privacy" className="hover:text-slate-400 transition-colors">Privacy</Link>
+              <Link href="/terms" className="hover:text-slate-400 transition-colors">Terms</Link>
+              <Link href="/contact" className="hover:text-slate-400 transition-colors">Contact</Link>
+            </div>
+            <p className="text-[10px] text-slate-700 tracking-wider">
+              © {new Date().getFullYear()} ScratchCode
+            </p>
+          </div>
         </div>
       </div>
     </aside>

@@ -140,7 +140,7 @@ export default function SignupPage() {
   };
 
   return (
-    <div className="min-h-screen bg-black bg-noise flex flex-col items-center justify-center p-4">
+    <div className="min-h-screen bg-black bg-noise flex flex-col items-center justify-center p-4 overflow-x-hidden relative">
       <Link href="/" className="absolute top-8 left-8 flex items-center group">
         <span className="font-logo text-2xl font-bold text-white tracking-tighter hover:text-[#d9f95d] transition-colors">&lt;scratch.code&gt;</span>
       </Link>

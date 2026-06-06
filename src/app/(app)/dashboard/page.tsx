@@ -169,8 +169,8 @@ export default function DashboardPage() {
           <Sidebar />
           <main className="flex-1 p-4 md:p-8 overflow-y-auto space-y-8 max-w-7xl mx-auto w-full">
             {/* Header skeletal layout */}
-            <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-white/[0.05] pb-10 relative">
-              <div className="absolute -top-20 left-0 w-[500px] h-[250px] bg-[#d9f95d]/5 rounded-[100%] blur-[120px] pointer-events-none" />
+            <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-white/[0.05] pb-10 relative overflow-hidden sm:overflow-visible">
+              <div className="absolute -top-20 left-0 w-full sm:w-[500px] h-[250px] bg-[#d9f95d]/5 rounded-[100%] blur-[120px] pointer-events-none" />
               <div className="space-y-4 relative z-10">
                 <Skeleton className="h-6 w-32 rounded-full bg-white/5" />
                 <Skeleton className="h-12 w-64 md:w-96 bg-white/5" />

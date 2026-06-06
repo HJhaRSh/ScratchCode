@@ -5,6 +5,7 @@ import CodeEditor from '@/components/editor/CodeEditor';
 import CodeVisualizer from '@/components/editor/CodeVisualizer';
 import JSCodeVisualizer from '@/components/editor/JSCodeVisualizer';
 import HTMLCodeVisualizer from '@/components/editor/HTMLCodeVisualizer';
+import CCodeVisualizer from '@/components/editor/CCodeVisualizer';
 import { Play, AlertTriangle, X } from 'lucide-react';
 import Navbar from '@/components/layout/Navbar';
 import Sidebar from '@/components/layout/Sidebar';
@@ -20,6 +21,8 @@ export default function VisualizerPlayground() {
       setCode('function main() {\n  console.log("Hello, Visualizer!");\n  \n  // Write your code here to trace it\n  const x = 10;\n  const y = 20;\n  console.log(x + y);\n}\n\nmain();');
     } else if (language === 'html-css') {
       setCode('<!-- Welcome to the HTML/CSS Visualizer -->\n<div class="card">\n  <h2>Hello, Visualizer!</h2>\n  <p>Modify this code to see the live preview.</p>\n</div>\n\n<style>\n  .card {\n    border: 1px solid #ccc;\n    padding: 20px;\n    border-radius: 8px;\n  }\n  h2 {\n    color: #06b6d4;\n  }\n</style>');
+    } else if (language === 'c') {
+      setCode('#include <stdio.h>\n\nint main() {\n    printf("Hello, Visualizer!\\n");\n    \n    // Write your code here to trace it\n    int x = 10;\n    int y = 20;\n    printf("%d\\n", x + y);\n    return 0;\n}');
     } else {
       setCode('def main():\n    print("Hello, Visualizer!")\n    \n    # Write your code here to trace it\n    x = 10\n    y = 20\n    print(x + y)\n\nmain()');
     }
@@ -34,19 +37,25 @@ export default function VisualizerPlayground() {
     const isJS = code.includes('console.log') || code.includes('const ') || code.includes('let ') || text.includes('function ') || code.includes('document.');
     const isPy = code.includes('print(') || code.includes('def ') || text.includes('import ') || (code.includes('class ') && code.includes(':')) || code.includes('elif');
     const isHTML = code.includes('<html') || code.includes('<div') || code.includes('</style>') || code.includes('<body');
+    const isC = code.includes('#include') || code.includes('printf(') || code.includes('int main') || code.includes('scanf(');
 
-    if (language === 'javascript' && isPy && !isJS) {
-      setError("It looks like you've written Python code, but the language is set to JavaScript. Please change the language above before visualizing.");
+    if (language === 'javascript' && (isPy || isC) && !isJS) {
+      setError("It looks like you've written Python or C code, but the language is set to JavaScript. Please change the language above before visualizing.");
       return;
     }
     
-    if (language === 'python' && isJS && !isPy) {
-      setError("It looks like you've written JavaScript code, but the language is set to Python. Please change the language above before visualizing.");
+    if (language === 'python' && (isJS || isC) && !isPy) {
+      setError("It looks like you've written JavaScript or C code, but the language is set to Python. Please change the language above before visualizing.");
       return;
     }
 
-    if (language === 'html-css' && (isPy || isJS) && !isHTML) {
-      setError("It looks like you've written Python or JS code, but the language is set to HTML/CSS. Please change the language above before visualizing.");
+    if (language === 'c' && (isJS || isPy) && !isC) {
+      setError("It looks like you've written JavaScript or Python code, but the language is set to C. Please change the language above before visualizing.");
+      return;
+    }
+
+    if (language === 'html-css' && (isPy || isJS || isC) && !isHTML) {
+      setError("It looks like you've written programming code, but the language is set to HTML/CSS. Please change the language above before visualizing.");
       return;
     }
     
@@ -78,6 +87,7 @@ export default function VisualizerPlayground() {
           >
             <option value="python">Python</option>
             <option value="javascript">JavaScript</option>
+            <option value="c">C</option>
             <option value="html-css">HTML</option>
           </select>
           <button
@@ -121,6 +131,13 @@ export default function VisualizerPlayground() {
             <div className="pointer-events-auto h-full w-full">
               {language === 'javascript' || language === 'js' ? (
                 <JSCodeVisualizer
+                  code={code}
+                  language={language}
+                  onClose={() => setShowVisualizer(false)}
+                  onApplyFix={handleApplyFix}
+                />
+              ) : language === 'c' ? (
+                <CCodeVisualizer
                   code={code}
                   language={language}
                   onClose={() => setShowVisualizer(false)}

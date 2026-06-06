@@ -58,7 +58,7 @@ function LoginForm() {
 
 
   return (
-    <div className="min-h-screen bg-black bg-noise flex flex-col items-center justify-center p-4">
+    <div className="min-h-screen bg-black bg-noise flex flex-col items-center justify-center p-4 overflow-x-hidden relative">
       <Link href="/" className="absolute top-8 left-8 flex items-center group">
         <span className="font-logo text-2xl font-bold text-white tracking-tighter hover:text-[#d9f95d] transition-colors">&lt;scratch.code&gt;</span>
       </Link>
@@ -137,7 +137,7 @@ function LoginForm() {
 export default function LoginPage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen bg-black bg-noise flex flex-col items-center justify-center p-4">
+      <div className="min-h-screen bg-black bg-noise flex flex-col items-center justify-center p-4 overflow-x-hidden relative">
         <div className="w-full max-w-md bg-[#111111] border border-white/[0.05] rounded-3xl p-8 space-y-6 shadow-2xl flex flex-col items-center justify-center">
           <div className="w-8 h-8 border-4 border-white/20 border-t-white rounded-full animate-spin"></div>
         </div>

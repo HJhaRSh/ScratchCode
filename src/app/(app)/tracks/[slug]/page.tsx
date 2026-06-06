@@ -82,7 +82,7 @@ const TRACK_THEMES: Record<string, {
     shadow: 'shadow-orange-500/10',
     bannerBg: 'bg-gradient-to-r from-orange-950/30 to-red-950/10',
   },
-  'c-cpp': {
+  'c-programming': {
     accent: 'text-indigo-400 border-indigo-500/20 bg-indigo-500/10',
     gradient: 'from-indigo-600 to-blue-500',
     shadow: 'shadow-indigo-500/10',

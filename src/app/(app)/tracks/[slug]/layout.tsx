@@ -11,7 +11,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   
   const formatSlug = (s: string) => {
     if (s === 'html-css') return 'HTML & CSS';
-    if (s === 'c-cpp') return 'C & C++';
+    if (s === 'c-programming') return 'C Programming';
     return s.charAt(0).toUpperCase() + s.slice(1);
   };
   

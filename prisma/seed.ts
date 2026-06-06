@@ -2,6 +2,7 @@ import { PrismaClient, LessonType } from '@prisma/client';
 import { javascriptTrackData, javascriptUnits } from './javascript_track';
 import { pythonTrackData, pythonUnits } from './python_track';
 import { htmlCssTrackData, htmlCssUnits } from './html_css_track';
+import { cTrackData, cUnits } from './c_track';
 const prisma = new PrismaClient();
 
 async function main() {
@@ -970,6 +971,39 @@ async function main() {
       data: {
         ...unitInfo,
         track_id: htmlCssTrack.id,
+      }
+    });
+
+    for (const lessonData of lessons) {
+      await prisma.lesson.create({
+        data: {
+          ...lessonData,
+          unit_id: unit.id,
+        }
+      });
+    }
+  }
+
+  // ----------------------------------------------------
+  // Seed C Programming Track
+  // ----------------------------------------------------
+  console.log('Seeding C Programming track...');
+
+  await prisma.track.deleteMany({
+    where: { slug: cTrackData.slug }
+  });
+
+  const cTrack = await prisma.track.create({
+    data: cTrackData,
+  });
+
+  for (const unitData of cUnits) {
+    const { lessons, ...unitInfo } = unitData;
+
+    const unit = await prisma.unit.create({
+      data: {
+        ...unitInfo,
+        track_id: cTrack.id,
       }
     });
 

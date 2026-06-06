@@ -5,6 +5,7 @@ import Navbar from '@/components/layout/Navbar';
 import CodingBackground from '@/components/ui/CodingBackground';
 import CodeTerminalHero from '@/components/ui/CodeTerminalHero';
 import CodeVisualizerMock from '@/components/ui/CodeVisualizerMock';
+import Footer from '@/components/layout/Footer';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Play, 
@@ -83,7 +84,7 @@ const tracks = [
     customIcon: '🌐',
   },
   {
-    name: 'C / C++',
+    name: 'C Programming',
     icon: Cpu,
     iconColor: 'text-indigo-400 bg-indigo-500/10 border-indigo-500/20',
     units: 18,
@@ -91,7 +92,7 @@ const tracks = [
     difficulty: 'Intermediate',
     difficultyColor: 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20',
     description: 'Understand core system architectures, memory layout, pointers, and low-level programming concepts.',
-    href: '/signup?track=c-cpp',
+    href: '/signup?track=c-programming',
     customIcon: '⚙️',
   },
   {
@@ -530,46 +531,7 @@ export default function LandingPage() {
       </motion.section>
 
       {/* Footer */}
-      <footer className="bg-black border-t border-white/[0.05] pt-20 pb-10 text-slate-400 relative z-10">
-        <div className="container mx-auto px-6 max-w-7xl">
-          <div className="flex flex-col lg:flex-row justify-between items-start gap-16 lg:gap-8 mb-20">
-            <div className="space-y-6 max-w-sm">
-              <Link href="/" className="inline-block group">
-                <span className="font-logo text-3xl font-bold text-white tracking-tighter hover:text-[#d9f95d] transition-colors">&lt;scratch.code&gt;</span>
-              </Link>
-              <p className="text-sm text-slate-500 leading-relaxed">
-                India's premiere zero-install platform. Teaching absolute beginners programming through real, immediate browser execution.
-              </p>
-            </div>
-            
-            <div className="flex gap-16 sm:gap-24">
-              <div className="space-y-6">
-                <h4 className="text-xs font-display font-bold uppercase tracking-widest text-white">Legal</h4>
-                <ul className="space-y-4 text-sm font-medium">
-                  <li><Link href="/privacy" className="hover:text-white transition-colors">Privacy Policy</Link></li>
-                  <li><Link href="/terms" className="hover:text-white transition-colors">Terms of Service</Link></li>
-                </ul>
-              </div>
-              
-              <div className="space-y-6">
-                <h4 className="text-xs font-display font-bold uppercase tracking-widest text-white">Social</h4>
-                <ul className="space-y-4 text-sm font-medium">
-                  <li>
-                    <a href="https://github.com" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 hover:text-white transition-colors">
-                      <Github className="h-4 w-4" /> GitHub
-                    </a>
-                  </li>
-                </ul>
-              </div>
-            </div>
-          </div>
-
-          <div className="pt-8 border-t border-white/[0.05] flex flex-col sm:flex-row justify-between items-center gap-4 text-[10px] uppercase tracking-widest font-bold text-slate-600">
-            <p>© {new Date().getFullYear()} ScratchCode. All rights reserved.</p>
-            <p className="flex items-center gap-1.5">Made with <span className="text-[#d9f95d]">♥</span> in India</p>
-          </div>
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 }

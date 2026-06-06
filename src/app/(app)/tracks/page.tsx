@@ -50,13 +50,14 @@ const TRACK_METADATA: Record<string, {
     gradient: 'from-orange-500 via-red-500 to-rose-400',
     textColor: 'text-orange-400',
   },
-  'c-cpp': {
+  'c-programming': {
     difficulty: 'Intermediate',
     difficultyColor: 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20',
     iconBg: 'bg-indigo-500/10 border-indigo-500/20 text-indigo-400',
     gradient: 'from-indigo-600 via-indigo-500 to-blue-400',
     textColor: 'text-indigo-400',
   },
+
   'java': {
     difficulty: 'Intermediate',
     difficultyColor: 'bg-red-500/10 text-red-400 border-red-500/20',

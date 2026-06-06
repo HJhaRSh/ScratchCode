@@ -2,6 +2,9 @@
 
 import React, { useState, useEffect } from 'react';
 import { Terminal, CheckSquare, Eye, Play, AlertTriangle } from 'lucide-react';
+import dynamic from 'next/dynamic';
+
+const InteractiveTerminal = dynamic(() => import('./InteractiveTerminal'), { ssr: false });
 
 interface OutputPanelProps {
   output: string;
@@ -16,6 +19,8 @@ interface OutputPanelProps {
   }[] | null;
   language: string;
   code: string;
+  runId?: number;
+  onExecutionComplete?: () => void;
 }
 
 export default function OutputPanel({
@@ -25,6 +30,8 @@ export default function OutputPanel({
   testResults,
   language,
   code,
+  runId,
+  onExecutionComplete,
 }: OutputPanelProps) {
   const isHTMLCSS = ['html', 'css', 'html-css'].includes(language.toLowerCase());
   const [activeTab, setActiveTab] = useState<'console' | 'test-cases' | 'preview'>('console');
@@ -88,31 +95,16 @@ export default function OutputPanel({
 
       {/* Pane Content */}
       <div className="flex-1 p-4 overflow-y-auto bg-transparent font-mono text-xs select-text">
-        {isRunning ? (
-          <div className="flex items-center gap-2 text-slate-400 animate-pulse py-4 justify-center">
-            <Play className="h-4 w-4 animate-spin text-emerald-500" />
-            Running execution code...
-          </div>
-        ) : activeTab === 'console' ? (
-          <div className="space-y-1.5 leading-relaxed">
-            {error ? (
-              <div className="text-rose-500 bg-rose-950/15 p-3 border border-rose-950/30 rounded font-semibold whitespace-pre-wrap flex gap-2">
-                <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5 text-rose-500" />
-                <div>
-                  <strong>Compilation/Execution Error:</strong>
-                  <div className="mt-1 font-normal font-mono text-rose-350">{error}</div>
-                </div>
-              </div>
-            ) : output ? (
-              <div className="text-emerald-400 whitespace-pre-wrap leading-relaxed bg-emerald-950/5 border border-emerald-950/20 p-3 rounded shadow-inner">
-                {output}
-              </div>
-            ) : (
-              <div className="text-slate-600 italic py-4 text-center font-sans">
-                No standard console output yet. Click the "Run Code" button to execute.
-              </div>
-            )}
-          </div>
+        {activeTab === 'console' ? (
+          runId ? (
+            <div className="h-full w-full">
+              <InteractiveTerminal code={code} language={language} runId={runId} onExecutionComplete={onExecutionComplete} />
+            </div>
+          ) : (
+            <div className="flex flex-col h-full space-y-1.5 leading-relaxed text-slate-500 italic items-center justify-center">
+              Click &apos;Run Code&apos; to execute.
+            </div>
+          )
         ) : activeTab === 'test-cases' ? (
           <div className="space-y-3 font-sans">
             {testResults ? (

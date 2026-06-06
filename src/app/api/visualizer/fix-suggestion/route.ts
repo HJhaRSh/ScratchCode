@@ -13,7 +13,19 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Groq API key not configured' }, { status: 500 });
     }
 
-    const systemPrompt = `You are an expert ${language} programming tutor. A student encountered an error while running their code. Your job is to:
+    const isExplainMode = error === 'EXPLAIN';
+
+    const systemPrompt = isExplainMode
+      ? `You are an expert ${language} programming tutor. Your job is to:
+1. Briefly explain how this code works in plain English (3-4 sentences max)
+2. Provide the code back (or slightly improved if there are obvious anti-patterns, but keep the core logic identical).
+
+IMPORTANT formatting rules:
+- Return ONLY valid JSON matching this exact shape: { "explanation": "...", "fixedCode": "..." }
+- The explanation must be plain text (no markdown, no code blocks inside it)
+- The fixedCode must be the complete code as a plain string
+- Do NOT wrap your response in markdown code fences`
+      : `You are an expert ${language} programming tutor. A student encountered an error while running their code. Your job is to:
 1. Briefly explain what caused the error in plain English (2-3 sentences max)
 2. Provide the corrected, complete version of the code
 
@@ -29,9 +41,7 @@ Code:
 \`\`\`${language}
 ${code}
 \`\`\`
-
-Error message:
-${error}
+${isExplainMode ? '' : `\nError message:\n${error}`}
 
 Return JSON only.`;
 

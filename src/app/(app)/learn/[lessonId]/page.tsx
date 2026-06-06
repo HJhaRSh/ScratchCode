@@ -8,6 +8,7 @@ import OutputPanel from '@/components/editor/OutputPanel';
 import SubmitButton from '@/components/editor/SubmitButton';
 import CodeVisualizer from '@/components/editor/CodeVisualizer';
 import JSCodeVisualizer from '@/components/editor/JSCodeVisualizer';
+import CCodeVisualizer from '@/components/editor/CCodeVisualizer';
 import HTMLCodeVisualizer from '@/components/editor/HTMLCodeVisualizer';
 import HintDrawer from '@/components/lesson/HintDrawer';
 import { 
@@ -71,6 +72,8 @@ export default function LearnLessonPage() {
 
   // IDE states
   const [code, setCode] = useState<string>('');
+  const [stdin, setStdin] = useState<string>('');
+  const [runId, setRunId] = useState<number>(0);
   const [output, setOutput] = useState<string>('');
   const [error, setError] = useState<string | null>(null);
   const [testResults, setTestResults] = useState<any[] | null>(null);
@@ -180,138 +183,9 @@ export default function LearnLessonPage() {
     setTestResults(null);
   }, [activePaneTab]);
 
-  // 1. Python Local WebWorker Sandbox Execution
-  const runPythonCode = (userCode: string) => {
-    setIsRunning(true);
-    setError(null);
-    setOutput('Loading pyodide runtime...');
-
-    // Worker code built dynamically via Blob URL
-    const workerScript = `
-      importScripts("https://cdn.jsdelivr.net/pyodide/v0.25.0/full/pyodide.js");
-      let pyodide = null;
-      
-      self.onmessage = async function(e) {
-        const { code } = e.data;
-        try {
-          if (!pyodide) {
-            self.postMessage({ type: 'status', text: 'Initializing sandboxed Python engine...' });
-            pyodide = await loadPyodide();
-          }
-          
-          let stdoutBuffer = "";
-          pyodide.setStdout({
-            batched: (str) => {
-              stdoutBuffer += str + "\\n";
-            }
-          });
-          
-          self.postMessage({ type: 'status', text: 'Running Python compiler...' });
-          await pyodide.runPythonAsync(code);
-          
-          self.postMessage({ type: 'success', stdout: stdoutBuffer.trim() });
-        } catch (err) {
-          self.postMessage({ type: 'error', error: err.message });
-        }
-      };
-    `;
-
-    const blob = new Blob([workerScript], { type: 'application/javascript' });
-    const pyWorker = new Worker(URL.createObjectURL(blob));
-
-    pyWorker.postMessage({ code: userCode });
-
-    pyWorker.onmessage = (e) => {
-      const { type, stdout, error: pyErr, text } = e.data;
-      if (type === 'status') {
-        setOutput(text);
-      } else if (type === 'success') {
-        setOutput(stdout || 'Code ran successfully with no console outputs.');
-        setIsRunning(false);
-        pyWorker.terminate();
-      } else if (type === 'error') {
-        setError(pyErr);
-        setIsRunning(false);
-        pyWorker.terminate();
-      }
-    };
-  };
-
-  // 2. JavaScript Sandboxed Iframe Console Override Execution
-  const runJavaScriptCode = (userCode: string) => {
-    setIsRunning(true);
-    setError(null);
-    setOutput('Running local javascript interpreter...');
-
-    const jsIframe = document.createElement('iframe');
-    jsIframe.style.display = 'none';
-    jsIframe.setAttribute('sandbox', 'allow-scripts');
-
-    const logs: string[] = [];
-    const errors: string[] = [];
-
-    const handleMessage = (event: MessageEvent) => {
-      if (event.data && event.data.source === 'js-sandbox') {
-        if (event.data.type === 'log') {
-          logs.push(event.data.message);
-        } else if (event.data.type === 'error') {
-          errors.push(event.data.message);
-        }
-      }
-    };
-
-    window.addEventListener('message', handleMessage);
-
-    const iframeDoc = `
-      <!DOCTYPE html>
-      <html>
-      <head>
-        <script>
-          const log = (...args) => {
-            window.parent.postMessage({ source: 'js-sandbox', type: 'log', message: args.join(' ') }, '*');
-          };
-          const err = (...args) => {
-            window.parent.postMessage({ source: 'js-sandbox', type: 'error', message: args.join(' ') }, '*');
-          };
-          console.log = log;
-          console.error = err;
-          window.onerror = (message, source, lineno) => {
-            err(message + " (Line " + lineno + ")");
-            return true;
-          };
-        </script>
-      </head>
-      <body>
-        <script>
-          try {
-            ${userCode}
-          } catch(e) {
-            console.error(e.message);
-          }
-        </script>
-      </body>
-      </html>
-    `;
-
-    document.body.appendChild(jsIframe);
-    jsIframe.srcdoc = iframeDoc;
-
-    // Timeout execution wrapper
-    setTimeout(() => {
-      window.removeEventListener('message', handleMessage);
-      document.body.removeChild(jsIframe);
-
-      if (errors.length > 0) {
-        setError(errors.join('\n'));
-      } else {
-        setOutput(logs.join('\n') || 'Execution complete (no console.log lines).');
-      }
-      setIsRunning(false);
-    }, 1200);
-  };
 
   // 3. Remote Compiler Execution (C/C++ & Java) via judge0 API
-  const runCompiledCode = async (userCode: string, lang: string) => {
+  const runCompiledCode = async (userCode: string, lang: string, userStdin: string = '') => {
     setIsRunning(true);
     setError(null);
     setOutput('Submitting compilation request to Judge0...');
@@ -320,7 +194,7 @@ export default function LearnLessonPage() {
       const res = await fetch(`/api/lessons/${lessonId}/execute`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ code: userCode, language: lang }),
+        body: JSON.stringify({ code: userCode, language: lang, stdin: userStdin }),
       });
 
       const data = await res.json();
@@ -347,15 +221,16 @@ export default function LearnLessonPage() {
     if (!lesson) return;
     const lang = lesson.language.toLowerCase();
 
-    if (lang === 'python' || lang === 'py') {
-      runPythonCode(code);
-    } else if (lang === 'javascript' || lang === 'js') {
-      runJavaScriptCode(code);
+    if (['python', 'py', 'javascript', 'js', 'c'].includes(lang)) {
+      setRunId(prev => prev + 1);
+      setIsRunning(true);
+      setOutput('');
+      setError(null);
+    } else if (['cpp', 'c++'].includes(lang) || lang === 'java') {
+      runCompiledCode(code, lang, stdin);
     } else if (['html', 'css', 'html-css'].includes(lang)) {
       setOutput('HTML preview rendered successfully in preview panel.');
       setIsRunning(false);
-    } else if (['cpp', 'c++', 'c', 'java'].includes(lang)) {
-      runCompiledCode(code, lang);
     } else {
       setError(`Local run execution is not yet configured for ${lesson.language}.`);
     }
@@ -697,8 +572,10 @@ export default function LearnLessonPage() {
               error={error}
               isRunning={isRunning}
               testResults={testResults}
-              language={lesson.language}
+              language={lesson?.language || ''}
               code={code}
+              runId={runId}
+              onExecutionComplete={() => setIsRunning(false)}
             />
           </div>
 
@@ -708,7 +585,7 @@ export default function LearnLessonPage() {
               onRun={handleRun}
               onSubmit={handleSubmit}
               onReset={handleReset}
-              onVisualize={['python', 'py', 'javascript', 'js', 'html', 'css', 'html-css'].includes(lesson.language.toLowerCase()) ? () => setIsVisualizing(true) : undefined}
+              onVisualize={['python', 'py', 'javascript', 'js', 'html', 'css', 'html-css', 'c'].includes(lesson.language.toLowerCase()) ? () => setIsVisualizing(true) : undefined}
               isRunning={isRunning}
               isSubmitting={isSubmitting}
               disabled={loading || lesson.type === 'CONCEPT'}
@@ -730,6 +607,16 @@ export default function LearnLessonPage() {
           />
         ) : lesson.language.toLowerCase() === 'javascript' || lesson.language.toLowerCase() === 'js' ? (
           <JSCodeVisualizer
+            code={code}
+            language={lesson.language}
+            onClose={() => setIsVisualizing(false)}
+            onApplyFix={(fixedCode) => {
+              setCode(fixedCode);
+              setIsVisualizing(false);
+            }}
+          />
+        ) : lesson.language.toLowerCase() === 'c' ? (
+          <CCodeVisualizer
             code={code}
             language={lesson.language}
             onClose={() => setIsVisualizing(false)}

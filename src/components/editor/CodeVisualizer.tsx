@@ -28,6 +28,7 @@ interface Step {
 interface AiFixResult {
   explanation: string;
   fixedCode: string;
+  isExplainMode?: boolean;
 }
 
 interface CodeVisualizerProps {
@@ -74,16 +75,28 @@ export default function CodeVisualizer({ code, language, onClose, onApplyFix }: 
       });
       const data = await res.json();
       if (res.ok) {
-        setAiFixResult({ explanation: data.explanation, fixedCode: data.fixedCode });
+        setAiFixResult({ explanation: data.explanation, fixedCode: data.fixedCode, isExplainMode: errorText === 'EXPLAIN' });
       } else {
-        setAiFixResult({ explanation: 'Could not fetch AI suggestion. Please try again.', fixedCode: code });
+        setAiFixResult({ explanation: 'Could not fetch AI suggestion. Please try again.', fixedCode: code, isExplainMode: errorText === 'EXPLAIN' });
       }
     } catch {
-      setAiFixResult({ explanation: 'Network error — could not reach AI service.', fixedCode: code });
+      setAiFixResult({ explanation: 'Network error — could not reach AI service.', fixedCode: code, isExplainMode: errorText === 'EXPLAIN' });
     } finally {
       setLoadingAiFix(false);
     }
   }, [code, language]);
+
+  const [localStdin, setLocalStdin] = useState(stdin);
+  const [debouncedStdin, setDebouncedStdin] = useState(stdin);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedStdin(localStdin), 600);
+    return () => clearTimeout(timer);
+  }, [localStdin]);
+
+  useEffect(() => {
+    setLocalStdin(stdin);
+  }, [stdin]);
 
   useEffect(() => {
     setLoading(true);
@@ -102,21 +115,21 @@ export default function CodeVisualizer({ code, language, onClose, onApplyFix }: 
 
     const lang = language.toLowerCase();
     if (lang === 'python' || lang === 'py') {
-      loadPyodideAndRun(codeTrimmed);
+      loadPyodideAndRun(codeTrimmed, debouncedStdin);
     } else if (lang === 'javascript' || lang === 'js') {
-      runJavascriptStepper(codeTrimmed);
+      runJavascriptStepper(codeTrimmed, debouncedStdin);
     } else {
       setErrorMsg(`Visualization not supported for ${language}`);
       setLoading(false);
     }
-  }, [code, language]);
+  }, [code, language, debouncedStdin]);
 
-  const loadPyodideAndRun = (userCode: string) => {
+  const loadPyodideAndRun = (userCode: string, inputStdin: string) => {
     const workerScript = `
       importScripts("https://cdn.jsdelivr.net/pyodide/v0.25.0/full/pyodide.js");
       
       self.onmessage = async function(e) {
-        const { code } = e.data;
+        const { code, stdin } = e.data;
         try {
           self.postMessage({ type: 'status', text: 'Initializing Python engine...' });
           let pyodide = await loadPyodide();
@@ -127,6 +140,21 @@ import sys, json, io, inspect
 
 _steps = []
 _out = io.StringIO()
+_stdin_parts = STDIN_DATA.split()
+_stdin_idx = 0
+
+def mock_input(prompt_text=""):
+    global _stdin_idx
+    if _out and prompt_text:
+        _out.write(str(prompt_text))
+    if _stdin_idx < len(_stdin_parts):
+        val = _stdin_parts[_stdin_idx]
+        _stdin_idx += 1
+        return val
+    return ""
+
+import builtins
+builtins.input = mock_input
 
 # ---- safe serialisation ----
 def _safe_val(v, depth=0):
@@ -216,6 +244,7 @@ finally:
 json.dumps(_steps)
 \`;
           pyodide.globals.set("USER_CODE_STRING", code);
+          pyodide.globals.set("STDIN_DATA", stdin);
           const resultJson = await pyodide.runPythonAsync(traceScript);
           const steps = JSON.parse(resultJson);
           self.postMessage({ type: 'success', steps });
@@ -227,7 +256,7 @@ json.dumps(_steps)
 
     const blob = new Blob([workerScript], { type: 'application/javascript' });
     const pyWorker = new Worker(URL.createObjectURL(blob));
-    pyWorker.postMessage({ code: userCode });
+    pyWorker.postMessage({ code: userCode, stdin: inputStdin });
 
     pyWorker.onmessage = (e) => {
       const { type, steps, error } = e.data;
@@ -280,31 +309,60 @@ json.dumps(_steps)
     };
   };
 
-  const runJavascriptStepper = (userCode: string) => {
-    try {
-      acorn.parse(userCode, { ecmaVersion: 2020, locations: true });
-      let traceSteps: Step[] = [];
-      let outputBuffer = '';
-      const lines = userCode.split('\n');
-      for (let i = 0; i < lines.length; i++) {
-        if (lines[i].trim() !== '') {
-          traceSteps.push({
-            step: traceSteps.length + 1,
-            line: i + 1,
-            frames: [{ name: 'Global frame', variables: {} }],
-            callStack: ['global'],
-            output: outputBuffer,
-          });
+  const runJavascriptStepper = (userCode: string, inputStdin: string) => {
+    const workerScript = `
+      self.onmessage = function(e) {
+        const { code, stdin } = e.data;
+        const steps = [];
+        let output = '';
+        
+        let stdinParts = stdin ? stdin.trim().split(/\\s+/) : [];
+        let stdinIdx = 0;
+        
+        const mockPrompt = (msg) => {
+          if (msg) output += msg;
+          if (stdinIdx < stdinParts.length) return stdinParts[stdinIdx++];
+          return "";
+        };
+
+        const mockConsole = {
+          log: (...args) => { output += args.join(' ') + '\\n'; },
+          error: (...args) => { output += args.join(' ') + '\\n'; }
+        };
+
+        try {
+          // Simple JS line-by-line simulation placeholder
+          const lines = code.split('\\n');
+          for (let i = 0; i < lines.length; i++) {
+             steps.push({
+                step: i + 1,
+                line: i + 1,
+                frames: [{ name: 'Global frame', variables: {} }],
+                callStack: ['global'],
+                output: output,
+             });
+          }
+          self.postMessage({ type: 'success', steps });
+        } catch(e) {
+          self.postMessage({ type: 'error', error: e.message });
         }
+      };
+    `;
+    const blob = new Blob([workerScript], { type: 'application/javascript' });
+    const jsWorker = new Worker(URL.createObjectURL(blob));
+    jsWorker.postMessage({ code: userCode, stdin: inputStdin });
+    jsWorker.onmessage = (e) => {
+      const { type, steps, error } = e.data;
+      if (type === 'success') {
+         setSteps(steps);
+         setLoading(false);
+      } else {
+         setErrorMsg(error);
+         setLoading(false);
+         fetchAiFix(error);
       }
-      setSteps(traceSteps);
-      setLoading(false);
-    } catch (e: any) {
-      const errMsg = `SyntaxError: ${e.message}`;
-      setErrorMsg(errMsg);
-      setLoading(false);
-      fetchAiFix(errMsg);
-    }
+      jsWorker.terminate();
+    };
   };
 
   useEffect(() => {
@@ -393,9 +451,21 @@ json.dumps(_steps)
           )}
         </div>
         <div className="flex items-center gap-2">
+          {!loading && steps.length > 0 && (
+            <button
+              onClick={() => {
+                if (!showAiPanel) fetchAiFix("EXPLAIN");
+                else setShowAiPanel(false);
+              }}
+              className="flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 hover:bg-emerald-500/20 transition-all"
+            >
+              <Sparkles className="w-3 h-3" />
+              Explain Code {showAiPanel ? '▾' : '▸'}
+            </button>
+          )}
           {traceHasError && !loading && (
             <button
-              onClick={() => setShowAiPanel((v) => !v)}
+              onClick={() => { if (!showAiPanel) setShowAiPanel(true); }}
               className="flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 hover:bg-cyan-500/20 transition-all"
             >
               <Sparkles className="w-3 h-3" />
@@ -551,32 +621,53 @@ json.dumps(_steps)
           <div className="flex-1 flex min-h-0 relative overflow-hidden">
             {/* Main right content */}
             <div className="flex-1 flex flex-col min-h-0 bg-transparent">
-              {/* Print Output */}
-              <div className="h-[30%] flex flex-col border-b border-white/8 p-3">
-                <div className="flex items-center gap-2 mb-2">
-                  <div className={`w-1.5 h-1.5 rounded-full ${hasErrorAtCurrentStep ? 'bg-rose-400' : 'bg-emerald-400'}`} />
-                  <span className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Print Output</span>
+              {/* Output / Stdin Container */}
+              <div className="h-1/3 flex flex-col min-h-0 bg-transparent">
+                {/* Stdin Input */}
+                <div className="h-1/2 flex flex-col border-b border-white/8 p-3">
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="w-1.5 h-1.5 rounded-full bg-indigo-400" />
+                    <span className="text-[10px] font-bold uppercase tracking-widest text-slate-500">stdin</span>
+                  </div>
+                  <textarea
+                    value={localStdin}
+                    onChange={(e) => {
+                      setLocalStdin(e.target.value);
+                      if (onStdinChange) onStdinChange(e.target.value);
+                    }}
+                    placeholder="Enter inputs here (separated by spaces)..."
+                    className="flex-1 rounded-lg border border-white/8 p-2 font-mono text-[12px] text-slate-300 resize-none outline-none focus:border-sky-500/50"
+                    style={{ background: 'rgba(0,0,0,0.4)' }}
+                  />
                 </div>
-                <div className="flex-1 rounded-lg border border-white/8 p-3 font-mono text-[12px] overflow-auto whitespace-pre-wrap leading-5" style={{ background: 'rgba(0,0,0,0.4)' }}>
-                  <span className="text-emerald-300">{currentStep.output || ''}</span>
-                  {!currentStep.output && !currentStep.error && (
-                    <span className="text-slate-600 italic text-[11px]">No output yet...</span>
-                  )}
-                  {currentStep.error && (
-                    <motion.div
-                      initial={{ opacity: 0, y: 4 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      className="mt-2 p-3 rounded-lg border border-rose-500/30 bg-rose-950/40"
-                    >
-                      <div className="flex items-start gap-2">
-                        <AlertTriangle className="w-3.5 h-3.5 text-rose-400 mt-0.5 shrink-0" />
-                        <div>
-                          <div className="text-rose-300 font-semibold text-[11px] mb-1">Runtime Error</div>
-                          <div className="text-rose-200 text-[11px] font-mono leading-relaxed">{currentStep.error}</div>
+
+                {/* Print Output */}
+                <div className="h-1/2 flex flex-col border-b border-white/8 p-3">
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className={`w-1.5 h-1.5 rounded-full ${hasErrorAtCurrentStep ? 'bg-rose-400' : 'bg-sky-400'}`} />
+                    <span className="text-[10px] font-bold uppercase tracking-widest text-slate-500">stdout</span>
+                  </div>
+                  <div className="flex-1 rounded-lg border border-white/8 p-3 font-mono text-[12px] overflow-auto whitespace-pre-wrap leading-5" style={{ background: 'rgba(0,0,0,0.4)' }}>
+                    <span className="text-sky-300">{currentStep.output || ''}</span>
+                    {!currentStep.output && !currentStep.error && (
+                      <span className="text-slate-600 italic text-[11px]">No output yet...</span>
+                    )}
+                    {currentStep.error && (
+                      <motion.div
+                        initial={{ opacity: 0, y: 4 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="mt-2 p-3 rounded-lg border border-rose-500/30 bg-rose-950/40"
+                      >
+                        <div className="flex items-start gap-2">
+                          <AlertTriangle className="w-3.5 h-3.5 text-rose-400 mt-0.5 shrink-0" />
+                          <div>
+                            <div className="text-rose-300 font-semibold text-[11px] mb-1">Runtime Error</div>
+                            <div className="text-rose-200 text-[11px] font-mono leading-relaxed">{currentStep.error}</div>
+                          </div>
                         </div>
-                      </div>
-                    </motion.div>
-                  )}
+                      </motion.div>
+                    )}
+                  </div>
                 </div>
               </div>
 
@@ -767,7 +858,7 @@ function AiFixPanel({ loading, result, onCopy, onApply, copied }: AiFixPanelProp
           <Sparkles className="w-3.5 h-3.5 text-cyan-400" />
         </div>
         <div>
-          <div className="text-[12px] font-bold text-cyan-400 leading-tight uppercase tracking-wider">AI Fix Suggestion</div>
+          <div className="text-[12px] font-bold text-cyan-400 leading-tight uppercase tracking-wider">{result?.isExplainMode ? 'AI Explanation' : 'AI Fix Suggestion'}</div>
           <div className="text-[10px] text-slate-500">Powered by Groq · Llama 3.3 70B</div>
         </div>
       </div>
@@ -778,7 +869,7 @@ function AiFixPanel({ loading, result, onCopy, onApply, copied }: AiFixPanelProp
           <div className="flex flex-col gap-3">
             <div className="flex items-center gap-2 mb-1">
               <div className="w-3 h-3 border border-cyan-400 border-t-transparent rounded-full animate-spin" />
-              <span className="text-cyan-400 text-xs font-semibold">Analysing error with AI...</span>
+              <span className="text-cyan-400 text-xs font-semibold">{result?.isExplainMode ? 'Analysing code with AI...' : 'Analysing error with AI...'}</span>
             </div>
             {[80, 100, 60, 90, 70].map((w, i) => (
               <div key={i} className="h-2.5 rounded-full bg-cyan-500/10 animate-pulse" style={{ width: `${w}%`, animationDelay: `${i * 0.1}s` }} />
@@ -790,8 +881,8 @@ function AiFixPanel({ loading, result, onCopy, onApply, copied }: AiFixPanelProp
             {/* Explanation */}
             <div>
               <div className="flex items-center gap-1.5 mb-2">
-                <div className="w-1 h-3 rounded-full bg-rose-400" />
-                <span className="text-[10px] font-bold uppercase tracking-widest text-rose-400">What went wrong</span>
+                <div className={`w-1 h-3 rounded-full ${result.isExplainMode ? 'bg-emerald-400' : 'bg-rose-400'}`} />
+                <span className={`text-[10px] font-bold uppercase tracking-widest ${result.isExplainMode ? 'text-emerald-400' : 'text-rose-400'}`}>{result.isExplainMode ? 'How this works' : 'What went wrong'}</span>
               </div>
               <p className="text-slate-300 text-[12px] leading-relaxed bg-black/20 rounded-xl p-3 border border-white/[0.05]">
                 {result.explanation}
@@ -803,7 +894,7 @@ function AiFixPanel({ loading, result, onCopy, onApply, copied }: AiFixPanelProp
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center gap-1.5">
                   <div className="w-1 h-3 rounded-full bg-emerald-400" />
-                  <span className="text-[10px] font-bold uppercase tracking-widest text-emerald-400">Fixed Code</span>
+                  <span className="text-[10px] font-bold uppercase tracking-widest text-emerald-400">{result.isExplainMode ? 'Your Code' : 'Fixed Code'}</span>
                 </div>
                 <button
                   onClick={onCopy}
@@ -821,7 +912,7 @@ function AiFixPanel({ loading, result, onCopy, onApply, copied }: AiFixPanelProp
       </div>
 
       {/* Apply fix button */}
-      {result && onApply && (
+      {result && !result.isExplainMode && onApply && (
         <div className="p-4 border-t border-white/[0.05] shrink-0 bg-transparent">
           <button
             onClick={onApply}

@@ -1,0 +1,744 @@
+'use client';
+
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { X, Play, Pause, Sparkles, Copy, Check, AlertTriangle, ChevronRight } from 'lucide-react';
+import { traceCCode, Step, VariableState, FrameData } from '@/lib/cVisualizer';
+
+interface AiFixResult {
+  explanation: string;
+  fixedCode: string;
+  isExplainMode?: boolean;
+}
+
+interface CodeVisualizerProps {
+  code: string;
+  language: string;
+  stdin?: string;
+  onStdinChange?: (val: string) => void;
+  onClose: () => void;
+  onApplyFix?: (fixedCode: string) => void;
+}
+
+// ─── C-specific presets ───────────────────────────────────────────────────────
+const C_PRESETS: Record<string, string> = {
+  basic: `#include <stdio.h>
+
+int main() {
+    int x = 10;
+    int y = 3;
+    int z = x + y;
+    float ratio = (float)x / y;
+    printf("x = %d\\n", x);
+    printf("y = %d\\n", y);
+    printf("z = %d\\n", z);
+    printf("ratio = %.2f\\n", ratio);
+    return 0;
+}`,
+  loop: `#include <stdio.h>
+
+int main() {
+    int total = 0;
+    int i;
+    for (i = 1; i <= 5; i++) {
+        total = total + i;
+        printf("i=%d total=%d\\n", i, total);
+    }
+    printf("Sum: %d\\n", total);
+    return 0;
+}`,
+  func: `#include <stdio.h>
+
+int square(int n) {
+    int result = n * n;
+    return result;
+}
+
+int factorial(int n) {
+    if (n <= 1) return 1;
+    return n * factorial(n - 1);
+}
+
+int main() {
+    int x = 5;
+    int sq = square(x);
+    int fact = factorial(5);
+    printf("Square of %d: %d\\n", x, sq);
+    printf("5! = %d\\n", fact);
+    return 0;
+}`,
+  array: `#include <stdio.h>
+
+int main() {
+    int arr[5];
+    int i;
+    int sum = 0;
+    int max;
+    arr[0] = 15; arr[1] = 3; arr[2] = 9;
+    arr[3] = 22; arr[4] = 7;
+    max = arr[0];
+    for (i = 0; i < 5; i++) {
+        sum = sum + arr[i];
+        if (arr[i] > max) max = arr[i];
+        printf("arr[%d] = %d\\n", i, arr[i]);
+    }
+    printf("Sum: %d\\n", sum);
+    printf("Max: %d\\n", max);
+    return 0;
+}`,
+  pointer: `#include <stdio.h>
+
+void doubleIt(int *x) {
+    *x = *x * 2;
+}
+
+int main() {
+    int a = 5;
+    int b = 10;
+    int *ptr = &a;
+    printf("a = %d\\n", a);
+    doubleIt(&a);
+    printf("after doubleIt: a = %d\\n", a);
+    printf("b = %d\\n", b);
+    b = b + *ptr;
+    printf("b + *ptr = %d\\n", b);
+    return 0;
+}`,
+};
+
+export default function CCodeVisualizer({ code, language, stdin = '', onStdinChange, onClose, onApplyFix }: CodeVisualizerProps) {
+  const [steps, setSteps] = useState<Step[]>([]);
+  const [currentStepIndex, setCurrentStepIndex] = useState(0);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [speed, setSpeed] = useState<'Slow' | 'Normal' | 'Fast'>('Normal');
+  const [loading, setLoading] = useState(true);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [activeCode, setActiveCode] = useState<string>(code);
+  const [activePreset, setActivePreset] = useState<string>('custom');
+
+  const [localStdin, setLocalStdin] = useState(stdin);
+  const [debouncedStdin, setDebouncedStdin] = useState(stdin);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedStdin(localStdin), 600);
+    return () => clearTimeout(timer);
+  }, [localStdin]);
+
+  useEffect(() => {
+    setActiveCode(code);
+    setActivePreset('custom');
+  }, [code]);
+
+  // AI fix state
+  const [aiFixResult, setAiFixResult] = useState<AiFixResult | null>(null);
+  const [loadingAiFix, setLoadingAiFix] = useState(false);
+  const [showAiPanel, setShowAiPanel] = useState(false);
+  const [copied, setCopied] = useState(false);
+
+  const playIntervalRef = useRef<NodeJS.Timeout | null>(null);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 'v') onClose();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
+
+  const fetchAiFix = useCallback(async (errorText: string) => {
+    setLoadingAiFix(true);
+    setShowAiPanel(true);
+    setAiFixResult(null);
+    try {
+      const res = await fetch('/api/visualizer/fix-suggestion', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code: activeCode, language: 'c', error: errorText }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setAiFixResult({ explanation: data.explanation, fixedCode: data.fixedCode, isExplainMode: errorText === 'EXPLAIN' });
+      } else {
+        setAiFixResult({ explanation: 'Could not fetch AI suggestion.', fixedCode: activeCode, isExplainMode: errorText === 'EXPLAIN' });
+      }
+    } catch {
+      setAiFixResult({ explanation: 'Network error — could not reach AI service.', fixedCode: activeCode, isExplainMode: errorText === 'EXPLAIN' });
+    } finally {
+      setLoadingAiFix(false);
+    }
+  }, [activeCode]);
+
+  // Run trace whenever activeCode or debouncedStdin changes
+  useEffect(() => {
+    setLoading(true);
+    setErrorMsg(null);
+    setSteps([]);
+    setCurrentStepIndex(0);
+    setAiFixResult(null);
+    setShowAiPanel(false);
+
+    const codeTrimmed = activeCode.trim();
+    if (!codeTrimmed) {
+      setErrorMsg('Write some C code first, then click Visualize');
+      setLoading(false);
+      return;
+    }
+
+    runCStepper(codeTrimmed, debouncedStdin);
+  }, [activeCode, debouncedStdin]);
+
+  const runCStepper = async (userCode: string, userStdin: string) => {
+    try {
+      const traceSteps = await traceCCode(userCode, userStdin);
+      if (traceSteps.length === 0) {
+        setSteps([{
+          step: 1, line: 1,
+          frames: [{ name: 'main()', variables: {} }],
+          callStack: ['main'], output: '', error: null,
+        }]);
+      } else {
+        setSteps(traceSteps);
+      }
+      setLoading(false);
+
+      const lastStep = traceSteps[traceSteps.length - 1];
+      if (lastStep?.error) {
+        setCurrentStepIndex(traceSteps.length - 1);
+        fetchAiFix(lastStep.error);
+      }
+    } catch (e: any) {
+      const errMsg = `RuntimeError: ${e.message}`;
+      setErrorMsg(errMsg);
+      setLoading(false);
+      fetchAiFix(errMsg);
+    }
+  };
+
+  useEffect(() => {
+    if (isPlaying) {
+      const intervalMs = speed === 'Slow' ? 1000 : speed === 'Normal' ? 400 : 130;
+      playIntervalRef.current = setInterval(() => {
+        setCurrentStepIndex((prev) => {
+          if (prev >= steps.length - 1) { setIsPlaying(false); return prev; }
+          const nextStep = steps[prev + 1];
+          if (nextStep?.error) setIsPlaying(false);
+          return prev + 1;
+        });
+      }, intervalMs);
+    } else {
+      if (playIntervalRef.current) clearInterval(playIntervalRef.current);
+    }
+    return () => { if (playIntervalRef.current) clearInterval(playIntervalRef.current); };
+  }, [isPlaying, speed, steps]);
+
+  const handleCopyFixed = () => {
+    if (aiFixResult?.fixedCode) {
+      navigator.clipboard.writeText(aiFixResult.fixedCode);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
+  };
+
+  const handleApplyFix = () => {
+    if (aiFixResult?.fixedCode && onApplyFix) {
+      onApplyFix(aiFixResult.fixedCode);
+    }
+  };
+
+  const currentStep = steps[currentStepIndex];
+  const prevStep = currentStepIndex > 0 ? steps[currentStepIndex - 1] : null;
+  const executedLine = prevStep?.line;
+  const nextLine = currentStep?.line;
+  const hasErrorAtCurrentStep = !!(currentStep?.error);
+  const codeLines = activeCode.split('\n');
+  const traceHasError = steps.some((s) => s.error);
+
+  // Collect array / struct objects for the Objects column
+  const allObjects: { name: string; state: VariableState }[] = [];
+  if (currentStep?.frames) {
+    currentStep.frames.forEach((fr) => {
+      Object.entries(fr.variables).forEach(([name, state]) => {
+        if (state.type === 'array' || state.type === 'struct') {
+          allObjects.push({ name, state });
+        }
+      });
+    });
+  }
+
+  return (
+    <motion.div
+      initial={{ y: '100%', opacity: 0 }}
+      animate={{ y: 0, opacity: 1 }}
+      exit={{ y: '100%', opacity: 0 }}
+      transition={{ type: 'spring', damping: 28, stiffness: 220 }}
+      className="absolute bottom-0 left-0 right-0 h-[85vh] lg:h-[72vh] border-t border-white/[0.1] shadow-2xl flex flex-col z-50 overflow-hidden font-sans bg-[#0a0a0a] bg-noise"
+    >
+      {/* ── Header ── */}
+      <div className="flex items-center justify-between px-5 py-2.5 border-b border-white/8 shrink-0" style={{ background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(12px)' }}>
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
+            <div className={`w-2 h-2 rounded-full ${traceHasError ? 'bg-rose-400' : 'bg-sky-400'} animate-pulse`} />
+            <span className="font-semibold text-white text-sm tracking-wide">C Visualizer</span>
+            <span className="text-[10px] px-1.5 py-0.5 rounded bg-sky-500/10 border border-sky-500/20 text-sky-400 font-mono">C99</span>
+          </div>
+          {loading && (
+            <div className="flex items-center gap-2 px-2 py-0.5 rounded-full bg-sky-500/10 border border-sky-500/20">
+              <div className="w-3 h-3 border border-sky-400 border-t-transparent rounded-full animate-spin" />
+              <span className="text-sky-300 text-xs">Tracing...</span>
+            </div>
+          )}
+          {!loading && steps.length > 0 && (
+            <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-white/5 border border-white/10">
+              <span className="text-slate-400 text-xs">{steps.length} steps traced</span>
+            </div>
+          )}
+          {traceHasError && !loading && (
+            <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-rose-500/10 border border-rose-500/20">
+              <AlertTriangle className="w-3 h-3 text-rose-400" />
+              <span className="text-rose-300 text-xs">Error detected</span>
+            </div>
+          )}
+        </div>
+
+        <div className="flex items-center gap-2">
+          {!loading && !traceHasError && steps.length > 0 && (
+            <button
+              onClick={() => {
+                if (!showAiPanel) fetchAiFix("EXPLAIN");
+                else setShowAiPanel(false);
+              }}
+              className="flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 hover:bg-emerald-500/20 transition-all"
+            >
+              <Sparkles className="w-3 h-3" />
+              Explain Code {showAiPanel ? '▾' : '▸'}
+            </button>
+          )}
+          {traceHasError && !loading && (
+            <button
+              onClick={() => { if (!showAiPanel) setShowAiPanel(true); }}
+              className="flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 hover:bg-cyan-500/20 transition-all"
+            >
+              <Sparkles className="w-3 h-3" />
+              AI Fix {showAiPanel ? '▾' : '▸'}
+            </button>
+          )}
+          {/* Preset selector */}
+          <select
+            className="bg-white/5 border border-white/10 rounded px-2 py-1 text-xs text-slate-300 outline-none"
+            value={activePreset}
+            onChange={(e) => {
+              const val = e.target.value;
+              setActivePreset(val);
+              if (val === 'custom') setActiveCode(code);
+              else setActiveCode(C_PRESETS[val]);
+            }}
+          >
+            <option value="custom">Your Code</option>
+            <option value="basic">Preset: Variables</option>
+            <option value="loop">Preset: For Loop</option>
+            <option value="func">Preset: Functions</option>
+            <option value="array">Preset: Arrays</option>
+            <option value="pointer">Preset: Pointers</option>
+          </select>
+          <button onClick={onClose} className="p-1.5 hover:bg-white/10 rounded-lg transition-colors text-slate-400 hover:text-white">
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+      </div>
+
+      {/* ── Body ── */}
+      {loading ? (
+        <div className="flex-1 flex items-center justify-center">
+          <div className="flex flex-col items-center gap-4">
+            <div className="w-10 h-10 border-2 border-sky-500 border-t-transparent rounded-full animate-spin" />
+            <div className="text-center">
+              <div className="text-white font-medium text-sm">Tracing your C code</div>
+              <div className="text-slate-500 text-xs mt-1">Transpiling & instrumenting...</div>
+            </div>
+          </div>
+        </div>
+      ) : errorMsg && !steps.length ? (
+        <div className="flex-1 flex min-h-0">
+          <div className="flex-1 flex items-center justify-center p-8">
+            <div className="max-w-xl w-full">
+              <div className="flex items-center gap-2 mb-3 text-rose-400">
+                <AlertTriangle className="w-5 h-5" />
+                <span className="font-bold">Error in your C code</span>
+              </div>
+              <pre className="text-sm text-rose-300 text-left whitespace-pre-wrap font-mono bg-rose-950/30 p-4 rounded-xl border border-rose-500/20 leading-relaxed">{errorMsg}</pre>
+            </div>
+          </div>
+          <AnimatePresence>
+            {showAiPanel && (
+              <div className="absolute inset-0 z-50 flex justify-end">
+                <AiFixPanel loading={loadingAiFix} result={aiFixResult} onCopy={handleCopyFixed} onApply={onApplyFix ? handleApplyFix : undefined} copied={copied} />
+              </div>
+            )}
+          </AnimatePresence>
+        </div>
+      ) : currentStep ? (
+        <div className="flex-1 flex flex-col lg:flex-row min-h-0">
+          {/* ── LEFT: Code Panel ── */}
+          <div className="w-full lg:w-[38%] h-1/2 lg:h-auto flex flex-col border-b lg:border-b-0 lg:border-r border-white/8 bg-transparent">
+            <div className="flex-1 overflow-auto p-3 font-mono text-[13px] leading-6">
+              <div className="text-center text-slate-600 text-[11px] mb-3 pb-2 border-b border-white/5">
+                C99 — line-by-line trace
+              </div>
+              {codeLines.map((line, idx) => {
+                const lineNum = idx + 1;
+                const isErrorLine = hasErrorAtCurrentStep && lineNum === nextLine;
+                const isNext = !isErrorLine && lineNum === nextLine;
+                const isExecuted = lineNum === executedLine && !isNext && !isErrorLine;
+                return (
+                  <div
+                    key={idx}
+                    className={`flex items-stretch rounded-md transition-all duration-150 ${
+                      isErrorLine
+                        ? 'bg-rose-500/18 ring-1 ring-rose-500/40'
+                        : isNext
+                        ? 'bg-sky-500/10 ring-1 ring-sky-500/20'
+                        : isExecuted
+                        ? 'bg-emerald-500/10'
+                        : ''
+                    }`}
+                  >
+                    <div className="w-5 flex items-center justify-center shrink-0 py-0.5">
+                      {isErrorLine && <span className="text-rose-400 text-[11px] font-bold">⚠</span>}
+                      {isNext && <span className="text-sky-400 text-[11px] font-bold">▶</span>}
+                      {isExecuted && <span className="text-emerald-400 text-[11px]">✓</span>}
+                    </div>
+                    <div className="w-7 text-right text-slate-600 text-[11px] select-none pr-2 py-0.5 shrink-0 self-center">{lineNum}</div>
+                    <div
+                      className={`py-0.5 pr-2 whitespace-pre flex-1 ${
+                        isErrorLine ? 'text-rose-200' : isNext ? 'text-sky-100' : isExecuted ? 'text-emerald-100/80' : 'text-slate-300'
+                      }`}
+                    >
+                      {line || ' '}
+                    </div>
+                  </div>
+                );
+              })}
+              <div className="mt-6 pt-4 border-t border-white/5 flex gap-5 text-[11px] text-slate-600">
+                <div className="flex items-center gap-1.5"><span className="text-emerald-400">✓</span> just executed</div>
+                <div className="flex items-center gap-1.5"><span className="text-sky-400 text-[11px] font-bold">▶</span> next to run</div>
+                <div className="flex items-center gap-1.5"><span className="text-rose-400 text-[11px] font-bold">⚠</span> error line</div>
+              </div>
+            </div>
+
+            {/* Playback Controls */}
+            <div className="border-t border-white/8 p-3 shrink-0" style={{ background: 'rgba(0,0,0,0.4)' }}>
+              <div className="flex items-center gap-2 mb-3">
+                <span className="text-slate-600 text-[11px] w-6 text-right">{currentStep.step}</span>
+                <div className="flex-1 relative h-1.5 bg-white/5 rounded-full overflow-hidden">
+                  <motion.div
+                    className={`absolute left-0 top-0 h-full rounded-full ${traceHasError ? 'bg-gradient-to-r from-rose-500 to-rose-400' : 'bg-gradient-to-r from-sky-500 to-blue-400'}`}
+                    animate={{ width: `${((currentStepIndex) / Math.max(1, steps.length - 1)) * 100}%` }}
+                    transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+                  />
+                </div>
+                <span className="text-slate-600 text-[11px] w-6">{steps.length}</span>
+              </div>
+              <input
+                type="range" min={0} max={Math.max(0, steps.length - 1)} value={currentStepIndex}
+                onChange={(e) => setCurrentStepIndex(Number(e.target.value))}
+                className={`w-full mb-2 h-0.5 ${traceHasError ? 'accent-rose-500' : 'accent-sky-500'}`}
+              />
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-1">
+                  {[
+                    { label: '|◀', action: () => setCurrentStepIndex(0), disabled: currentStepIndex === 0 },
+                    { label: '◀', action: () => setCurrentStepIndex(Math.max(0, currentStepIndex - 1)), disabled: currentStepIndex === 0 },
+                    { label: '▶', action: () => setCurrentStepIndex(Math.min(steps.length - 1, currentStepIndex + 1)), disabled: currentStepIndex === steps.length - 1 },
+                    { label: '▶|', action: () => setCurrentStepIndex(steps.length - 1), disabled: currentStepIndex === steps.length - 1 },
+                  ].map(({ label, action, disabled }) => (
+                    <button key={label} onClick={action} disabled={disabled}
+                      className="px-2.5 py-1 text-xs font-mono rounded-md border border-white/10 bg-white/5 hover:bg-white/12 disabled:opacity-25 transition-colors text-slate-300"
+                    >{label}</button>
+                  ))}
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="flex rounded-lg border border-white/10 overflow-hidden">
+                    {(['Slow', 'Normal', 'Fast'] as const).map((s) => (
+                      <button key={s} onClick={() => setSpeed(s)}
+                        className={`px-2 py-1 text-[10px] font-bold transition-colors ${speed === s ? 'bg-sky-500/30 text-sky-300' : 'bg-white/3 text-slate-500 hover:text-slate-300'}`}
+                      >{s[0]}</button>
+                    ))}
+                  </div>
+                  <button onClick={() => setIsPlaying(!isPlaying)}
+                    className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold transition-all ${isPlaying ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30' : 'bg-sky-500/20 text-sky-300 border border-sky-500/30 hover:bg-sky-500/30'}`}
+                  >
+                    {isPlaying ? <><Pause className="h-3 w-3" /> Pause</> : <><Play className="h-3 w-3" /> Play</>}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* ── RIGHT: Output + Memory + AI Panel ── */}
+          <div className="flex-1 flex min-h-0 relative overflow-hidden">
+            <div className="flex-1 flex flex-col min-h-0 bg-transparent">
+
+              {/* Stdin Input */}
+              <div className="h-[20%] flex flex-col border-b border-white/8 p-3">
+                <div className="flex items-center gap-2 mb-2">
+                  <div className={`w-1.5 h-1.5 rounded-full bg-indigo-400`} />
+                  <span className="text-[10px] font-bold uppercase tracking-widest text-slate-500">stdin</span>
+                </div>
+                <textarea
+                  value={localStdin}
+                  onChange={(e) => {
+                    setLocalStdin(e.target.value);
+                    if (onStdinChange) onStdinChange(e.target.value);
+                  }}
+                  placeholder="Enter inputs here for scanf (separated by spaces)..."
+                  className="flex-1 rounded-lg border border-white/8 p-2 font-mono text-[12px] text-slate-300 resize-none outline-none focus:border-sky-500/50"
+                  style={{ background: 'rgba(0,0,0,0.4)' }}
+                />
+              </div>
+
+              {/* Print Output */}
+              <div className="h-[25%] flex flex-col border-b border-white/8 p-3">
+                <div className="flex items-center gap-2 mb-2">
+                  <div className={`w-1.5 h-1.5 rounded-full ${hasErrorAtCurrentStep ? 'bg-rose-400' : 'bg-sky-400'}`} />
+                  <span className="text-[10px] font-bold uppercase tracking-widest text-slate-500">stdout</span>
+                </div>
+                <div className="flex-1 rounded-lg border border-white/8 p-3 font-mono text-[12px] overflow-auto whitespace-pre-wrap leading-5" style={{ background: 'rgba(0,0,0,0.4)' }}>
+                  <span className="text-sky-300">{currentStep.output || ''}</span>
+                  {!currentStep.output && !currentStep.error && (
+                    <span className="text-slate-600 italic text-[11px]">No output yet...</span>
+                  )}
+                  {currentStep.error && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 4 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="mt-2 p-3 rounded-lg border border-rose-500/30 bg-rose-950/40"
+                    >
+                      <div className="flex items-start gap-2">
+                        <AlertTriangle className="w-3.5 h-3.5 text-rose-400 mt-0.5 shrink-0" />
+                        <div>
+                          <div className="text-rose-300 font-semibold text-[11px] mb-1">Runtime Error</div>
+                          <div className="text-rose-200 text-[11px] font-mono leading-relaxed">{currentStep.error}</div>
+                        </div>
+                      </div>
+                    </motion.div>
+                  )}
+                </div>
+              </div>
+
+              {/* Frames + Objects */}
+              <div className="flex-1 flex flex-col overflow-hidden p-3 gap-2">
+                <div className="flex gap-1">
+                  <div className="flex-1 text-[10px] font-bold uppercase tracking-widest text-slate-500 text-center">Memory (Stack)</div>
+                  <div className="flex-1 text-[10px] font-bold uppercase tracking-widest text-slate-500 text-center">Heap / Arrays</div>
+                </div>
+                <div className="flex-1 flex gap-3 overflow-auto">
+                  {/* Stack Frames */}
+                  <div className="flex-1 flex flex-col gap-2 min-w-0">
+                    {(currentStep.frames || []).length === 0 ? (
+                      <div className="text-slate-600 text-xs italic text-center mt-4">No frames</div>
+                    ) : (
+                      (currentStep.frames || []).map((frame, fIdx) => {
+                        const isTopFrame = fIdx === (currentStep.frames?.length ?? 0) - 1;
+                        return (
+                          <motion.div key={fIdx}
+                            initial={{ opacity: 0, x: -8 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ delay: fIdx * 0.05 }}
+                            className={`rounded-xl border shrink-0 overflow-hidden ${isTopFrame ? 'border-sky-500/40' : 'border-white/10'}`}
+                            style={{ background: isTopFrame ? 'rgba(14,165,233,0.06)' : 'rgba(255,255,255,0.03)' }}
+                          >
+                            <div className={`flex items-center gap-2 px-3 py-1.5 border-b ${isTopFrame ? 'border-sky-500/20 bg-sky-500/10' : 'border-white/5 bg-white/3'}`}>
+                              <div className={`w-1.5 h-1.5 rounded-full ${isTopFrame ? 'bg-sky-400' : 'bg-slate-600'}`} />
+                              <span className={`text-[11px] font-semibold ${isTopFrame ? 'text-sky-200' : 'text-slate-400'}`}>{frame.name}</span>
+                              {isTopFrame && <span className="ml-auto text-[9px] bg-sky-500/20 text-sky-300 px-1.5 py-0.5 rounded-full">active</span>}
+                            </div>
+                            <div className="p-2 flex flex-col gap-1">
+                              {Object.keys(frame.variables || {}).length === 0 ? (
+                                <div className="text-slate-600 text-[11px] italic px-1 py-0.5">empty</div>
+                              ) : (
+                                Object.entries(frame.variables)
+                                  .filter(([, state]) => state.type !== 'array' && state.type !== 'struct')
+                                  .map(([name, state]) => (
+                                    <div key={name} className="flex items-center gap-1 text-[12px] rounded-md px-1 py-0.5 hover:bg-white/3 transition-colors">
+                                      <span className="text-slate-400 font-mono min-w-[60px] text-right pr-2 shrink-0 text-[11px]">{name}</span>
+                                      <div className="flex-1 px-2 py-0.5 rounded bg-black/30 border border-white/8 font-mono text-[11px]">
+                                        {state.type === 'char' || state.type === 'char*' ? (
+                                          <span className="text-emerald-400">'{String(state.value)}'</span>
+                                        ) : state.type === 'int' || state.type === 'long' || state.type === 'long long' || state.type === 'uint' ? (
+                                          <span className="text-sky-400">{state.value}</span>
+                                        ) : state.type === 'float' || state.type === 'double' ? (
+                                          <span className="text-amber-400">{typeof state.value === 'number' ? state.value.toFixed(4) : state.value}</span>
+                                        ) : (
+                                          <span className="text-slate-300">{String(state.value ?? '')}</span>
+                                        )}
+                                      </div>
+                                      <span className={`text-[9px] px-1 py-0.5 rounded font-mono shrink-0 ${
+                                        state.type === 'char' || state.type === 'char*' ? 'text-emerald-500/70 bg-emerald-500/8' :
+                                        state.type === 'int' || state.type === 'long' || state.type === 'uint' ? 'text-sky-500/70 bg-sky-500/8' :
+                                        state.type === 'float' || state.type === 'double' ? 'text-amber-500/70 bg-amber-500/8' :
+                                        'text-slate-500/70 bg-slate-500/8'
+                                      }`}>{state.type}</span>
+                                    </div>
+                                  ))
+                              )}
+                            </div>
+                          </motion.div>
+                        );
+                      })
+                    )}
+                  </div>
+
+                  {/* Heap / Arrays */}
+                  <div className="flex-1 flex flex-col gap-2 min-w-0">
+                    {allObjects.length === 0 ? (
+                      <div className="text-slate-600 text-xs italic text-center mt-4">No arrays / structs</div>
+                    ) : (
+                      allObjects.map(({ name, state }, idx) => (
+                        <motion.div key={idx}
+                          initial={{ opacity: 0, x: 8 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ delay: idx * 0.05 }}
+                          className="rounded-xl border shrink-0 overflow-hidden border-indigo-500/30 bg-indigo-500/5"
+                        >
+                          <div className="flex items-center gap-2 px-3 py-1.5 border-b bg-indigo-500/10 border-indigo-500/20">
+                            <span className="text-[10px] font-bold uppercase tracking-wider text-indigo-200">{name} [{state.type}]</span>
+                          </div>
+                          <div className="overflow-hidden">
+                            {state.type === 'array' && Array.isArray(state.value) ? (
+                              <div className="flex overflow-x-auto">
+                                {(state.value as any[]).map((v: any, i: number) => (
+                                  <div key={i} className="flex flex-col border-r border-white/8 last:border-r-0 min-w-[2.5rem]">
+                                    <div className="text-[9px] text-slate-600 text-center border-b border-white/8 bg-white/3 py-0.5">[{i}]</div>
+                                    <div className="text-center px-2 py-1.5 font-mono text-[12px] text-sky-300">{JSON.stringify(v)}</div>
+                                  </div>
+                                ))}
+                              </div>
+                            ) : typeof state.value === 'object' && state.value !== null ? (
+                              Object.entries(state.value as Record<string, any>).map(([k, v], i) => (
+                                <div key={i} className="flex border-b border-white/5 last:border-b-0 text-[12px] font-mono">
+                                  <div className="px-3 py-1.5 text-slate-400 min-w-[80px] border-r border-white/8 bg-white/3 text-[11px]">{k}</div>
+                                  <div className="px-3 py-1.5 text-slate-200 flex-1">{String(v)}</div>
+                                </div>
+                              ))
+                            ) : (
+                              <div className="px-3 py-2 font-mono text-[12px] text-slate-300">{JSON.stringify(state.value)}</div>
+                            )}
+                          </div>
+                        </motion.div>
+                      ))
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* AI Fix Side Panel */}
+            <AnimatePresence>
+              {showAiPanel && (
+                <div className="absolute inset-0 z-50 flex justify-end">
+                  <AiFixPanel loading={loadingAiFix} result={aiFixResult} onCopy={handleCopyFixed} onApply={onApplyFix ? handleApplyFix : undefined} copied={copied} />
+                </div>
+              )}
+            </AnimatePresence>
+          </div>
+        </div>
+      ) : (
+        <div className="flex-1 flex items-center justify-center text-slate-500">
+          <div className="flex flex-col items-center gap-3">
+            <div className="w-8 h-8 border-2 border-sky-500 border-t-transparent rounded-full animate-spin" />
+            <span className="text-sm">Loading trace...</span>
+          </div>
+        </div>
+      )}
+    </motion.div>
+  );
+}
+
+// ── AI Fix Side Panel Component ───────────────────────────────────────────────
+interface AiFixPanelProps {
+  loading: boolean;
+  result: AiFixResult | null;
+  onCopy: () => void;
+  onApply?: () => void;
+  copied: boolean;
+}
+
+function AiFixPanel({ loading, result, onCopy, onApply, copied }: AiFixPanelProps) {
+  return (
+    <motion.div
+      initial={{ x: '100%', opacity: 0 }}
+      animate={{ x: 0, opacity: 1 }}
+      exit={{ x: '100%', opacity: 0 }}
+      transition={{ type: 'spring', damping: 26, stiffness: 240 }}
+      className="absolute top-0 right-0 bottom-0 w-full sm:w-[340px] z-50 shrink-0 flex flex-col border-l border-white/[0.05] overflow-hidden bg-[#0a0a0a] bg-noise"
+    >
+      <div className="flex items-center gap-2 px-4 py-3 border-b border-white/[0.05] bg-transparent">
+        <div className="w-6 h-6 rounded-lg bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center shrink-0">
+          <Sparkles className="w-3.5 h-3.5 text-cyan-400" />
+        </div>
+        <div>
+          <div className="text-[12px] font-bold text-cyan-400 leading-tight uppercase tracking-wider">{result?.isExplainMode ? 'AI Explanation' : 'AI Fix Suggestion'}</div>
+          <div className="text-[10px] text-slate-500">Powered by Groq · Llama 3.3 70B</div>
+        </div>
+      </div>
+
+      <div className="flex-1 overflow-auto p-4 flex flex-col gap-4">
+        {loading ? (
+          <div className="flex flex-col gap-3">
+            <div className="flex items-center gap-2 mb-1">
+              <div className="w-3 h-3 border border-cyan-400 border-t-transparent rounded-full animate-spin" />
+              <span className="text-cyan-400 text-xs font-semibold">{result?.isExplainMode ? 'Analysing code with AI...' : 'Analysing error with AI...'}</span>
+            </div>
+            {[80, 100, 60, 90, 70].map((w, i) => (
+              <div key={i} className="h-2.5 rounded-full bg-cyan-500/10 animate-pulse" style={{ width: `${w}%`, animationDelay: `${i * 0.1}s` }} />
+            ))}
+            <div className="mt-2 h-24 rounded-xl bg-cyan-500/5 border border-cyan-500/10 animate-pulse" />
+          </div>
+        ) : result ? (
+          <>
+            <div>
+              <div className="flex items-center gap-1.5 mb-2">
+                <div className={`w-1 h-3 rounded-full ${result.isExplainMode ? 'bg-emerald-400' : 'bg-rose-400'}`} />
+                <span className={`text-[10px] font-bold uppercase tracking-widest ${result.isExplainMode ? 'text-emerald-400' : 'text-rose-400'}`}>{result.isExplainMode ? 'How this works' : 'What went wrong'}</span>
+              </div>
+              <p className="text-slate-300 text-[12px] leading-relaxed bg-black/20 rounded-xl p-3 border border-white/[0.05]">
+                {result.explanation}
+              </p>
+            </div>
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-1.5">
+                  <div className="w-1 h-3 rounded-full bg-emerald-400" />
+                  <span className="text-[10px] font-bold uppercase tracking-widest text-emerald-400">{result.isExplainMode ? 'Your Code' : 'Fixed Code'}</span>
+                </div>
+                <button
+                  onClick={onCopy}
+                  className="flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-semibold bg-white/5 border border-white/10 text-slate-400 hover:text-white hover:bg-white/10 transition-all"
+                >
+                  {copied ? <><Check className="w-3 h-3 text-emerald-400" /> Copied</> : <><Copy className="w-3 h-3" /> Copy</>}
+                </button>
+              </div>
+              <pre className="text-[11px] font-mono text-emerald-200 leading-relaxed bg-black/40 rounded-xl p-3 border border-emerald-500/20 overflow-auto whitespace-pre-wrap max-h-[220px]">
+                {result.fixedCode}
+              </pre>
+            </div>
+          </>
+        ) : null}
+      </div>
+
+      {result && !result.isExplainMode && onApply && (
+        <div className="p-4 border-t border-white/[0.05] shrink-0 bg-transparent">
+          <button
+            onClick={onApply}
+            className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl font-bold text-sm bg-[#d9f95d] hover:bg-[#b8d945] text-slate-950 transition-all shadow-lg shadow-[#d9f95d]/10 active:scale-95"
+          >
+            <Check className="w-4 h-4" />
+            Apply Fix & Close
+            <ChevronRight className="w-4 h-4" />
+          </button>
+          <p className="text-center text-[10px] text-slate-500 mt-1.5 font-medium">Replaces your code with the AI-fixed version</p>
+        </div>
+      )}
+    </motion.div>
+  );
+}
