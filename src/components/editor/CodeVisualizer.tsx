@@ -242,6 +242,8 @@ except Exception as e:
 finally:
     sys.settrace(None)
     sys.stdout = old_stdout
+    if _steps:
+        _steps.append({"line": len(USER_CODE_STRING.splitlines()), "frames": _steps[-1]["frames"], "output": _out.getvalue(), "error": None})
 
 json.dumps(_steps)
 \`;
