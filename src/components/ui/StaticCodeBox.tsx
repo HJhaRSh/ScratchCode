@@ -61,36 +61,36 @@ export function highlightSyntax(text: string, language: string = 'code') {
   // Python, JavaScript, TypeScript, and general languages
   return escaped
     // Multi-line comments
-    .replace(/(\/\*[\s\S]*?\*\/)/g, '<span class="text-slate-500 italic">$1</span>')
+    .replace(/(\/\*[\s\S]*?\*\/)(?![^<]*>)/g, '<span class="text-slate-500 italic">$1</span>')
     // Single-line comments // and #
-    .replace(/(\/\/[^\n]*|#[^\n]*)/g, '<span class="text-slate-500 italic">$1</span>')
+    .replace(/(\/\/[^\n]*|#[^\n]*)(?![^<]*>)/g, '<span class="text-slate-500 italic">$1</span>')
     // Triple-quoted strings (Python docstrings)
-    .replace(/("""[\s\S]*?"""|\'\'\'[\s\S]*?\'\'\')/g, '<span class="text-amber-200/80">$1</span>')
+    .replace(/("""[\s\S]*?"""|\'\'\'[\s\S]*?\'\'\')(?![^<]*>)/g, '<span class="text-amber-200/80">$1</span>')
     // f-strings and regular strings
-    .replace(/(f"[^"]*"|f'[^']*')/g, (m) => {
+    .replace(/(f"[^"]*"|f'[^']*')(?![^<]*>)/g, (m) => {
       // highlight {vars} inside f-strings
       const inner = m.replace(/\{([^}]+)\}/g, '<span class="text-cyan-300">{$1}</span>');
       return `<span class="text-amber-300">${inner}</span>`;
     })
     // Regular strings
-    .replace(/("(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*')/g, '<span class="text-amber-300">$1</span>')
+    .replace(/("(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*')(?![^<]*>)/g, '<span class="text-amber-300">$1</span>')
     // Numbers
-    .replace(/\b(\d+(?:\.\d+)?(?:[eE][+-]?\d+)?)\b/g, '<span class="text-purple-300">$1</span>')
+    .replace(/\b(\d+(?:\.\d+)?(?:[eE][+-]?\d+)?)\b(?![^<]*>)/g, '<span class="text-purple-300">$1</span>')
     // Decorators (@decorator)
-    .replace(/(^|\s)(@[\w.]+)/gm, '$1<span class="text-amber-400">$2</span>')
+    .replace(/(^|\s)(@[\w.]+)(?![^<]*>)/gm, '$1<span class="text-amber-400">$2</span>')
     // Built-in functions
-    .replace(/\b(print|len|range|type|int|float|str|bool|list|dict|set|tuple|input|sum|min|max|abs|sorted|enumerate|zip|map|filter|open|super|isinstance|hasattr|getattr|setattr|console\.log|console\.error|document|window|Math|JSON|Array|Object|String|Number|Boolean|Promise|fetch|require|module\.exports)\b/g, '<span class="text-cyan-400">$1</span>')
-    // Python/JS keywords
-    .replace(/\b(and|or|not|in|is|None|True|False|pass|break|continue|yield|raise|lambda|with|as|async|await|from|global|nonlocal|assert|del|try|except|finally|else if|function|return|def|package|import|from|const|let|var|if|else|for|while|class|struct|new|this|self|typeof|instanceof|of|in|export|default|extends|implements|interface|type|enum|namespace|abstract|static|public|private|protected|readonly|override)\b/g, '<span class="text-pink-400 font-medium">$1</span>')
+    .replace(/\b(print|printf|scanf|malloc|free|len|range|type|int|float|str|bool|list|dict|set|tuple|input|sum|min|max|abs|sorted|enumerate|zip|map|filter|open|super|isinstance|hasattr|getattr|setattr|console\.log|console\.error|document|window|Math|JSON|Array|Object|String|Number|Boolean|Promise|fetch|require|module\.exports)\b(?![^<]*>)/g, '<span class="text-cyan-400">$1</span>')
+    // Python/JS/C keywords
+    .replace(/\b(and|or|not|in|is|None|True|False|pass|break|continue|yield|raise|lambda|with|as|async|await|from|global|nonlocal|assert|del|try|except|finally|else if|function|return|def|package|import|include|const|let|var|if|else|for|while|class|struct|new|this|self|typeof|instanceof|of|export|default|extends|implements|interface|type|enum|namespace|abstract|static|public|private|protected|readonly|override)\b(?![^<]*>)/g, '<span class="text-pink-400 font-medium">$1</span>')
     // Arrow functions and operators
-    .replace(/(\=&gt;|===|!==|&&|\|\||\?\?|\?\.)/g, '<span class="text-yellow-300">$1</span>')
+    .replace(/(\=&gt;|===|!==|&&|\|\||\?\?|\?\.)(?![^<]*>)/g, '<span class="text-yellow-300">$1</span>')
     // Function declarations/calls
-    .replace(/\b([\w]+)(?=\()/g, (m) => {
+    .replace(/\b([\w]+)(?=\()(?![^<]*>)/g, (m) => {
       if (/^(if|for|while|switch|catch|with)$/.test(m)) return m;
       return `<span class="text-emerald-400">${m}</span>`;
     })
     // Class names (PascalCase identifiers)
-    .replace(/\b([A-Z][a-zA-Z0-9_]+)\b/g, '<span class="text-yellow-200">$1</span>');
+    .replace(/\b([A-Z][a-zA-Z0-9_]+)\b(?![^<]*>)/g, '<span class="text-yellow-200">$1</span>');
 }
 
 export default function StaticCodeBox({ code, language = 'code' }: StaticCodeBoxProps) {
