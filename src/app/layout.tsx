@@ -3,6 +3,7 @@ import { Geist, Geist_Mono, Caveat, Space_Grotesk } from "next/font/google";
 import "./globals.css";
 import type { Viewport } from "next";
 import Script from "next/script";
+import { Analytics } from "@vercel/analytics/next";
 
 export const viewport: Viewport = {
   width: "device-width",
@@ -95,7 +96,10 @@ export default function RootLayout({
           `}
         </Script>
       </head>
-      <body className="min-h-full flex flex-col bg-[#0b0c10]">{children}</body>
+      <body className="min-h-full flex flex-col bg-[#0b0c10]">
+        {children}
+        <Analytics />
+      </body>
     </html>
   );
 }
