@@ -1,3 +1,4 @@
+export {};
 self.onmessage = async function (e) {
   if (e.data.type === 'run') {
     const { transpiledJS } = e.data;

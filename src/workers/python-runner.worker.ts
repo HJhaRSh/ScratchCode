@@ -1,4 +1,5 @@
 // Python Runner Web Worker using Pyodide
+export {};
 
 let inputQueue: string[] = [];
 let waitingResolver: ((value: string) => void) | null = null;

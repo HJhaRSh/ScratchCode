@@ -1,4 +1,5 @@
 // JS Runner Web Worker
+export {};
 
 let inputQueue: string[] = [];
 let waitingResolver: ((value: string) => void) | null = null;
