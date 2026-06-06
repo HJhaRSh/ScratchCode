@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono, Caveat, Space_Grotesk } from "next/font/google";
 import "./globals.css";
 import type { Viewport } from "next";
+import Script from "next/script";
 
 export const viewport: Viewport = {
   width: "device-width",
@@ -79,6 +80,21 @@ export default function RootLayout({
         lang="en"
         className={`${geistSans.variable} ${geistMono.variable} ${caveat.variable} ${spaceGrotesk.variable} h-full antialiased`}
       >
+      <head>
+        <Script
+          src="https://www.googletagmanager.com/gtag/js?id=G-0R0QV96W2H"
+          strategy="afterInteractive"
+        />
+        <Script id="google-analytics" strategy="afterInteractive">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+          
+            gtag('config', 'G-0R0QV96W2H');
+          `}
+        </Script>
+      </head>
       <body className="min-h-full flex flex-col bg-[#0b0c10]">{children}</body>
     </html>
   );
