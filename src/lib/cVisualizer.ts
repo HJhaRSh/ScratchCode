@@ -456,6 +456,8 @@ export function traceCCode(code: string, stdin: string = ''): Promise<Step[]> {
       }
       instrumentedJS += tl.js + '\n';
     }
+    // Capture final state
+    instrumentedJS += `\n__capture__(${translatedLines.length}, {${captureObjStr}});\n`;
 
     // Build sandboxed iframe. We CANNOT embed instrumentedJS inside a template literal
     // because it contains backticks and ${...} from printf translations.

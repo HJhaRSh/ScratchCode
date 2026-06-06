@@ -80,6 +80,9 @@ export function traceJSCode(code: string): Promise<Step[]> {
                             `__capture__(${inj.line}, {${captureObjStr}});\n` + 
                             instrumentedCode.substring(inj.pos);
       }
+      
+      // Capture final state
+      instrumentedCode += `\n__capture__(${code.split('\\n').length}, {${captureObjStr}});\n`;
     } catch (e: any) {
       // If code has a genuine syntax error, acorn will throw. Return immediately.
       return resolve([{
