@@ -34,11 +34,13 @@ interface AiFixResult {
 interface CodeVisualizerProps {
   code: string;
   language: string;
+  stdin?: string;
+  onStdinChange?: (val: string) => void;
   onClose: () => void;
   onApplyFix?: (fixedCode: string) => void;
 }
 
-export default function CodeVisualizer({ code, language, onClose, onApplyFix }: CodeVisualizerProps) {
+export default function CodeVisualizer({ code, language, stdin = '', onStdinChange, onClose, onApplyFix }: CodeVisualizerProps) {
   const [steps, setSteps] = useState<Step[]>([]);
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
