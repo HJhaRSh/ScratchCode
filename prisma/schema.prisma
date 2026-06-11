@@ -20,6 +20,18 @@ enum ProgressStatus {
   COMPLETED
 }
 
+enum QuestDifficulty {
+  MEDIUM
+  HARD
+  EXPERT
+}
+
+enum QuestAttemptStatus {
+  ATTEMPTED
+  SOLVED
+  FAILED
+}
+
 model User {
   id                  String               @id @default(cuid())
   supabase_id         String               @unique
@@ -33,9 +45,11 @@ model User {
   streak_freeze_count Int                  @default(1)
   created_at          DateTime             @default(now())
   
-  progress            UserLessonProgress[]
-  badges              UserBadge[]
-  hints               HintUsage[]
+  progress              UserLessonProgress[]
+  badges                UserBadge[]
+  hints                 HintUsage[]
+  daily_quest_attempts  UserDailyQuestAttempt[]
+  daily_quest_streak    DailyQuestStreak?
 }
 
 model Track {
@@ -130,4 +144,57 @@ model HintUsage {
   hint_number   Int
   requested_at  DateTime @default(now())
   response_text String
+}
+
+model DailyQuest {
+  id                       String                  @id @default(cuid())
+  dayNumber                Int                     @unique
+  title                    String
+  difficulty               QuestDifficulty
+  description              String
+  examples_json            Json
+  constraints_json         Json
+  hints_json               Json
+  test_cases_json          Json
+  solution_approaches_json Json
+  optimal_approach         String
+  tags                     String[]
+  xp_reward                Int
+  bonus_reward_json        Json
+  created_at               DateTime                @default(now())
+
+  attempts                 UserDailyQuestAttempt[]
+}
+
+model UserDailyQuestAttempt {
+  id                String             @id @default(cuid())
+  user_id           String
+  user              User               @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  quest_id          String
+  quest             DailyQuest         @relation(fields: [quest_id], references: [id], onDelete: Cascade)
+  day_number        Int
+  status            QuestAttemptStatus @default(ATTEMPTED)
+  language          String
+  submitted_code    String
+  passed_tests      Int                @default(0)
+  total_tests       Int                @default(10)
+  xp_earned         Int                @default(0)
+  bonus_earned_json Json?
+  ai_feedback_json  Json?
+  attempts_count    Int                @default(0)
+  first_solved_at   DateTime?
+  created_at        DateTime           @default(now())
+
+  @@unique([user_id, day_number])
+}
+
+model DailyQuestStreak {
+  id               String    @id @default(cuid())
+  user_id          String    @unique
+  user             User      @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  current_streak   Int       @default(0)
+  longest_streak   Int       @default(0)
+  last_solved_date DateTime?
+  total_solved     Int       @default(0)
+  created_at       DateTime  @default(now())
 }

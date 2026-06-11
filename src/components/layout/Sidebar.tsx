@@ -3,7 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { BookOpen, Compass, Award, Code2, Play } from 'lucide-react';
+import { BookOpen, Compass, Award, Code2, Play, Flame } from 'lucide-react';
 
 const NAV_ITEMS = [
   {
@@ -12,6 +12,13 @@ const NAV_ITEMS = [
     icon: Compass,
     activeColor: 'text-cyan-400',
     indicatorColor: 'bg-cyan-400',
+  },
+  {
+    name: 'Daily Quest',
+    href: '/daily-quest',
+    icon: Flame,
+    activeColor: 'text-red-400',
+    indicatorColor: 'bg-red-400',
   },
   {
     name: 'Tracks',
@@ -38,6 +45,18 @@ const NAV_ITEMS = [
 
 export default function Sidebar() {
   const pathname = usePathname();
+  const [solvedToday, setSolvedToday] = React.useState<boolean | null>(null);
+
+  React.useEffect(() => {
+    fetch('/api/daily-quest/today')
+      .then(res => res.json())
+      .then(data => {
+        if (data && data.alreadySolved !== undefined) {
+          setSolvedToday(data.alreadySolved);
+        }
+      })
+      .catch(console.error);
+  }, []);
 
   return (
     <aside className="hidden md:flex md:w-64 border-r border-slate-800/50 bg-black bg-noise flex flex-col h-[calc(100vh-4rem)] sticky top-16 shrink-0 z-40">
@@ -71,6 +90,9 @@ export default function Sidebar() {
                   <span className={`text-sm font-medium tracking-wide ${isActive ? 'font-bold' : ''}`}>
                     {item.name}
                   </span>
+                  {item.name === 'Daily Quest' && solvedToday === false && (
+                    <span className="h-2 w-2 rounded-full bg-red-500 animate-pulse ml-auto" />
+                  )}
                 </Link>
               );
             })}

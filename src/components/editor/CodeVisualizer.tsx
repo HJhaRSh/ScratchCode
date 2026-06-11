@@ -158,6 +158,13 @@ def mock_input(prompt_text=""):
 import builtins
 builtins.input = mock_input
 
+class MockStdin:
+    def read(self):
+        return STDIN_DATA
+    def readline(self):
+        return STDIN_DATA + chr(10)
+
+sys.stdin = MockStdin()
 # ---- safe serialisation ----
 def _safe_val(v, depth=0):
     if depth > 3:

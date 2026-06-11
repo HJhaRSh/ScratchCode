@@ -8,6 +8,7 @@
     "start": "next start",
     "lint": "eslint",
     "seed": "npx tsx prisma/seed.ts",
+    "seed:quests": "npx tsx prisma/seedDailyQuests.ts",
     "postinstall": "prisma generate"
   },
   "dependencies": {

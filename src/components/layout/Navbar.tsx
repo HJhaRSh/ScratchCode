@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Menu, X, ArrowRight, User, Settings, LogOut, ChevronDown, Compass, BookOpen, Award, Play } from 'lucide-react';
+import { Menu, X, ArrowRight, User, Settings, LogOut, ChevronDown, Compass, BookOpen, Award, Play, Flame } from 'lucide-react';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useUser } from '@/hooks/useUser';
@@ -11,7 +11,19 @@ import { useUser } from '@/hooks/useUser';
 export default function Navbar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [solvedToday, setSolvedToday] = useState<boolean | null>(null);
   const pathname = usePathname();
+
+  useEffect(() => {
+    fetch('/api/daily-quest/today')
+      .then(res => res.json())
+      .then(data => {
+        if (data && data.alreadySolved !== undefined) {
+          setSolvedToday(data.alreadySolved);
+        }
+      })
+      .catch(console.error);
+  }, []);
   const { user, loading, signOut } = useUser();
 
   // Detect if we're inside the app (logged-in pages)
@@ -155,6 +167,14 @@ export default function Navbar() {
                     Dashboard
                   </Link>
                   <Link
+                    href="/daily-quest"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="block px-4 py-3 rounded-lg text-slate-300 hover:text-white hover:bg-white/5 transition-colors font-display tracking-wide font-medium flex items-center justify-between"
+                  >
+                    <span>Daily Quest</span>
+                    {solvedToday === false && <span className="h-2 w-2 rounded-full bg-red-500 animate-pulse" />}
+                  </Link>
+                  <Link
                     href="/account"
                     onClick={() => setIsMobileMenuOpen(false)}
                     className="block px-4 py-3 rounded-lg text-slate-300 hover:text-white hover:bg-white/5 transition-colors font-display tracking-wide font-medium"
@@ -188,16 +208,20 @@ export default function Navbar() {
         <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-black/90 backdrop-blur-xl border-t border-white/[0.07] flex items-center pb-safe">
           {[
             { href: '/dashboard', icon: Compass, label: 'Dashboard', color: pathname === '/dashboard' ? 'text-cyan-400' : 'text-slate-500 hover:text-cyan-400' },
+            { href: '/daily-quest', icon: Flame, label: 'Daily', color: pathname.startsWith('/daily-quest') ? 'text-red-400' : 'text-slate-500 hover:text-red-400', isQuest: true },
             { href: '/tracks', icon: BookOpen, label: 'Tracks', color: pathname.startsWith('/tracks') ? 'text-orange-400' : 'text-slate-500 hover:text-orange-400' },
             { href: '/badges', icon: Award, label: 'Badges', color: pathname.startsWith('/badges') ? 'text-purple-400' : 'text-slate-500 hover:text-purple-400' },
             { href: '/visualizer', icon: Play, label: 'Visualizer', color: pathname === '/visualizer' ? 'text-green-400' : 'text-slate-500 hover:text-green-400' },
-          ].map(({ href, icon: Icon, label, color }) => (
+          ].map(({ href, icon: Icon, label, color, isQuest }) => (
             <Link
               key={href}
               href={href}
-              className={`flex-1 flex flex-col items-center justify-center py-3 gap-1 transition-colors ${color}`}
+              className={`flex-1 flex flex-col items-center justify-center py-3 gap-1 transition-colors relative ${color}`}
             >
               <Icon className="h-5 w-5" />
+              {isQuest && solvedToday === false && (
+                <span className="absolute top-2 right-1/4 h-2 w-2 rounded-full bg-red-500 animate-pulse" />
+              )}
               <span className="text-[10px] font-bold uppercase tracking-wider">{label}</span>
             </Link>
           ))}

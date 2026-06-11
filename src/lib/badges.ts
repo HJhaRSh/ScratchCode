@@ -64,6 +64,24 @@ export async function checkAndAwardBadges(
   });
   const streakCount = user?.streak_count || 0;
 
+  // Daily Quest metrics
+  const questStreakRow = await prisma.dailyQuestStreak.findUnique({
+    where: { user_id: userId }
+  });
+  const questStreak = questStreakRow?.longest_streak || 0;
+
+  const questSolvedCount = await prisma.userDailyQuestAttempt.count({
+    where: { user_id: userId, status: 'SOLVED' }
+  });
+
+  const expertSolvedCount = await prisma.userDailyQuestAttempt.count({
+    where: {
+      user_id: userId,
+      status: 'SOLVED',
+      quest: { difficulty: 'EXPERT' }
+    }
+  });
+
   // Check track completion if a lessonId is provided in the event context
   const completedTracks: { slug: string; languageName: string }[] = [];
   if (event?.lessonId) {
@@ -166,6 +184,70 @@ export async function checkAndAwardBadges(
       description: 'Earned a 30-day learning streak!',
       icon_emoji: '👑',
       condition: streakCount >= 30,
+    },
+    // Daily Quest Badges
+    {
+      slug: 'quest-seeker',
+      title: 'Quest Seeker',
+      description: 'Solved your first Daily Quest!',
+      icon_emoji: '🧭',
+      condition: questSolvedCount >= 1,
+    },
+    {
+      slug: 'relentless',
+      title: 'Relentless',
+      description: 'Earned a 3-day Daily Quest streak!',
+      icon_emoji: '⚡',
+      condition: questStreak >= 3,
+    },
+    {
+      slug: 'quest-warrior',
+      title: 'Quest Warrior',
+      description: 'Earned a 7-day Daily Quest streak!',
+      icon_emoji: '⚔️',
+      condition: questStreak >= 7,
+    },
+    {
+      slug: 'quest-legend',
+      title: 'Quest Legend',
+      description: 'Earned a 30-day Daily Quest streak!',
+      icon_emoji: '🐉',
+      condition: questStreak >= 30,
+    },
+    {
+      slug: 'problem-solver',
+      title: 'Problem Solver',
+      description: 'Solved 10 Daily Quests.',
+      icon_emoji: '🧩',
+      condition: questSolvedCount >= 10,
+    },
+    {
+      slug: 'algorithm-expert',
+      title: 'Algorithm Expert',
+      description: 'Solved 50 Daily Quests.',
+      icon_emoji: '🧠',
+      condition: questSolvedCount >= 50,
+    },
+    {
+      slug: 'code-grandmaster',
+      title: 'Code Grandmaster',
+      description: 'Solved 100 Daily Quests.',
+      icon_emoji: '🏆',
+      condition: questSolvedCount >= 100,
+    },
+    {
+      slug: 'expert-slayer',
+      title: 'Expert Slayer',
+      description: 'Solved an EXPERT difficulty Daily Quest!',
+      icon_emoji: '☠️',
+      condition: expertSolvedCount >= 1,
+    },
+    {
+      slug: 'efficiency-master',
+      title: 'Efficiency Master',
+      description: 'Found an optimal solution to a Daily Quest.',
+      icon_emoji: '⏱️',
+      condition: false, // Can be implemented fully if optimal solution detection is robust
     },
   ];
 

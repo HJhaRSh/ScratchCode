@@ -24,7 +24,8 @@ import { Play,
   Sparkles,
   Scan,
   Eye,
-  GitBranch
+  GitBranch,
+  Flame
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useUser } from '@/hooks/useUser';
@@ -134,6 +135,12 @@ const highlights = [
     description: 'Apply what you learn. Every module culminates in a real product, game, or tool built from scratch by you.',
     icon: Trophy,
     color: 'text-amber-400 bg-amber-500/10 border-amber-500/20 hover:bg-amber-500/20',
+  },
+  {
+    title: 'Daily Quests',
+    description: 'Come back every day for a fresh, bite-sized coding challenge. Build your streak, earn bonus XP, and climb the daily leaderboard.',
+    icon: Flame,
+    color: 'text-orange-400 bg-orange-500/10 border-orange-500/20 hover:bg-orange-500/20',
   },
 ];
 
@@ -466,14 +473,14 @@ export default function LandingPage() {
                 <motion.div
                   key={feat.title}
                   variants={staggerItem}
-                  className="flex flex-col items-start gap-4 group relative"
+                  className={`flex flex-col items-start gap-4 group relative ${i === highlights.length - 1 && highlights.length % 2 !== 0 ? 'sm:col-span-2 sm:items-center sm:text-center' : ''}`}
                 >
-                  <div className="h-12 w-12 flex items-center justify-start text-slate-500 group-hover:text-[#a855f7] transition-all group-hover:scale-110 group-hover:-translate-y-1">
+                  <div className={`h-12 w-12 flex items-center ${i === highlights.length - 1 && highlights.length % 2 !== 0 ? 'sm:justify-center' : 'justify-start'} text-slate-500 group-hover:text-[#a855f7] transition-all group-hover:scale-110 group-hover:-translate-y-1`}>
                     <IconComponent className="h-8 w-8" />
                   </div>
                   <div className="space-y-2 relative z-10">
                     <h3 className="text-xl font-bold text-white group-hover:text-[#a855f7] transition-colors">{feat.title}</h3>
-                    <p className="text-slate-400 text-sm leading-relaxed">
+                    <p className={`text-slate-400 text-sm leading-relaxed ${i === highlights.length - 1 && highlights.length % 2 !== 0 ? 'sm:max-w-md mx-auto' : ''}`}>
                       {feat.description}
                     </p>
                   </div>

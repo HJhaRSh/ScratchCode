@@ -22,6 +22,7 @@ import {
   ListChecks,
   ArrowRight,
   Target,
+  User,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Skeleton from '@/components/ui/Skeleton';
@@ -96,6 +97,22 @@ interface ExtendedDashboardData {
   }[];
   activity_log: ActivityLogEntry[];
   stats: DashboardStats;
+  daily_quest: {
+    todayQuest: {
+      title: string;
+      difficulty: string;
+      tags: string[];
+      xpReward: number;
+      isSolved: boolean;
+    } | null;
+    questStreak: {
+      current: number;
+      longest: number;
+    };
+    questSolvedToday: boolean;
+    dayNumber: number;
+    solversCount: number;
+  };
 }
 
 const LEVEL_NAMES: Record<number, string> = {
@@ -135,6 +152,27 @@ export default function DashboardPage() {
   const [error, setError] = useState<string | null>(null);
   const [activityTab, setActivityTab] = useState<'chart' | 'log'>('chart');
   const [logFilter, setLogFilter] = useState<'ALL' | 'CONCEPT' | 'EXERCISE' | 'PROJECT'>('ALL');
+  const [timeRemaining, setTimeRemaining] = useState<string>('');
+  const [showAllTracks, setShowAllTracks] = useState(false);
+
+  useEffect(() => {
+    const updateTimer = () => {
+      const now = new Date();
+      const tomorrow = new Date(now);
+      tomorrow.setHours(24, 0, 0, 0);
+      const diff = tomorrow.getTime() - now.getTime();
+      
+      const h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+      const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+      const s = Math.floor((diff % (1000 * 60)) / 1000);
+      
+      setTimeRemaining(`${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`);
+    };
+    
+    updateTimer();
+    const interval = setInterval(updateTimer, 1000);
+    return () => clearInterval(interval);
+  }, []);
 
   const fetchDashboardData = async () => {
     try {
@@ -336,8 +374,8 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          {/* TOP ROW — Unified Stats Grid (3-col on all sizes) */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 divide-y sm:divide-y-0 sm:divide-x divide-white/[0.05] border border-white/[0.05] rounded-2xl mb-6 md:mb-12 overflow-hidden">
+          {/* TOP ROW — Unified Stats Grid (4-col on all sizes) */}
+          <div className="grid grid-cols-1 sm:grid-cols-4 divide-y sm:divide-y-0 sm:divide-x divide-white/[0.05] border border-white/[0.05] rounded-2xl mb-6 md:mb-12 overflow-hidden">
             {/* Streak Stat */}
             <div className="py-5 px-3 md:py-8 md:px-8 relative group hover:bg-white/[0.02] transition-colors flex flex-col justify-center">
               <div className="flex items-center justify-between mb-2 md:mb-4">
@@ -350,6 +388,21 @@ export default function DashboardPage() {
               </div>
               <div className="mt-1.5 md:mt-4 text-[10px] md:text-xs text-slate-400 font-medium hidden sm:block">
                 {user?.streak_count && user.streak_count > 0 ? "You're on fire!" : "Complete a lesson."}
+              </div>
+            </div>
+
+            {/* Quest Streak Stat */}
+            <div className="py-5 px-3 md:py-8 md:px-8 relative group hover:bg-white/[0.02] transition-colors flex flex-col justify-center">
+              <div className="flex items-center justify-between mb-2 md:mb-4">
+                <div className="text-[9px] md:text-[10px] font-mono font-bold uppercase tracking-[0.15em] text-slate-500 group-hover:text-red-400 transition-colors leading-tight">Quest Streak</div>
+                <Target className="h-4 w-4 md:h-5 md:w-5 text-red-500/50 group-hover:text-red-400 transition-colors shrink-0" />
+              </div>
+              <div className="flex items-baseline gap-1.5">
+                <div className="text-3xl md:text-5xl font-black text-white tracking-tighter">{data?.daily_quest?.questStreak?.current || 0}</div>
+                <div className="text-xs md:text-sm font-bold text-slate-500 uppercase tracking-widest">Days</div>
+              </div>
+              <div className="mt-1.5 md:mt-4 text-[10px] md:text-xs text-slate-400 font-medium hidden sm:block">
+                Longest: {data?.daily_quest?.questStreak?.longest || 0}
               </div>
             </div>
 
@@ -437,94 +490,104 @@ export default function DashboardPage() {
                 </div>
 
                 {hasStartedTracks ? (
-                  <div className="grid grid-cols-1 gap-4">
-                    {data.tracks_progress.map((track) => (
-                      <motion.div
-                        key={track.track_slug}
-                        whileHover={{ y: -1 }}
-                        className="bg-transparent border-b border-white/[0.05] last:border-0 hover:bg-white/[0.01] p-3 md:p-4 flex flex-col gap-4 transition-all relative overflow-hidden"
-                      >
-                        {/* Custom visual color strip */}
-                        <div 
-                          className="absolute left-0 top-0 bottom-0 w-1.5" 
-                          style={{ backgroundColor: track.track_color || '#10B981' }}
-                        />
-                        
-                        {/* Track Info */}
-                        <div className="flex items-center gap-4 flex-1">
-                          <div className="h-12 w-12 rounded-xl bg-black bg-noise border border-slate-850 flex items-center justify-center text-2xl shadow-inner">
-                            {track.track_icon || '🚀'}
-                          </div>
-                          <div className="space-y-1.5 flex-1">
-                            <h3 className="font-bold text-white text-base flex items-center gap-2">
-                              {track.track_title}
-                              <span className="text-[10px] px-1.5 py-0.5 bg-white/10 rounded font-bold text-slate-400">
-                                {track.progress_percentage}% Complete
-                              </span>
-                            </h3>
-                            {/* Track progress bar */}
-                            <div className="space-y-1 max-w-md">
-                              <div className="w-full h-2 bg-black bg-noise border border-white/[0.05] rounded-full overflow-hidden">
-                                <div 
-                                  className="h-full rounded-full transition-all duration-500" 
-                                  style={{ 
-                                    width: `${track.progress_percentage}%`,
-                                    backgroundColor: track.track_color || '#10B981'
-                                  }}
-                                />
-                              </div>
-                              <div className="text-[11px] text-slate-500 font-medium">
-                                Lesson Progress: <span className="font-bold text-slate-400">{track.completed_lessons}</span> of <span className="font-bold text-slate-400">{track.total_lessons}</span> Completed
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-1 gap-4">
+                      {(showAllTracks ? data.tracks_progress : data.tracks_progress.slice(0, 2)).map((track) => (
+                        <motion.div
+                          key={track.track_slug}
+                          whileHover={{ y: -1 }}
+                          className="bg-transparent border-b border-white/[0.05] last:border-0 hover:bg-white/[0.01] p-3 md:p-4 flex flex-col gap-4 transition-all relative overflow-hidden"
+                        >
+                          {/* Custom visual color strip */}
+                          <div 
+                            className="absolute left-0 top-0 bottom-0 w-1.5" 
+                            style={{ backgroundColor: track.track_color || '#10B981' }}
+                          />
+                          
+                          {/* Track Info */}
+                          <div className="flex items-center gap-4 flex-1">
+                            <div className="h-12 w-12 rounded-xl bg-black bg-noise border border-slate-850 flex items-center justify-center text-2xl shadow-inner">
+                              {track.track_icon || '🚀'}
+                            </div>
+                            <div className="space-y-1.5 flex-1">
+                              <h3 className="font-bold text-white text-base flex items-center gap-2">
+                                {track.track_title}
+                                <span className="text-[10px] px-1.5 py-0.5 bg-white/10 rounded font-bold text-slate-400">
+                                  {track.progress_percentage}% Complete
+                                </span>
+                              </h3>
+                              {/* Track progress bar */}
+                              <div className="space-y-1 max-w-md">
+                                <div className="w-full h-2 bg-black bg-noise border border-white/[0.05] rounded-full overflow-hidden">
+                                  <div 
+                                    className="h-full rounded-full transition-all duration-500" 
+                                    style={{ 
+                                      width: `${track.progress_percentage}%`,
+                                      backgroundColor: track.track_color || '#10B981'
+                                    }}
+                                  />
+                                </div>
+                                <div className="text-[11px] text-slate-500 font-medium">
+                                  Lesson Progress: <span className="font-bold text-slate-400">{track.completed_lessons}</span> of <span className="font-bold text-slate-400">{track.total_lessons}</span> Completed
+                                </div>
                               </div>
                             </div>
                           </div>
-                        </div>
 
-                        {/* Next Lesson Redirect Widget */}
-                        <div className="flex flex-row items-center justify-between gap-3">
-                          {track.next_lesson ? (
-                            <>
-                              <div className="space-y-0.5 min-w-0 flex-1">
-                                <div className="text-[10px] text-slate-500 uppercase tracking-widest font-black font-mono">
-                                  {track.next_lesson.in_progress ? '⚡ In Progress' : 'Next Objective'}
+                          {/* Next Lesson Redirect Widget */}
+                          <div className="flex flex-row items-center justify-between gap-3">
+                            {track.next_lesson ? (
+                              <>
+                                <div className="space-y-0.5 min-w-0 flex-1">
+                                  <div className="text-[10px] text-slate-500 uppercase tracking-widest font-black font-mono">
+                                    {track.next_lesson.in_progress ? '⚡ In Progress' : 'Next Objective'}
+                                  </div>
+                                  <div className="text-xs font-bold text-slate-300 truncate" title={track.next_lesson.title}>
+                                    {track.next_lesson.title}
+                                  </div>
+                                  <div className="text-[10px] text-slate-400 italic truncate">
+                                    {track.next_lesson.unit_title}
+                                  </div>
                                 </div>
-                                <div className="text-xs font-bold text-slate-300 truncate" title={track.next_lesson.title}>
-                                  {track.next_lesson.title}
+                                <Link
+                                  href={`/learn/${track.next_lesson.id}`}
+                                  className={`shrink-0 inline-flex h-9 items-center justify-center gap-1 rounded-xl font-extrabold text-xs tracking-wide px-4 active:scale-[0.97] transition-all shadow-md cursor-pointer ${
+                                    track.next_lesson.in_progress
+                                      ? 'bg-emerald-500 hover:bg-emerald-400 text-white shadow-emerald-500/20'
+                                      : 'bg-[#d9f95d] hover:bg-[#d9f95d] text-slate-950 shadow-[#d9f95d]/10'
+                                  }`}
+                                >
+                                  {track.next_lesson.in_progress ? 'Resume' : 'Start'} <ChevronRight className="h-3.5 w-3.5 stroke-[3px]" />
+                                </Link>
+                              </>
+                            ) : (
+                              <div className="md:text-right">
+                                <div className="text-xs font-bold text-[#d9f95d] flex items-center gap-1 md:justify-end">
+                                  🎉 Track Mastered
                                 </div>
-                                <div className="text-[10px] text-slate-400 italic truncate">
-                                  {track.next_lesson.unit_title}
+                                <div className="text-[10px] text-slate-500 mt-0.5">
+                                  You finished all lessons in this track!
                                 </div>
+                                <Link
+                                  href="/tracks"
+                                  className="mt-2.5 inline-flex h-8 items-center justify-center rounded-lg bg-white/10 hover:bg-slate-700 text-white font-bold text-[10px] px-3.5 transition-colors cursor-pointer"
+                                >
+                                  Explore Other Tracks
+                                </Link>
                               </div>
-                              <Link
-                                href={`/learn/${track.next_lesson.id}`}
-                                className={`shrink-0 inline-flex h-9 items-center justify-center gap-1 rounded-xl font-extrabold text-xs tracking-wide px-4 active:scale-[0.97] transition-all shadow-md cursor-pointer ${
-                                  track.next_lesson.in_progress
-                                    ? 'bg-emerald-500 hover:bg-emerald-400 text-white shadow-emerald-500/20'
-                                    : 'bg-[#d9f95d] hover:bg-[#d9f95d] text-slate-950 shadow-[#d9f95d]/10'
-                                }`}
-                              >
-                                {track.next_lesson.in_progress ? 'Resume' : 'Start'} <ChevronRight className="h-3.5 w-3.5 stroke-[3px]" />
-                              </Link>
-                            </>
-                          ) : (
-                            <div className="md:text-right">
-                              <div className="text-xs font-bold text-[#d9f95d] flex items-center gap-1 md:justify-end">
-                                🎉 Track Mastered
-                              </div>
-                              <div className="text-[10px] text-slate-500 mt-0.5">
-                                You finished all lessons in this track!
-                              </div>
-                              <Link
-                                href="/tracks"
-                                className="mt-2.5 inline-flex h-8 items-center justify-center rounded-lg bg-white/10 hover:bg-slate-700 text-white font-bold text-[10px] px-3.5 transition-colors cursor-pointer"
-                              >
-                                Explore Other Tracks
-                              </Link>
-                            </div>
-                          )}
-                        </div>
-                      </motion.div>
-                    ))}
+                            )}
+                          </div>
+                        </motion.div>
+                      ))}
+                    </div>
+                    {data.tracks_progress.length > 2 && (
+                      <button
+                        onClick={() => setShowAllTracks(!showAllTracks)}
+                        className="w-full py-3 bg-white/[0.02] hover:bg-white/[0.05] border border-white/[0.1] rounded-xl text-sm font-bold text-slate-300 transition-colors"
+                      >
+                        {showAllTracks ? 'Show Less Tracks' : `Load ${data.tracks_progress.length - 2} More Tracks`}
+                      </button>
+                    )}
                   </div>
                 ) : (
                   // EMPTY STATE — Choose your first track
@@ -552,6 +615,99 @@ export default function DashboardPage() {
                   </motion.div>
                 )}
               </div>
+
+              {/* DAILY QUEST WIDGET */}
+              {data?.daily_quest?.todayQuest && (
+                <div className="space-y-4 pt-4 border-t border-white/[0.05]">
+                  <div className="flex items-center gap-2">
+                    <Flame className="h-5 w-5 text-red-500 fill-red-500/10" />
+                    <h2 className="text-xl font-bold text-white tracking-tight">Daily Quest</h2>
+                  </div>
+                  
+                  <motion.div
+                    whileHover={{ scale: 1.01 }}
+                    className={`relative overflow-hidden rounded-2xl border p-6 transition-all ${
+                      data.daily_quest.questSolvedToday
+                        ? 'bg-[#0B1528] border-emerald-500/30 shadow-[0_0_15px_rgba(16,185,129,0.1)]'
+                        : 'bg-[#0B1528] border-red-500/30 shadow-[0_0_20px_rgba(239,68,68,0.15)] animate-pulse-slow'
+                    }`}
+                  >
+                    {!data.daily_quest.questSolvedToday && (
+                      <div className="absolute inset-0 bg-gradient-to-r from-red-500/5 to-transparent pointer-events-none" />
+                    )}
+                    
+                    <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+                      
+                      {/* Left: Timer or Success */}
+                      <div className="shrink-0 flex flex-col items-center justify-center p-4 rounded-xl bg-black/40 border border-white/5 min-w-[120px]">
+                        {data.daily_quest.questSolvedToday ? (
+                          <>
+                            <div className="h-10 w-10 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-xl mb-2">
+                              <CheckCircle2 className="h-6 w-6" />
+                            </div>
+                            <div className="text-[10px] font-bold uppercase tracking-widest text-emerald-500">Solved</div>
+                          </>
+                        ) : (
+                          <>
+                            <div className="text-xs text-slate-400 font-mono mb-1 uppercase tracking-widest">Time Left</div>
+                            <div className="text-2xl font-black text-white font-mono tracking-wider tabular-nums">{timeRemaining}</div>
+                          </>
+                        )}
+                      </div>
+
+                      {/* Center: Info */}
+                      <div className="flex-1 space-y-3 min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 bg-white/5 px-2 py-1 rounded">Day {data.daily_quest.dayNumber}</span>
+                          <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded border ${
+                            data.daily_quest.todayQuest.difficulty === 'EASY' ? 'text-emerald-400 border-emerald-400/20 bg-emerald-400/10' :
+                            data.daily_quest.todayQuest.difficulty === 'MEDIUM' ? 'text-amber-400 border-amber-400/20 bg-amber-400/10' :
+                            data.daily_quest.todayQuest.difficulty === 'HARD' ? 'text-red-400 border-red-400/20 bg-red-400/10' :
+                            'text-purple-400 border-purple-400/20 bg-purple-400/10'
+                          }`}>
+                            {data.daily_quest.todayQuest.difficulty}
+                          </span>
+                          <span className="text-[10px] font-bold text-amber-400 bg-amber-400/10 px-2 py-1 rounded border border-amber-400/20 flex items-center gap-1">
+                            ⭐ {data.daily_quest.todayQuest.xpReward} XP
+                          </span>
+                        </div>
+                        
+                        <h3 className="text-lg font-bold text-white truncate">{data.daily_quest.todayQuest.title}</h3>
+                        
+                        <div className="flex gap-2">
+                          {data.daily_quest.todayQuest.tags.slice(0, 3).map(tag => (
+                            <span key={tag} className="text-[9px] text-slate-500 uppercase tracking-widest bg-black/30 px-1.5 py-0.5 rounded border border-white/5">
+                              {tag}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Right: Action */}
+                      <div className="shrink-0 flex flex-col items-end gap-3 w-full md:w-auto mt-4 md:mt-0 pt-4 md:pt-0 border-t md:border-t-0 border-white/5">
+                        {data.daily_quest.questSolvedToday ? (
+                          <>
+                            <div className="text-xs text-emerald-400 font-bold">🔥 You're on a {data.daily_quest.questStreak.current}-day streak!</div>
+                            <Link href="/daily-quest" className="inline-flex h-10 items-center justify-center gap-2 rounded-xl bg-white/10 hover:bg-white/20 text-white font-bold px-6 transition-all w-full md:w-auto text-sm">
+                              View Solution
+                            </Link>
+                          </>
+                        ) : (
+                          <>
+                            <div className="text-xs text-slate-400 flex items-center gap-1.5">
+                              <User className="h-3 w-3" /> {data.daily_quest.solversCount} players solved today
+                            </div>
+                            <Link href="/daily-quest" className="inline-flex h-10 items-center justify-center gap-2 rounded-xl bg-red-500 hover:bg-red-400 text-white font-bold px-8 shadow-[0_0_15px_rgba(239,68,68,0.3)] hover:scale-105 active:scale-95 transition-all w-full md:w-auto shadow-md text-sm">
+                              Solve Now <ArrowRight className="h-4 w-4" />
+                            </Link>
+                          </>
+                        )}
+                      </div>
+                      
+                    </div>
+                  </motion.div>
+                </div>
+              )}
 
               {/* ACTIVITY TRACKER — Tabbed: XP Chart + Full Log */}
               <div className="space-y-0 pt-8 border-t border-white/[0.05]">

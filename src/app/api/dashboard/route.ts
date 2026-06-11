@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabase/server';
 
 export async function GET() {
   try {
+    const { getTodayDayNumber } = await import('@/lib/dailyQuest');
     // 1. Authenticate user
     const supabase = await createClient();
     const { data: { user: supabaseUser } } = await supabase.auth.getUser();
@@ -126,7 +127,7 @@ export async function GET() {
     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 6);
     sevenDaysAgo.setHours(0, 0, 0, 0);
 
-    const recentProgress = await prisma.userLessonProgress.findMany({
+    const recentLessonProgress = await prisma.userLessonProgress.findMany({
       where: {
         user_id: prismaUser.id,
         status: 'COMPLETED',
@@ -139,6 +140,28 @@ export async function GET() {
         xp_earned: true,
       },
     });
+
+    const recentQuestProgress = await prisma.userDailyQuestAttempt.findMany({
+      where: {
+        user_id: prismaUser.id,
+        status: 'SOLVED',
+        first_solved_at: {
+          gte: sevenDaysAgo,
+        },
+      },
+      select: {
+        first_solved_at: true,
+        xp_earned: true,
+      },
+    });
+
+    const recentProgress = [
+      ...recentLessonProgress,
+      ...recentQuestProgress.map((q) => ({
+        completed_at: q.first_solved_at,
+        xp_earned: q.xp_earned || 0,
+      }))
+    ];
 
     const getLocalDateKey = (date: Date): string => {
       const year = date.getFullYear();
@@ -223,17 +246,31 @@ export async function GET() {
     }));
 
     // 6. Overall progress stats
-    const totalCompleted = await prisma.userLessonProgress.count({
+    const totalLessonCompleted = await prisma.userLessonProgress.count({
       where: { user_id: prismaUser.id, status: 'COMPLETED' },
     });
+    const totalQuestCompleted = await prisma.userDailyQuestAttempt.count({
+      where: { user_id: prismaUser.id, status: 'SOLVED' },
+    });
+    const totalCompleted = totalLessonCompleted + totalQuestCompleted;
+
     const totalInProgress = await prisma.userLessonProgress.count({
       where: { user_id: prismaUser.id, status: 'IN_PROGRESS' },
     });
-    const totalEstimatedMinutes = activityLogRaw.reduce(
+    
+    const totalLessonEstimatedMinutes = activityLogRaw.reduce(
       (sum, r) => sum + r.lesson.duration_minutes,
       0
     );
-    const totalAttempts = activityLogRaw.reduce((sum, r) => sum + r.attempts, 0);
+    const totalEstimatedMinutes = totalLessonEstimatedMinutes + (totalQuestCompleted * 20);
+
+    const totalLessonAttempts = activityLogRaw.reduce((sum, r) => sum + r.attempts, 0);
+    const questAttempts = await prisma.userDailyQuestAttempt.findMany({
+      where: { user_id: prismaUser.id },
+      select: { attempts_count: true }
+    });
+    const totalQuestAttempts = questAttempts.reduce((sum, r) => sum + r.attempts_count, 0);
+    const totalAttempts = totalLessonAttempts + totalQuestAttempts;
 
     // 7. Leaderboard (top 5 users by XP this week)
     const weeklyProgressAllUsers = await prisma.userLessonProgress.findMany({
@@ -270,6 +307,33 @@ export async function GET() {
         xp_this_week: user.xp_this_week,
       }));
 
+    // 8. Daily Quest integration
+    const todayDayNumber = getTodayDayNumber();
+    const todayQuest = await prisma.dailyQuest.findUnique({
+      where: { dayNumber: todayDayNumber },
+      select: { title: true, difficulty: true, tags: true, xp_reward: true }
+    });
+
+    const questStreak = await prisma.dailyQuestStreak.findUnique({
+      where: { user_id: prismaUser.id }
+    });
+
+    const todayAttempt = await prisma.userDailyQuestAttempt.findUnique({
+      where: {
+        user_id_day_number: {
+          user_id: prismaUser.id,
+          day_number: todayDayNumber
+        }
+      }
+    });
+
+    const solversCount = await prisma.userDailyQuestAttempt.count({
+      where: {
+        day_number: todayDayNumber,
+        status: 'SOLVED'
+      }
+    });
+
     const dashboardData = {
       user: {
         xp: prismaUser.xp,
@@ -290,6 +354,22 @@ export async function GET() {
         total_estimated_minutes: totalEstimatedMinutes,
         total_attempts: totalAttempts,
       },
+      daily_quest: {
+        todayQuest: todayQuest ? {
+          title: todayQuest.title,
+          difficulty: todayQuest.difficulty,
+          tags: todayQuest.tags,
+          xpReward: todayQuest.xp_reward,
+          isSolved: todayAttempt?.status === 'SOLVED',
+        } : null,
+        questStreak: {
+          current: questStreak?.current_streak || 0,
+          longest: questStreak?.longest_streak || 0,
+        },
+        questSolvedToday: todayAttempt?.status === 'SOLVED',
+        dayNumber: todayDayNumber,
+        solversCount: solversCount,
+      }
     };
 
     return NextResponse.json(dashboardData);

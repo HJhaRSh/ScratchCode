@@ -50,7 +50,8 @@ export async function middleware(request: NextRequest) {
     url.pathname.startsWith('/profile') ||
     url.pathname === '/settings' ||
     url.pathname === '/account' ||
-    url.pathname === '/badges';
+    url.pathname === '/badges' ||
+    url.pathname.startsWith('/daily-quest');
 
   const isAuthPath =
     url.pathname === '/login' ||
