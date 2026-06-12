@@ -21,6 +21,7 @@ import {
   AlertCircle 
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import ShareButton from '@/components/social/ShareButton';
 
 interface Lesson {
   id: string;
@@ -286,21 +287,29 @@ export default function TrackDetailPage({ params }: { params: Promise<{ slug: st
             </div>
 
             {/* Continue Learning CTA Banner */}
-            {nextIncompleteLesson && (
+            {allCompleted ? (
+              <motion.div
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                className="flex-shrink-0 w-full md:w-auto"
+              >
+                <ShareButton type="TRACK_COMPLETE" language={track.title} theme={track.slug as any} variant="banner" />
+              </motion.div>
+            ) : nextIncompleteLesson ? (
               <motion.div
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
                 className="flex-shrink-0 w-full md:w-auto"
               >
                 <Link
-                  href={allCompleted ? `/learn/${allLessons[0]?.id}` : `/learn/${nextIncompleteLesson.id}`}
+                  href={`/learn/${nextIncompleteLesson.id}`}
                   className={`inline-flex w-full md:w-auto h-12 px-6 items-center justify-center gap-2 rounded-xl bg-gradient-to-r ${theme.gradient} text-slate-950 font-display tracking-tight font-bold text-sm hover:brightness-110 shadow-lg ${theme.shadow} transition-all`}
                 >
                   <Play className="h-4.5 w-4.5 fill-current" />
-                  <span>{allCompleted ? 'Review Curriculum' : 'Continue Learning'}</span>
+                  <span>Continue Learning</span>
                 </Link>
               </motion.div>
-            )}
+            ) : null}
           </motion.div>
 
           {/* Units Accordion */}

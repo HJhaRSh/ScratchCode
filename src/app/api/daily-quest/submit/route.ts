@@ -156,9 +156,15 @@ export async function POST(req: NextRequest) {
         xpEarned += bonus;
       }
       
+      const newXP = prismaUser.xp + xpEarned;
+      const newLevel = newXP >= 5000 ? 4 : newXP >= 2000 ? 3 : newXP >= 500 ? 2 : 1;
+
       await prisma.user.update({
         where: { id: prismaUser.id },
-        data: { xp: { increment: xpEarned } }
+        data: { 
+          xp: newXP,
+          level: newLevel
+        }
       });
 
       if (process.env.GROQ_API_KEY) {

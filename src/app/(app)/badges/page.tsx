@@ -6,6 +6,7 @@ import Sidebar from '@/components/layout/Sidebar';
 import Skeleton from '@/components/ui/Skeleton';
 import { Award, Lock, Sparkles } from 'lucide-react';
 import { motion } from 'framer-motion';
+import ShareButton from '@/components/social/ShareButton';
 
 interface Badge {
   id: string;
@@ -149,6 +150,10 @@ export default function BadgesPage() {
                           className={`bg-white/[0.02] backdrop-blur-xl border ${color.border} rounded-2xl p-6 flex flex-col items-center text-center gap-4 relative overflow-hidden group ${color.hoverBorder} transition-colors`}
                         >
                           <div className={`absolute inset-0 bg-gradient-to-b ${color.bgGlow} to-transparent opacity-0 group-hover:opacity-100 transition-opacity`} />
+                          
+                          <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity z-20">
+                            <ShareButton type="BADGE_EARNED" badgeName={badge.title} variant="icon" />
+                          </div>
                           
                           <div className={`h-24 w-24 rounded-full bg-black bg-noise border ${color.border} flex items-center justify-center text-5xl filter ${color.dropShadow} group-hover:scale-110 transition-transform duration-500 relative z-10`}>
                             {badge.icon_emoji}

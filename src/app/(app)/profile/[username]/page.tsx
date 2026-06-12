@@ -3,7 +3,8 @@
 import React from 'react';
 import Navbar from '@/components/layout/Navbar';
 import Sidebar from '@/components/layout/Sidebar';
-import { Award } from 'lucide-react';
+import { Award, Swords, Clock, Target } from 'lucide-react';
+import Link from 'next/link';
 
 export default function UserProfilePage({ params }: { params: { username: string } }) {
   const mockUser = {
@@ -16,6 +17,10 @@ export default function UserProfilePage({ params }: { params: { username: string
       { slug: 'on-fire', title: 'On Fire', emoji: '🔥' },
       { slug: 'project-builder', title: 'Project Builder', emoji: '🛠️' },
     ],
+    challengesSent: [
+      { token: 'abc-123', title: 'Trapping Rain Water', attempts: 5, expires_at: new Date(Date.now() + 86400000).toISOString() },
+      { token: 'xyz-789', title: 'Two Sum', attempts: 1, expires_at: new Date(Date.now() - 86400000).toISOString() }
+    ]
   };
 
   return (
@@ -57,6 +62,41 @@ export default function UserProfilePage({ params }: { params: { username: string
                   <div className="text-sm font-semibold text-slate-200">{b.title}</div>
                 </div>
               ))}
+            </div>
+          </div>
+
+          {/* Challenges Panel */}
+          <div className="space-y-4">
+            <h3 className="text-lg font-display font-bold text-white flex items-center gap-2">
+              <Swords className="h-5 w-5 text-rose-500" /> Challenges Sent
+            </h3>
+            <div className="bg-[#111] border border-white/[0.05] rounded-xl overflow-hidden">
+              {mockUser.challengesSent.length > 0 ? (
+                <div className="divide-y divide-white/[0.05]">
+                  {mockUser.challengesSent.map((c, i) => {
+                    const isExpired = new Date(c.expires_at) < new Date();
+                    return (
+                      <div key={i} className="p-4 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                        <div className="space-y-1">
+                          <h4 className="text-sm font-bold text-slate-200">{c.title}</h4>
+                          <div className="flex items-center gap-3 text-xs text-slate-500 font-medium">
+                            <span className="flex items-center gap-1"><Target className="h-3.5 w-3.5" /> {c.attempts} attempts</span>
+                            <span className="flex items-center gap-1"><Clock className="h-3.5 w-3.5" /> {isExpired ? 'Expired' : 'Active'}</span>
+                          </div>
+                        </div>
+                        <Link 
+                          href={`/challenge/${c.token}`}
+                          className={`px-4 py-2 rounded-lg text-xs font-bold transition-colors ${isExpired ? 'bg-white/[0.02] text-slate-500 hover:bg-white/[0.05]' : 'bg-rose-500/10 text-rose-500 hover:bg-rose-500/20'}`}
+                        >
+                          View Challenge
+                        </Link>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="p-8 text-center text-slate-500 text-sm">No challenges sent yet.</div>
+              )}
             </div>
           </div>
         </main>

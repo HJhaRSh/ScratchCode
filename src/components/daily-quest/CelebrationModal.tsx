@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Trophy, Star, Flame, Sparkles, Share2, LayoutDashboard, ChevronRight, CheckCircle2 } from 'lucide-react';
 import Link from 'next/link';
+import ShareButton from '@/components/social/ShareButton';
+import ChallengeButton from '@/components/social/ChallengeButton';
 
 interface CelebrationModalProps {
   isOpen: boolean;
@@ -201,7 +203,17 @@ export default function CelebrationModal({ isOpen, onClose, resultData, questDat
               <Link href="/dashboard" className="text-slate-400 hover:text-white text-sm font-semibold flex items-center gap-2 transition-colors">
                 <LayoutDashboard className="h-4 w-4" /> Back to Dashboard
               </Link>
-              <div className="flex gap-2">
+              <div className="flex flex-wrap gap-2">
+                <ChallengeButton 
+                  questId={questData.id} 
+                  title={questData.title}
+                  variant="button"
+                />
+                <ShareButton 
+                  type="QUEST_SOLVED" 
+                  questId={questData.id} 
+                  language="Python"
+                />
                 <button onClick={onViewLeaderboard} className="px-4 py-2 border border-white/[0.1] hover:bg-white/[0.05] rounded-lg text-slate-200 text-sm font-bold transition-colors">
                   View Leaderboard
                 </button>

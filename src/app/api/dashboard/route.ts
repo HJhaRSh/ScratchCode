@@ -155,12 +155,27 @@ export async function GET() {
       },
     });
 
+    const recentChallengeProgress = await prisma.challengeAttempt.findMany({
+      where: {
+        challenger_id: prismaUser.id,
+        status: 'SOLVED',
+        completed_at: {
+          gte: sevenDaysAgo,
+        },
+      },
+      select: {
+        completed_at: true,
+        xp_earned: true,
+      },
+    });
+
     const recentProgress = [
       ...recentLessonProgress,
       ...recentQuestProgress.map((q) => ({
         completed_at: q.first_solved_at,
         xp_earned: q.xp_earned || 0,
-      }))
+      })),
+      ...recentChallengeProgress
     ];
 
     const getLocalDateKey = (date: Date): string => {
@@ -228,7 +243,7 @@ export async function GET() {
       }
     });
 
-    const activityLog = activityLogRaw.map((record) => ({
+    const lessonLog = activityLogRaw.map((record) => ({
       lesson_id: record.lesson_id,
       lesson_title: record.lesson.title,
       lesson_type: record.lesson.type,
@@ -244,6 +259,64 @@ export async function GET() {
       track_color: record.lesson.unit.track.color_hex,
       unit_title: record.lesson.unit.title,
     }));
+
+    // Fetch Daily Quests for Activity Log
+    const questLogRaw = await prisma.userDailyQuestAttempt.findMany({
+      where: { user_id: prismaUser.id, status: 'SOLVED' },
+      orderBy: { first_solved_at: 'desc' },
+      take: 50,
+      include: { quest: { select: { id: true, title: true, xp_reward: true } } }
+    });
+
+    const questLog = questLogRaw.map((record) => ({
+      lesson_id: record.quest_id,
+      lesson_title: record.quest.title,
+      lesson_type: 'DAILY_QUEST',
+      language: record.language || 'Any',
+      duration_minutes: 20,
+      xp_reward: record.quest.xp_reward,
+      xp_earned: record.xp_earned || 0,
+      attempts: record.attempts_count,
+      completed_at: record.first_solved_at,
+      track_title: 'Daily Quest',
+      track_slug: 'daily-quest',
+      track_icon: '🎯',
+      track_color: '#ef4444',
+      unit_title: `Day ${record.day_number}`,
+    }));
+
+    // Fetch Challenges for Activity Log
+    const challengeLogRaw = await prisma.challengeAttempt.findMany({
+      where: { challenger_id: prismaUser.id, status: 'SOLVED' },
+      orderBy: { completed_at: 'desc' },
+      take: 50,
+      include: { challenge: { include: { quest: true, lesson: true } } }
+    });
+
+    const challengeLog = challengeLogRaw.map((record) => {
+       const title = record.challenge.quest ? record.challenge.quest.title : (record.challenge.lesson ? record.challenge.lesson.title : 'Challenge');
+       return {
+          lesson_id: record.challenge_id,
+          lesson_title: `${title}`,
+          lesson_type: 'CHALLENGE',
+          language: record.language || 'Any',
+          duration_minutes: Math.ceil((record.time_taken_seconds || 600) / 60),
+          xp_reward: record.xp_earned,
+          xp_earned: record.xp_earned,
+          attempts: 1,
+          completed_at: record.completed_at,
+          track_title: 'Code Challenge',
+          track_slug: 'challenge',
+          track_icon: '⚔️',
+          track_color: '#a855f7',
+          unit_title: 'Custom Challenge',
+       }
+    });
+
+    const activityLog = [...lessonLog, ...questLog, ...challengeLog]
+      .filter((a) => a.completed_at !== null)
+      .sort((a, b) => new Date(b.completed_at!).getTime() - new Date(a.completed_at!).getTime())
+      .slice(0, 50);
 
     // 6. Overall progress stats
     const totalLessonCompleted = await prisma.userLessonProgress.count({
@@ -289,6 +362,15 @@ export async function GET() {
       select: { user_id: true, xp_earned: true },
     });
 
+    const weeklyChallengeProgressAllUsers = await prisma.challengeAttempt.findMany({
+      where: {
+        status: 'SOLVED',
+        completed_at: { gte: sevenDaysAgo },
+        challenger_id: { not: null }
+      },
+      select: { challenger_id: true, xp_earned: true },
+    });
+
     const userXPMap = new Map<string, number>();
     weeklyProgressAllUsers.forEach((p) => {
       const current = userXPMap.get(p.user_id) || 0;
@@ -297,6 +379,12 @@ export async function GET() {
     weeklyQuestProgressAllUsers.forEach((p) => {
       const current = userXPMap.get(p.user_id) || 0;
       userXPMap.set(p.user_id, current + (p.xp_earned || 0));
+    });
+    weeklyChallengeProgressAllUsers.forEach((p) => {
+      if (p.challenger_id) {
+        const current = userXPMap.get(p.challenger_id) || 0;
+        userXPMap.set(p.challenger_id, current + p.xp_earned);
+      }
     });
 
     const allUsers = await prisma.user.findMany({

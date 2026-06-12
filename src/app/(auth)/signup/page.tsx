@@ -1,13 +1,14 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { ArrowRight } from 'lucide-react';
 
-export default function SignupPage() {
+function SignupForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const supabase = createClient();
 
   const [username, setUsername] = useState('');
@@ -131,7 +132,8 @@ export default function SignupPage() {
       }
 
       // 3. Successful path -> navigate to dashboard
-      router.push('/dashboard');
+      const nextUrl = searchParams.get('next');
+      router.push(nextUrl || '/dashboard');
       router.refresh();
     } catch (err: any) {
       setError(err.message || 'An unexpected error occurred during registration.');
@@ -249,11 +251,25 @@ export default function SignupPage() {
 
         <div className="text-center text-sm text-slate-500 pt-6 border-t border-white/[0.05]">
           Already have an account?{' '}
-          <Link href="/login" className="text-white hover:text-slate-300 font-bold hover:underline transition-colors">
+          <Link href={`/login${searchParams.get('next') ? `?next=${encodeURIComponent(searchParams.get('next')!)}` : ''}`} className="text-white hover:text-slate-300 font-bold hover:underline transition-colors">
             Sign In
           </Link>
         </div>
       </div>
     </div>
+  );
+}
+
+export default function SignupPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-black bg-noise flex flex-col items-center justify-center p-4 overflow-x-hidden relative">
+        <div className="w-full max-w-md bg-[#111111] border border-white/[0.05] rounded-3xl p-8 space-y-6 shadow-2xl flex flex-col items-center justify-center">
+          <div className="w-8 h-8 border-4 border-white/20 border-t-white rounded-full animate-spin"></div>
+        </div>
+      </div>
+    }>
+      <SignupForm />
+    </Suspense>
   );
 }

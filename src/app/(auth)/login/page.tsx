@@ -46,7 +46,8 @@ function LoginForm() {
 
       if (data?.session) {
         // Redirection handled seamlessly by Next.js router
-        router.push('/dashboard');
+        const nextUrl = searchParams.get('next');
+        router.push(nextUrl || '/dashboard');
         router.refresh();
       }
     } catch (err: any) {
@@ -125,7 +126,7 @@ function LoginForm() {
 
         <div className="text-center text-sm text-slate-500 pt-4 border-t border-white/[0.05]">
           Don't have an account?{' '}
-          <Link href="/signup" className="text-white hover:text-slate-300 font-bold hover:underline transition-colors">
+          <Link href={`/signup${searchParams.get('next') ? `?next=${encodeURIComponent(searchParams.get('next')!)}` : ''}`} className="text-white hover:text-slate-300 font-bold hover:underline transition-colors">
             Sign Up
           </Link>
         </div>

@@ -7,6 +7,7 @@ import Link from 'next/link';
 import CodeEditor from '@/components/editor/CodeEditor';
 import CelebrationModal from '@/components/daily-quest/CelebrationModal';
 import LeaderboardDrawer from '@/components/daily-quest/LeaderboardDrawer';
+import ChallengeButton from '@/components/social/ChallengeButton';
 import { detectLanguage } from '@/lib/languageDetector';
 
 export default function DailyQuestPage() {
@@ -223,6 +224,13 @@ export default function DailyQuestPage() {
         </div>
         
         <div className="flex items-center gap-4">
+          {quest && (
+            <ChallengeButton 
+              questId={quest.id} 
+              title={quest.title} 
+              className="text-xs py-1.5 px-3" 
+            />
+          )}
           <button onClick={() => setIsLeaderboardOpen(true)} className="flex items-center gap-1.5 text-xs font-bold text-amber-400 bg-amber-500/10 px-3 py-1.5 rounded-md hover:bg-amber-500/20 transition-colors border border-amber-500/10">
             <Trophy className="h-3.5 w-3.5" /> Leaderboard
           </button>

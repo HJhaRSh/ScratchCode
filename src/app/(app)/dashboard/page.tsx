@@ -26,6 +26,7 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Skeleton from '@/components/ui/Skeleton';
+import ShareButton from '@/components/social/ShareButton';
 
 interface ExtendedTrackProgress {
   track_slug: string;
@@ -385,6 +386,11 @@ export default function DashboardPage() {
               <div className="flex items-baseline gap-1.5">
                 <div className="text-3xl md:text-5xl font-black text-white tracking-tighter">{user?.streak_count || 0}</div>
                 <div className="text-xs md:text-sm font-bold text-slate-500 uppercase tracking-widest">Days</div>
+                {user?.streak_count && user.streak_count >= 3 ? (
+                  <div className="ml-auto">
+                    <ShareButton type="STREAK_MILESTONE" streakCount={user.streak_count} variant="icon" />
+                  </div>
+                ) : null}
               </div>
               <div className="mt-1.5 md:mt-4 text-[10px] md:text-xs text-slate-400 font-medium hidden sm:block">
                 {user?.streak_count && user.streak_count > 0 ? "You're on fire!" : "Complete a lesson."}
@@ -882,6 +888,8 @@ export default function DashboardPage() {
                                 CONCEPT: 'text-cyan-400 bg-cyan-500/10 border-cyan-500/20',
                                 EXERCISE: 'text-orange-400 bg-orange-500/10 border-orange-500/20',
                                 PROJECT: 'text-purple-400 bg-purple-500/10 border-purple-500/20',
+                                DAILY_QUEST: 'text-rose-400 bg-rose-500/10 border-rose-500/20',
+                                CHALLENGE: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20',
                               };
                               const typeIcons: Record<string, string> = {
                                 CONCEPT: '📖',
@@ -1012,9 +1020,9 @@ export default function DashboardPage() {
                               className={`text-xs font-bold truncate max-w-[120px] ${
                                 isCurrentUser ? "text-cyan-400" : "text-slate-200"
                               }`}
-                              title={`@${row.username}`}
+                              title={row.username}
                             >
-                              @{row.username}
+                              {row.username}
                               {isCurrentUser && (
                                 <span className="block text-[8px] text-cyan-400 font-bold uppercase tracking-wider font-mono">You</span>
                               )}
