@@ -25,7 +25,7 @@ export async function GET(req: NextRequest) {
       orderBy: [
         { first_solved_at: 'asc' }
       ],
-      take: 20
+      take: 10
     });
 
     return NextResponse.json({

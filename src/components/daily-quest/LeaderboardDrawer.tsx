@@ -47,7 +47,7 @@ export default function LeaderboardDrawer({ isOpen, onClose, dayNumber }: Leader
   }, [isOpen]);
 
   const formatTime = (ms: number) => {
-    if (!ms || ms <= 0) return '--:--';
+    if (ms === null || ms === undefined || ms < 0) return '--:--';
     const s = Math.floor(ms / 1000);
     const m = Math.floor(s / 60);
     const remainingSeconds = s % 60;

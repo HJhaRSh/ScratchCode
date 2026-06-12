@@ -22,9 +22,25 @@ export async function GET(req: NextRequest) {
 
     if (!quest) return NextResponse.json({ error: 'No quest found for today' }, { status: 404 });
 
-    const attempt = await prisma.userDailyQuestAttempt.findUnique({
+    let attempt = await prisma.userDailyQuestAttempt.findUnique({
       where: { user_id_day_number: { user_id: prismaUser.id, day_number: dayNumber } }
     });
+
+    if (!attempt) {
+      attempt = await prisma.userDailyQuestAttempt.create({
+        data: {
+          user_id: prismaUser.id,
+          quest_id: quest.id,
+          day_number: dayNumber,
+          status: 'ATTEMPTED',
+          language: 'python',
+          submitted_code: '',
+          passed_tests: 0,
+          total_tests: 0,
+          xp_earned: 0,
+        }
+      });
+    }
 
     const alreadySolved = attempt?.status === 'SOLVED';
 
