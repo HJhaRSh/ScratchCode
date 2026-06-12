@@ -180,7 +180,7 @@ export default function ChallengePage() {
         <div className="flex gap-4 items-center">
           <div className="flex items-center gap-1.5 px-3 py-1.5 bg-white/5 rounded-lg border border-white/10 text-xs font-bold">
             <Target className="h-3.5 w-3.5 text-rose-500" />
-            Attempts: {max_attempts === 999 ? 'Unlimited' : `${attemptsUsed} / ${max_attempts}`}
+            Attempts: {max_attempts === 999 ? 'Unlimited' : (isSuccess && challenge?.userState?.hasSolvedNatively && attemptsUsed === 0) ? 'N/A' : `${attemptsUsed} / ${max_attempts}`}
           </div>
         </div>
       </header>
@@ -265,7 +265,7 @@ export default function ChallengePage() {
                             </div>
                             <div className="flex items-center gap-4 text-sm font-mono text-slate-400">
                               <span className={row.status === 'SOLVED' ? 'text-emerald-400' : 'text-rose-400'}>{row.status}</span>
-                              {row.status === 'SOLVED' && row.time_taken_seconds && (
+                              {row.status === 'SOLVED' && row.time_taken_seconds != null && (
                                 <span className="flex items-center gap-1"><Clock className="h-3 w-3" /> {row.time_taken_seconds}s</span>
                               )}
                             </div>
