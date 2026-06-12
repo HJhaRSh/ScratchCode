@@ -205,9 +205,6 @@ export default function CelebrationModal({ isOpen, onClose, resultData, questDat
                 <button onClick={onViewLeaderboard} className="px-4 py-2 border border-white/[0.1] hover:bg-white/[0.05] rounded-lg text-slate-200 text-sm font-bold transition-colors">
                   View Leaderboard
                 </button>
-                <button className="px-4 py-2 bg-blue-500 hover:bg-blue-600 rounded-lg text-white text-sm font-bold flex items-center gap-2 transition-colors">
-                  <Share2 className="h-4 w-4" /> Share
-                </button>
               </div>
             </div>
           </motion.div>

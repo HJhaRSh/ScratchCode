@@ -79,10 +79,17 @@ export async function POST(req: NextRequest) {
       }
 
       const actual = decode(j0Data?.stdout).trim();
-      const err = decode(j0Data?.stderr).trim() || decode(j0Data?.compile_output).trim() || j0Data?.status?.description;
+      let err = decode(j0Data?.stderr).trim() || decode(j0Data?.compile_output).trim();
+      
+      if (!err && j0Data?.status?.id !== 3) {
+        err = j0Data?.status?.description;
+      }
+
       const expected = String(tc.expected_output || '').trim();
 
-      const passed = j0Data?.status?.id === 3 && (actual.includes(expected) || expected.includes(actual));
+      // Strict matching but ignoring whitespaces to prevent formatting issues (e.g. spaces in arrays)
+      const normalizeOutput = (str: string) => str.replace(/\s+/g, '');
+      const passed = j0Data?.status?.id === 3 && normalizeOutput(actual) === normalizeOutput(expected);
       if (passed) passedTests++;
 
       testResults.push({
