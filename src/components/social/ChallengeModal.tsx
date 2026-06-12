@@ -43,11 +43,6 @@ export default function ChallengeModal({ isOpen, onClose, lessonId, questId, tit
       const data = await res.json();
       if (res.ok) {
         setChallengeUrl(`${window.location.origin}/challenge/${data.challengeToken}`);
-        setShareTexts({
-          twitter: data.shareText.twitter.replace(data.challengeUrl, `${window.location.origin}/challenge/${data.challengeToken}`),
-          linkedin: data.shareText.linkedin.replace(data.challengeUrl, `${window.location.origin}/challenge/${data.challengeToken}`),
-          whatsapp: data.shareText.whatsapp.replace(data.challengeUrl, `${window.location.origin}/challenge/${data.challengeToken}`)
-        });
       } else {
         setError(data.error || 'Failed to create challenge');
       }
