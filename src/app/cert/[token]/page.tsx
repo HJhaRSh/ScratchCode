@@ -8,12 +8,19 @@ interface CertPageProps {
   params: Promise<{ token: string }>;
 }
 
+function getBaseUrl() {
+  if (process.env.NEXT_PUBLIC_APP_URL) return process.env.NEXT_PUBLIC_APP_URL;
+  if (process.env.VERCEL_PROJECT_PRODUCTION_URL) return `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`;
+  if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL}`;
+  return 'http://localhost:3000';
+}
+
 export async function generateMetadata(
   { params }: CertPageProps,
   parent: ResolvingMetadata
 ): Promise<Metadata> {
   const resolvedParams = await params;
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+  const baseUrl = getBaseUrl();
   
   try {
     const res = await fetch(`${baseUrl}/api/certificates/${resolvedParams.token}`, { cache: 'no-store' });
@@ -52,7 +59,7 @@ export async function generateMetadata(
 
 export default async function CertificatePage({ params }: CertPageProps) {
   const resolvedParams = await params;
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+  const baseUrl = getBaseUrl();
   
   let cert = null;
   try {
