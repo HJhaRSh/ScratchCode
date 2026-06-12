@@ -70,6 +70,8 @@ export const metadata: Metadata = {
   },
 };
 
+import { Analytics } from "@vercel/analytics/react";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -95,7 +97,10 @@ export default function RootLayout({
           `}
         </Script>
       </head>
-      <body className="min-h-full flex flex-col bg-[#0b0c10]">{children}</body>
+      <body className="min-h-full flex flex-col bg-[#0b0c10]">
+        {children}
+        <Analytics />
+      </body>
     </html>
   );
 }
