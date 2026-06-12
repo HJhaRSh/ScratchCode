@@ -281,10 +281,22 @@ export async function GET() {
       select: { user_id: true, xp_earned: true },
     });
 
+    const weeklyQuestProgressAllUsers = await prisma.userDailyQuestAttempt.findMany({
+      where: {
+        status: 'SOLVED',
+        first_solved_at: { gte: sevenDaysAgo },
+      },
+      select: { user_id: true, xp_earned: true },
+    });
+
     const userXPMap = new Map<string, number>();
     weeklyProgressAllUsers.forEach((p) => {
       const current = userXPMap.get(p.user_id) || 0;
       userXPMap.set(p.user_id, current + p.xp_earned);
+    });
+    weeklyQuestProgressAllUsers.forEach((p) => {
+      const current = userXPMap.get(p.user_id) || 0;
+      userXPMap.set(p.user_id, current + (p.xp_earned || 0));
     });
 
     const allUsers = await prisma.user.findMany({
