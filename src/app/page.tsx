@@ -25,7 +25,8 @@ import { Play,
   Scan,
   Eye,
   GitBranch,
-  Flame
+  Flame,
+  Swords
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useUser } from '@/hooks/useUser';
@@ -141,6 +142,12 @@ const highlights = [
     description: 'Come back every day for a fresh, bite-sized coding challenge. Build your streak, earn bonus XP, and climb the daily leaderboard.',
     icon: Flame,
     color: 'text-orange-400 bg-orange-500/10 border-orange-500/20 hover:bg-orange-500/20',
+  },
+  {
+    title: 'Custom Challenges',
+    description: 'Create unique coding challenges and share them via link. Challenge your friends to solve them and see who tops the leaderboard!',
+    icon: Swords,
+    color: 'text-rose-400 bg-rose-500/10 border-rose-500/20 hover:bg-rose-500/20',
   },
 ];
 

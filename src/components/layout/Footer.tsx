@@ -24,6 +24,32 @@ export default function Footer() {
           
           <div className="md:col-span-6 lg:col-span-7 flex flex-wrap gap-16 lg:justify-end">
             <div className="space-y-6">
+              <h4 className="text-[11px] font-display font-bold uppercase tracking-[0.2em] text-slate-500">Platform</h4>
+              <ul className="space-y-4 text-sm font-medium">
+                <li>
+                  <Link href="/tracks" className="text-slate-300 hover:text-[#d9f95d] transition-colors flex items-center gap-2 group">
+                    Tracks
+                    <ArrowRight className="w-3 h-3 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all" />
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/visualizer" className="text-slate-300 hover:text-[#d9f95d] transition-colors flex items-center gap-2 group">
+                    Code Visualizer
+                    <ArrowRight className="w-3 h-3 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all" />
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/daily-quest" className="text-slate-300 hover:text-[#d9f95d] transition-colors flex items-center gap-2 group">
+                    Daily Quests
+                    <ArrowRight className="w-3 h-3 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all" />
+                  </Link>
+                </li>
+              </ul>
+            </div>
+
+
+
+            <div className="space-y-6">
               <h4 className="text-[11px] font-display font-bold uppercase tracking-[0.2em] text-slate-500">Legal</h4>
               <ul className="space-y-4 text-sm font-medium">
                 <li>
@@ -47,22 +73,7 @@ export default function Footer() {
               </ul>
             </div>
             
-            <div className="space-y-6">
-              <h4 className="text-[11px] font-display font-bold uppercase tracking-[0.2em] text-slate-500">Social</h4>
-              <ul className="space-y-4 text-sm font-medium">
-                <li>
-                  <a href="https://github.com" target="_blank" rel="noopener noreferrer" className="text-slate-300 hover:text-white transition-colors flex items-center gap-3 group">
-                    <div className="bg-white/5 p-2 rounded-lg group-hover:bg-white/10 transition-colors">
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4">
-                        <path d="M15 22v-4a4.8 4.8 0 0 0-1-3.02c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 19 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A4.8 4.8 0 0 0 9 18v4"></path>
-                        <path d="M9 18c-4.51 2-5-2-7-2"></path>
-                      </svg>
-                    </div>
-                    GitHub
-                  </a>
-                </li>
-              </ul>
-            </div>
+
           </div>
         </div>
 
