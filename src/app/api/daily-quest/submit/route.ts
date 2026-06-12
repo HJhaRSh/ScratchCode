@@ -172,16 +172,16 @@ export async function POST(req: NextRequest) {
           const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
           const aiResponse = await groq.chat.completions.create({
             model: "llama-3.1-8b-instant",
-            max_tokens: 1000,
+            max_tokens: 2500,
             response_format: { type: 'json_object' },
             messages: [
               {
                 role: "system",
-                content: "You are an expert competitive programmer and coding mentor.\nAnalyze the submitted solution and provide structured feedback."
+                content: "You are an expert competitive programmer and coding mentor. Analyze the submitted solution in deep detail and provide highly structured, comprehensive feedback. Include a thoroughly explained better approach with a complete code snippet if applicable."
               },
               {
                 role: "user",
-                content: `Problem: ${quest.title}\nLanguage: ${language}\nUser's Solution:\n${code}\n\nThe solution passed all test cases.\n\nProvide a JSON response with this exact structure:\n{\n  "codeQuality": {\n    "score": number,\n    "strengths": ["..."],\n    "improvements": ["..."]\n  },\n  "complexity": {\n    "userTimeComplexity": "O(...)",\n    "userSpaceComplexity": "O(...)",\n    "isOptimal": boolean\n  },\n  "betterApproach": {\n    "exists": boolean,\n    "name": "...",\n    "whyBetter": "...",\n    "timeComplexity": "O(...)"\n  },\n  "tips": ["..."],\n  "verdict": "optimal" | "good" | "can_improve"\n}\nReturn ONLY the JSON, no markdown.`
+                content: `Problem: ${quest.title}\nLanguage: ${language}\nUser's Solution:\n${code}\n\nThe solution passed all test cases.\n\nProvide a JSON response with this exact structure:\n{\n  "codeQuality": {\n    "score": number (1-10),\n    "strengths": ["detailed point 1", "detailed point 2", ...],\n    "improvements": ["detailed point 1", "detailed point 2", ...]\n  },\n  "complexity": {\n    "userTimeComplexity": "O(...)",\n    "userSpaceComplexity": "O(...)",\n    "isOptimal": boolean\n  },\n  "betterApproach": {\n    "exists": boolean,\n    "name": "...",\n    "whyBetter": "...",\n    "timeComplexity": "O(...)",\n    "spaceComplexity": "O(...)",\n    "codeSnippet": "..."\n  },\n  "tips": ["detailed tip 1", "detailed tip 2", ...],\n  "verdict": "optimal" | "good" | "can_improve"\n}\nReturn ONLY the JSON, no markdown formatting blocks.`
               }
             ]
           });
